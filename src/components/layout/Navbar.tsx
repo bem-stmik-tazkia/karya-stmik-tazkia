@@ -1,47 +1,128 @@
+"use client";
+
 import Link from "next/link";
 import { ThemeToggle } from "../ui/ThemeToggle";
-import { Search } from "lucide-react";
+import { Menu, X, BookOpen, Sparkles, Compass, Info, Send } from "lucide-react";
+import { useState } from "react";
+import { BouncyButton } from "../ui/BouncyButton";
+
+const navLinks = [
+  { href: "/explore", label: "Explore Gallery", icon: Compass },
+  { href: "/about", label: "About Us", icon: Info },
+];
 
 export function Navbar() {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
-        <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center space-x-2">
-            <span className="font-bold text-2xl text-primary tracking-tight">
-              Karya<span className="text-secondary dark:text-foreground">Tazkia</span>
+    <>
+      <header className="fixed top-0 left-0 right-0 z-50 w-full border-b-4 border-border bg-background shadow-[0_4px_0_0_var(--color-border)]">
+        <div className="container mx-auto px-4 flex h-16 items-center justify-between bg-background">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 shrink-0" onClick={() => setIsOpen(false)}>
+            <div className="w-9 h-9 bg-primary rounded-xl border-2 border-primary-shadow shadow-[0_2px_0_0_var(--color-primary-shadow)] flex items-center justify-center">
+              <BookOpen className="w-5 h-5 text-white" />
+            </div>
+            <span className="font-black text-lg sm:text-xl tracking-tight">
+              Karya<span className="text-primary">Tazkia</span>
             </span>
           </Link>
-          <nav className="hidden md:flex gap-6">
-            <Link href="/explore" className="text-sm font-medium hover:text-primary transition-colors">
-              Explore
-            </Link>
-            <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">
-              About
-            </Link>
+
+          {/* Desktop nav */}
+          <nav className="hidden md:flex items-center gap-2">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="px-4 py-2 rounded-xl font-bold text-sm hover:bg-muted border-2 border-transparent hover:border-border transition-all"
+              >
+                {link.label}
+              </Link>
+            ))}
           </nav>
-        </div>
-        <div className="flex items-center gap-4">
-          <button className="p-2 rounded-full hover:bg-muted transition-colors md:hidden">
-            <Search className="h-5 w-5" />
-          </button>
-          <div className="hidden md:flex relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input
-              type="search"
-              placeholder="Search projects..."
-              className="h-10 w-full rounded-full border border-border bg-background px-9 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 md:w-[200px] lg:w-[300px]"
-            />
+
+          {/* Right side */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeToggle />
+            <Link
+              href="/explore"
+              className="hidden md:inline-flex btn-3d btn-3d-primary rounded-xl px-5 py-2 text-sm font-black"
+            >
+              EXPLORE 🚀
+            </Link>
+
+            {/* Hamburger button for mobile */}
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="md:hidden w-10 h-10 rounded-xl border-2 border-border bg-card flex items-center justify-center shadow-[0_2px_0_0_var(--color-border)] active:translate-y-[2px] active:shadow-none transition-all"
+              aria-label="Toggle menu"
+            >
+              {isOpen ? <X className="w-6 h-6 text-primary" /> : <Menu className="w-6 h-6" />}
+            </button>
           </div>
-          <ThemeToggle />
-          <Link
-            href="/submit"
-            className="hidden md:inline-flex h-10 items-center justify-center rounded-full bg-secondary px-6 text-sm font-medium text-secondary-foreground shadow transition-colors hover:bg-secondary/90"
-          >
-            Submit Work
-          </Link>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Mobile Fullscreen Menu */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 md:hidden bg-background flex flex-col p-6 animate-in fade-in zoom-in-95 duration-200">
+          {/* Header inside mobile menu */}
+          <div className="flex items-center justify-between pb-6 border-b-4 border-border">
+            <Link href="/" className="flex items-center gap-2" onClick={() => setIsOpen(false)}>
+              <div className="w-9 h-9 bg-primary rounded-xl border-2 border-primary-shadow flex items-center justify-center">
+                <BookOpen className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-black text-xl">Karya<span className="text-primary">Tazkia</span></span>
+            </Link>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="w-10 h-10 rounded-xl border-2 border-border bg-muted flex items-center justify-center text-foreground font-bold shadow-[0_2px_0_0_var(--color-border)]"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* Navigation Links */}
+          <div className="flex-1 flex flex-col justify-center gap-4 py-8">
+            <Link
+              href="/"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-4 p-4 rounded-2xl border-4 border-border bg-card font-black text-xl shadow-[0_4px_0_0_var(--color-border)] active:translate-y-1"
+            >
+              <div className="w-10 h-10 rounded-xl bg-accent text-accent-foreground flex items-center justify-center border-2 border-accent-shadow">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              Home
+            </Link>
+            
+            {navLinks.map((link) => {
+              const Icon = link.icon;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-4 p-4 rounded-2xl border-4 border-border bg-card font-black text-xl shadow-[0_4px_0_0_var(--color-border)] active:translate-y-1"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center border-2 border-primary/20">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  {link.label}
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Bottom Action */}
+          <div className="pt-4 border-t-4 border-border border-dashed">
+            <Link href="/explore" onClick={() => setIsOpen(false)} className="block w-full">
+              <BouncyButton className="w-full text-lg py-4">
+                EXPLORE ALL WORKS 🚀
+              </BouncyButton>
+            </Link>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

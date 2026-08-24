@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Nunito } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -16,14 +16,21 @@ export const metadata: Metadata = {
   description: "Showcasing innovation & creativity: Explore student portfolios.",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${nunito.variable} font-sans antialiased`} suppressHydrationWarning>
-      <body className="min-h-screen bg-background text-foreground flex flex-col">
+    <html lang="en" className={`${nunito.variable} font-sans antialiased max-w-full overflow-x-hidden`} suppressHydrationWarning>
+      <body className="min-h-screen bg-background text-foreground flex flex-col max-w-full overflow-x-hidden relative">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -31,7 +38,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Navbar />
-          <main className="flex-1">
+          <main className="flex-1 w-full max-w-full overflow-x-hidden pt-16">
             {children}
           </main>
           <Footer />

@@ -8,54 +8,54 @@ import { StickerBadge } from "@/components/ui/StickerBadge";
 
 export default function AboutPage() {
   return (
-    <div className="container mx-auto px-4 md:px-6 py-16 md:py-24">
-      <div className="flex flex-col lg:flex-row items-center gap-16">
+    <div className="container mx-auto px-4 md:px-6 py-8 sm:py-16 md:py-24 overflow-x-hidden">
+      <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
         
         {/* Left Side: Content */}
         <motion.div 
-          initial={{ opacity: 0, x: -50 }}
+          initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ type: "spring", bounce: 0.5 }}
-          className="flex-1 space-y-8"
+          className="flex-1 space-y-6 sm:space-y-8 w-full"
         >
           <div>
-            <StickerBadge variant="success" className="mb-6 -rotate-2" icon={<Sparkles className="w-4 h-4 fill-current" />}>
+            <StickerBadge variant="success" className="mb-4 sm:mb-6 -rotate-2 text-xs sm:text-sm" icon={<Sparkles className="w-4 h-4 fill-current" />}>
               OUR MISSION
             </StickerBadge>
-            <h1 className="text-5xl md:text-6xl font-black tracking-tight text-foreground uppercase" style={{ textShadow: "3px 3px 0px var(--color-border)" }}>
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-foreground uppercase break-words" style={{ textShadow: "2px 2px 0px var(--color-border)" }}>
               Elevating <span className="text-primary">Student</span> Brilliance
             </h1>
           </div>
           
-          <div className="space-y-6 text-xl font-medium text-muted-foreground">
+          <div className="space-y-4 sm:space-y-6 text-base sm:text-xl font-medium text-muted-foreground leading-relaxed">
             <p>
               The STMIK Tazkia Student Portfolio Gallery is a dedicated platform designed to bridge the gap between academic creation and real-world opportunity.
             </p>
             <p>
-              We believe that every line of code, every brushstroke, and every research paper represents a step toward innovation. This gallery serves as a living exhibition of our students' hard work, creativity, and technical prowess.
+              We believe that every line of code, every brushstroke, and every research paper represents a step toward innovation.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 border-t-4 border-border border-dashed">
-            <div className="flex flex-col gap-3">
-              <div className="w-14 h-14 bg-secondary text-secondary-foreground rounded-2xl border-4 border-secondary-shadow shadow-[0_4px_0_0_var(--color-secondary-shadow)] flex items-center justify-center rotate-3">
-                <Users className="h-7 w-7" />
+            <div className="flex flex-col gap-2">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-secondary text-secondary-foreground rounded-2xl border-4 border-secondary-shadow shadow-[0_4px_0_0_var(--color-secondary-shadow)] flex items-center justify-center rotate-3">
+                <Users className="h-6 w-6 sm:h-7 sm:w-7" />
               </div>
-              <h3 className="font-black text-2xl uppercase">Community</h3>
-              <p className="text-muted-foreground font-medium">Fostering collaboration among creators.</p>
+              <h3 className="font-black text-xl sm:text-2xl uppercase mt-1">Community</h3>
+              <p className="text-sm sm:text-base text-muted-foreground font-medium">Fostering collaboration among creators.</p>
             </div>
-            <div className="flex flex-col gap-3">
-              <div className="w-14 h-14 bg-primary text-primary-foreground rounded-2xl border-4 border-primary-shadow shadow-[0_4px_0_0_var(--color-primary-shadow)] flex items-center justify-center -rotate-3">
-                <Rocket className="h-7 w-7" />
+            <div className="flex flex-col gap-2">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-primary text-primary-foreground rounded-2xl border-4 border-primary-shadow shadow-[0_4px_0_0_var(--color-primary-shadow)] flex items-center justify-center -rotate-3">
+                <Rocket className="h-6 w-6 sm:h-7 sm:w-7" />
               </div>
-              <h3 className="font-black text-2xl uppercase">Innovation</h3>
-              <p className="text-muted-foreground font-medium">Pushing boundaries in tech and art.</p>
+              <h3 className="font-black text-xl sm:text-2xl uppercase mt-1">Innovation</h3>
+              <p className="text-sm sm:text-base text-muted-foreground font-medium">Pushing boundaries in tech and art.</p>
             </div>
           </div>
           
-          <div className="pt-8">
+          <div className="pt-4 sm:pt-6">
             <Link href="/explore">
-              <BouncyButton className="text-lg">
+              <BouncyButton className="w-full sm:w-auto text-base sm:text-lg py-3.5 sm:py-4">
                 EXPLORE PROJECTS
               </BouncyButton>
             </Link>
@@ -64,13 +64,13 @@ export default function AboutPage() {
 
         {/* Right Side: Visuals */}
         <motion.div 
-          initial={{ opacity: 0, x: 50 }}
+          initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ type: "spring", bounce: 0.5, delay: 0.2 }}
-          className="flex-1 relative"
+          className="flex-1 relative w-full pt-6 sm:pt-0"
         >
-          {/* Main Image */}
-          <div className="aspect-square md:aspect-[4/3] rounded-[3rem] overflow-hidden border-8 border-border shadow-[0_12px_0_0_var(--color-border)] relative z-10 bg-card">
+          {/* Main Image Container */}
+          <div className="aspect-[4/3] rounded-3xl sm:rounded-[3rem] overflow-hidden border-4 sm:border-8 border-border shadow-[0_8px_0_0_var(--color-border)] sm:shadow-[0_12px_0_0_var(--color-border)] relative z-10 bg-card">
             <img
               src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=1200"
               alt="Students collaborating"
@@ -78,32 +78,33 @@ export default function AboutPage() {
             />
           </div>
           
-          {/* Decorative floating elements */}
+          {/* Floating Sticker Badge - Adjusted for mobile boundary */}
           <motion.div 
-            animate={{ y: [0, -20, 0] }}
+            animate={{ y: [0, -10, 0] }}
             transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-            className="absolute -top-10 -right-10 z-20"
+            className="absolute -top-3 right-0 sm:-top-8 sm:right-2 z-20"
           >
-            <StickerBadge variant="warning" className="text-lg px-6 py-3 rotate-12" icon={<Lightbulb className="w-6 h-6 fill-current" />}>
+            <StickerBadge variant="warning" className="text-xs sm:text-lg px-3 py-1.5 sm:px-6 sm:py-3 rotate-6 shadow-md" icon={<Lightbulb className="w-4 h-4 sm:w-6 sm:h-6 fill-current" />}>
               CREATIVITY
             </StickerBadge>
           </motion.div>
 
+          {/* Floating Stats Badge */}
           <motion.div 
-            animate={{ y: [0, 20, 0] }}
+            animate={{ y: [0, 10, 0] }}
             transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
-            className="absolute -bottom-10 -left-10 z-20"
+            className="absolute -bottom-6 left-0 sm:-bottom-8 sm:left-2 z-20"
           >
-            <div className="bg-card border-4 border-border shadow-[0_8px_0_0_var(--color-border)] p-6 rounded-[2rem] flex items-center gap-4 -rotate-6">
-              <div className="text-4xl font-black text-primary">50+</div>
-              <div className="font-bold text-muted-foreground leading-tight uppercase">
+            <div className="bg-card border-3 sm:border-4 border-border shadow-[0_4px_0_0_var(--color-border)] p-3 sm:p-5 rounded-2xl sm:rounded-[2rem] flex items-center gap-3 -rotate-3">
+              <div className="text-2xl sm:text-4xl font-black text-primary">50+</div>
+              <div className="font-bold text-xs sm:text-sm text-muted-foreground leading-tight uppercase">
                 Active<br/>Creators
               </div>
             </div>
           </motion.div>
           
           {/* Background Blobs */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-primary/10 rounded-full blur-3xl -z-10" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/10 rounded-full blur-3xl -z-10" />
         </motion.div>
       </div>
     </div>

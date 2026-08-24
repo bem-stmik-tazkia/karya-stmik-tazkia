@@ -82,25 +82,25 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-card border-4 border-border shadow-[0_8px_0_0_var(--color-border)] rounded-[2rem] p-8 md:p-10"
+            className="bg-card border-4 border-border shadow-[0_8px_0_0_var(--color-border)] rounded-2xl sm:rounded-[2rem] p-5 sm:p-8 md:p-10"
           >
-            <div className="flex flex-wrap gap-3 mb-6">
-              <StickerBadge variant="default" className="text-base px-4 py-2">
+            <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6">
+              <StickerBadge variant="default" className="text-xs sm:text-base px-3 sm:px-4 py-1.5 sm:py-2">
                 {project.category}
               </StickerBadge>
               {project.tags.map((tag) => (
-                <span key={tag} className="inline-flex items-center rounded-xl bg-muted border-2 border-border px-3 py-1.5 text-sm font-bold text-foreground">
+                <span key={tag} className="inline-flex items-center rounded-xl bg-muted border-2 border-border px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-bold text-foreground">
                   {tag}
                 </span>
               ))}
             </div>
 
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-foreground mb-6 uppercase">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight text-foreground mb-4 sm:mb-6 uppercase break-words leading-tight">
               {project.title}
             </h1>
             
-            <div className="prose prose-lg dark:prose-invert max-w-none prose-p:font-medium prose-p:text-muted-foreground prose-headings:font-black prose-headings:uppercase">
-              <h3 className="text-2xl mb-4">About the Project</h3>
+            <div className="prose prose-base sm:prose-lg dark:prose-invert max-w-none prose-p:font-medium prose-p:text-muted-foreground prose-headings:font-black prose-headings:uppercase">
+              <h3 className="text-xl sm:text-2xl mb-3 sm:mb-4">About the Project</h3>
               <p className="leading-relaxed">
                 {project.description}
               </p>

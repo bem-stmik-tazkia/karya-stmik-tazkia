@@ -32,29 +32,29 @@ export default function StudentProfilePage({ params }: { params: Promise<{ id: s
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-card border-4 border-border rounded-[3rem] p-8 md:p-12 mb-16 shadow-[0_8px_0_0_var(--color-border)] relative overflow-hidden"
+        className="bg-card border-4 border-border rounded-2xl sm:rounded-[3rem] p-5 sm:p-8 md:p-12 mb-12 sm:mb-16 shadow-[0_8px_0_0_var(--color-border)] relative overflow-hidden"
       >
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -z-10 translate-x-1/3 -translate-y-1/3" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-secondary/10 rounded-full blur-2xl -z-10 -translate-x-1/4 translate-y-1/4" />
         
-        <div className="flex flex-col md:flex-row items-center md:items-start gap-10 z-10">
-          <div className="w-32 h-32 md:w-48 md:h-48 rounded-full overflow-hidden border-8 border-background shadow-[0_4px_0_0_var(--color-border)] shrink-0 relative">
+        <div className="flex flex-col md:flex-row items-center md:items-start gap-6 sm:gap-10 z-10">
+          <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-48 md:h-48 rounded-full overflow-hidden border-4 sm:border-8 border-background shadow-[0_4px_0_0_var(--color-border)] shrink-0 relative">
             <img
               src={student.avatarUrl}
               alt={student.name}
               className="w-full h-full object-cover"
             />
           </div>
-          <div className="text-center md:text-left flex-1">
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-2">
-              <h1 className="text-4xl md:text-6xl font-black tracking-tight uppercase">{student.name}</h1>
-              <StickerBadge variant="success" className="text-sm -rotate-3" icon={<Star className="w-4 h-4 fill-current" />}>
+          <div className="text-center md:text-left flex-1 w-full">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-2">
+              <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight uppercase break-words">{student.name}</h1>
+              <StickerBadge variant="success" className="text-xs sm:text-sm -rotate-3" icon={<Star className="w-4 h-4 fill-current" />}>
                 TOP CREATOR
               </StickerBadge>
             </div>
             
-            <p className="text-2xl text-primary font-black uppercase mb-4">{student.major}</p>
-            <p className="text-lg text-muted-foreground font-medium max-w-2xl mb-8 leading-relaxed">
+            <p className="text-lg sm:text-2xl text-primary font-black uppercase mb-3 sm:mb-4">{student.major}</p>
+            <p className="text-sm sm:text-lg text-muted-foreground font-medium max-w-2xl mb-6 sm:mb-8 leading-relaxed">
               {student.bio}
             </p>
             

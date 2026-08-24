@@ -13,15 +13,19 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Playful Stats Bar */}
-      <div className="w-full bg-accent text-accent-foreground py-3 overflow-hidden border-b-4 border-accent-shadow">
+      <div className="w-full bg-accent text-accent-foreground py-3 overflow-hidden border-b-4 border-accent-shadow relative">
         <motion.div
-          animate={{ x: ["100%", "-100%"] }}
-          transition={{ repeat: Infinity, duration: 15, ease: "linear" }}
-          className="whitespace-nowrap font-bold flex items-center gap-8 text-lg"
+          animate={{ x: ["0%", "-50%"] }}
+          transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
+          className="whitespace-nowrap font-bold flex items-center gap-8 text-sm sm:text-lg w-max"
         >
-          <span className="flex items-center"><Flame className="w-6 h-6 mr-2 fill-current" /> 120 Projects Uploaded This Semester!</span>
-          <span className="flex items-center"><Star className="w-6 h-6 mr-2 fill-current" /> 50+ Active Student Creators</span>
-          <span className="flex items-center"><Sparkles className="w-6 h-6 mr-2 fill-current" /> Top Design Winner: Alex Rivera</span>
+          <span className="flex items-center"><Flame className="w-5 h-5 sm:w-6 sm:h-6 mr-2 fill-current" /> 120 Projects Uploaded This Semester!</span>
+          <span className="flex items-center"><Star className="w-5 h-5 sm:w-6 sm:h-6 mr-2 fill-current" /> 50+ Active Student Creators</span>
+          <span className="flex items-center"><Sparkles className="w-5 h-5 sm:w-6 sm:h-6 mr-2 fill-current" /> Top Design Winner: Alex Rivera</span>
+          {/* Duplicate for seamless infinite loop */}
+          <span className="flex items-center"><Flame className="w-5 h-5 sm:w-6 sm:h-6 mr-2 fill-current" /> 120 Projects Uploaded This Semester!</span>
+          <span className="flex items-center"><Star className="w-5 h-5 sm:w-6 sm:h-6 mr-2 fill-current" /> 50+ Active Student Creators</span>
+          <span className="flex items-center"><Sparkles className="w-5 h-5 sm:w-6 sm:h-6 mr-2 fill-current" /> Top Design Winner: Alex Rivera</span>
         </motion.div>
       </div>
 
@@ -45,8 +49,8 @@ export default function Home() {
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ type: "spring", bounce: 0.5, delay: 0.1 }}
-            className="text-5xl md:text-7xl font-black tracking-tight text-foreground max-w-4xl mx-auto uppercase"
-            style={{ textShadow: "4px 4px 0px var(--color-border)" }}
+            className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-foreground max-w-4xl mx-auto uppercase"
+            style={{ textShadow: "3px 3px 0px var(--color-border)" }}
           >
             Showcasing <span className="text-primary">Creativity</span> &{" "}
             <span className="text-secondary">Innovation</span>
@@ -56,7 +60,7 @@ export default function Home() {
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ type: "spring", bounce: 0.5, delay: 0.2 }}
-            className="mt-8 text-xl md:text-2xl font-bold text-muted-foreground max-w-2xl mx-auto"
+            className="mt-6 text-lg sm:text-xl md:text-2xl font-bold text-muted-foreground max-w-2xl mx-auto px-2"
           >
             Explore a vibrant digital gallery featuring cutting-edge projects from STMIK Tazkia.
           </motion.p>
@@ -65,15 +69,15 @@ export default function Home() {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", bounce: 0.5, delay: 0.3 }}
-            className="mt-12 flex flex-col sm:flex-row gap-6 justify-center"
+            className="mt-10 flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4"
           >
             <Link href="/explore">
-              <BouncyButton className="w-full sm:w-auto text-xl px-8 py-4">
-                EXPLORE PORTFOLIO <ArrowRight className="ml-2 h-6 w-6" />
+              <BouncyButton className="w-full sm:w-auto text-lg sm:text-xl px-6 sm:px-8 py-3.5 sm:py-4">
+                EXPLORE PORTFOLIO <ArrowRight className="ml-2 h-5 w-5 sm:h-6 sm:w-6" />
               </BouncyButton>
             </Link>
             <Link href="/about">
-              <BouncyButton variant="muted" className="w-full sm:w-auto text-xl px-8 py-4">
+              <BouncyButton variant="muted" className="w-full sm:w-auto text-lg sm:text-xl px-6 sm:px-8 py-3.5 sm:py-4">
                 LEARN MORE
               </BouncyButton>
             </Link>
@@ -82,23 +86,23 @@ export default function Home() {
       </section>
 
       {/* Featured Projects Section */}
-      <section className="py-20 bg-muted border-t-4 border-border">
+      <section className="py-16 sm:py-20 bg-muted border-t-4 border-border">
         <div className="container px-4 md:px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6 text-center md:text-left">
+          <div className="flex flex-col md:flex-row justify-between items-center mb-10 sm:mb-12 gap-6 text-center md:text-left">
             <div>
-              <h2 className="text-4xl font-black tracking-tight uppercase" style={{ textShadow: "2px 2px 0px var(--color-border)" }}>
+              <h2 className="text-3xl sm:text-4xl font-black tracking-tight uppercase" style={{ textShadow: "2px 2px 0px var(--color-border)" }}>
                 Featured Projects
               </h2>
-              <p className="text-lg font-bold text-muted-foreground mt-2">A handpicked selection of outstanding works.</p>
+              <p className="text-base sm:text-lg font-bold text-muted-foreground mt-2">A handpicked selection of outstanding works.</p>
             </div>
             <Link href="/explore">
-              <BouncyButton variant="secondary">
+              <BouncyButton variant="secondary" className="w-full sm:w-auto">
                 VIEW ALL PROJECTS
               </BouncyButton>
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 sm:gap-8">
             {featuredProjects.map((project, index) => (
               <motion.div
                 key={project.id}
@@ -115,29 +119,29 @@ export default function Home() {
                         alt={project.title}
                         className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500 ease-in-out"
                       />
-                      <div className="absolute top-4 left-4 flex flex-col items-start gap-2">
+                      <div className="absolute top-3 left-3 sm:top-4 sm:left-4 flex flex-col items-start gap-2">
                         {/* Dummy Badge Display */}
                         {/* @ts-ignore */}
                         {project.badge && (
-                          <StickerBadge variant="warning" className="rotate-3 group-hover:rotate-0 shadow-lg">
+                          <StickerBadge variant="warning" className="rotate-3 group-hover:rotate-0 shadow-lg text-xs sm:text-sm">
                             {/* @ts-ignore */}
                             {project.badge}
                           </StickerBadge>
                         )}
-                        <StickerBadge variant="default" className="-rotate-2 group-hover:rotate-0">
+                        <StickerBadge variant="default" className="-rotate-2 group-hover:rotate-0 text-xs sm:text-sm">
                           {project.category}
                         </StickerBadge>
                       </div>
                     </div>
-                    <div className="p-8 flex flex-col flex-grow">
+                    <div className="p-5 sm:p-8 flex flex-col flex-grow">
                       <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-3xl font-black group-hover:text-primary transition-colors pr-2">
+                        <h3 className="text-2xl sm:text-3xl font-black group-hover:text-primary transition-colors pr-2">
                           {project.title}
                         </h3>
                         {/* @ts-ignore */}
                         {project.views && (
-                          <div className="flex items-center text-muted-foreground font-bold shrink-0 mt-1">
-                            <Eye className="w-5 h-5 mr-1" />
+                          <div className="flex items-center text-muted-foreground font-bold shrink-0 mt-1 text-sm sm:text-base">
+                            <Eye className="w-4 h-4 sm:w-5 sm:h-5 mr-1" />
                             {/* @ts-ignore */}
                             {project.views}
                           </div>

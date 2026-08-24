@@ -69,8 +69,9 @@
   * {
     @apply border-border;
   }
-  body {
-    @apply bg-background text-foreground font-sans;
+  html, body {
+    @apply bg-background text-foreground font-sans max-w-full overflow-x-hidden w-full relative;
+    touch-action: pan-y;
   }
 }
 

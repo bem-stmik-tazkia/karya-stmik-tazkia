@@ -34,27 +34,27 @@ export default function ExplorePage() {
       </div>
 
       {/* Game Node Category Path */}
-      <div className="mb-16 max-w-4xl mx-auto relative px-4">
-        <div className="absolute top-1/2 left-0 w-full h-2 bg-border -translate-y-1/2 rounded-full hidden md:block border-b-2 border-border/50 border-dashed" />
-        <div className="flex flex-wrap md:flex-nowrap justify-center md:justify-between items-center gap-6 relative z-10">
+      <div className="mb-12 max-w-4xl mx-auto relative px-2">
+        <div className="absolute top-1/2 left-4 right-4 h-2 bg-border -translate-y-1/2 rounded-full hidden md:block border-b-2 border-border/50 border-dashed" />
+        <div className="flex items-center gap-6 overflow-x-auto px-6 py-4 md:px-4 md:py-2 md:justify-between no-scrollbar scroll-smooth">
           {categories.map((category, index) => {
             const isActive = activeCategory === category;
             return (
               <button
                 key={category}
                 onClick={() => setActiveCategory(category)}
-                className="relative group flex flex-col items-center gap-3 outline-none"
+                className="relative group flex flex-col items-center gap-2 outline-none shrink-0 py-2 px-1"
               >
                 <div 
-                  className={`w-16 h-16 rounded-full border-4 flex items-center justify-center font-bold text-lg transition-all duration-300 ${
+                  className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full border-4 flex items-center justify-center font-black text-lg transition-all duration-200 ${
                     isActive 
-                      ? "bg-primary border-primary-shadow text-white scale-110 shadow-[0_4px_0_0_var(--color-primary-shadow)] -translate-y-2" 
+                      ? "bg-primary border-primary-shadow text-white scale-105 shadow-[0_4px_0_0_var(--color-primary-shadow)] -translate-y-1" 
                       : "bg-card border-border text-foreground shadow-[0_4px_0_0_var(--color-border)] hover:-translate-y-1 hover:shadow-[0_6px_0_0_var(--color-border)]"
                   }`}
                 >
-                  {isActive ? <Check className="w-8 h-8" /> : index + 1}
+                  {isActive ? <Check className="w-7 h-7 sm:w-8 sm:h-8 stroke-[3]" /> : index + 1}
                 </div>
-                <span className={`font-black uppercase text-sm ${isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}>
+                <span className={`font-black uppercase text-xs sm:text-sm tracking-wide ${isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}>
                   {category}
                 </span>
               </button>
