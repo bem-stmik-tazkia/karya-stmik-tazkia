@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { ThemeToggle } from "../ui/ThemeToggle";
-import { Menu, X, BookOpen, Sparkles, Compass, Info, Send } from "lucide-react";
+import { Menu, X, BookOpen, Sparkles, Compass, Users, Info } from "lucide-react";
 import { useState } from "react";
 import { BouncyButton } from "../ui/BouncyButton";
 
 const navLinks = [
-  { href: "/explore", label: "Explore Gallery", icon: Compass },
-  { href: "/about", label: "About Us", icon: Info },
+  { href: "/feed", label: "Feed / Connect", icon: Users },
+  { href: "/explore", label: "Galeri Karya", icon: Compass },
+  { href: "/student", label: "Mahasiswa Showcase", icon: Users },
+  { href: "/about", label: "Tentang Kami", icon: Info },
 ];
 
 export function Navbar() {
@@ -45,10 +47,10 @@ export function Navbar() {
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
             <Link
-              href="/explore"
+              href="/login"
               className="hidden md:inline-flex btn-3d btn-3d-primary rounded-xl px-5 py-2 text-sm font-black"
             >
-              EXPLORE 🚀
+              GABUNG / JOIN
             </Link>
 
             {/* Hamburger button for mobile */}
@@ -92,7 +94,7 @@ export function Navbar() {
               <div className="w-10 h-10 rounded-xl bg-accent text-accent-foreground flex items-center justify-center border-2 border-accent-shadow">
                 <Sparkles className="w-5 h-5" />
               </div>
-              Home
+              Beranda
             </Link>
             
             {navLinks.map((link) => {
@@ -115,9 +117,9 @@ export function Navbar() {
 
           {/* Bottom Action */}
           <div className="pt-4 border-t-4 border-border border-dashed">
-            <Link href="/explore" onClick={() => setIsOpen(false)} className="block w-full">
+            <Link href="/login" onClick={() => setIsOpen(false)} className="block w-full">
               <BouncyButton className="w-full text-lg py-4">
-                EXPLORE ALL WORKS 🚀
+                GABUNG SEKARANG
               </BouncyButton>
             </Link>
           </div>

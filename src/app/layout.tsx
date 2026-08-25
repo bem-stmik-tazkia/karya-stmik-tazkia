@@ -29,8 +29,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${nunito.variable} font-sans antialiased max-w-full overflow-x-hidden`} suppressHydrationWarning>
-      <body className="min-h-screen bg-background text-foreground flex flex-col max-w-full overflow-x-hidden relative">
+    <html lang="en" className={`${nunito.variable} font-sans antialiased max-w-full overflow-x-clip`} suppressHydrationWarning>
+      <body className="min-h-screen bg-background text-foreground flex flex-col max-w-full overflow-x-clip relative" suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -38,7 +38,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Navbar />
-          <main className="flex-1 w-full max-w-full overflow-x-hidden pt-16">
+          <main className="flex-1 w-full max-w-full overflow-x-clip pt-16">
             {children}
           </main>
           <Footer />
