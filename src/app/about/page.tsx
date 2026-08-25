@@ -26,7 +26,7 @@ export default function AboutPage() {
 
           <div className="space-y-4 sm:space-y-6 text-base sm:text-xl font-medium text-muted-foreground leading-relaxed">
             <p>
-              Karya Tazkia adalah platform portofolio digital resmi mahasiswa STMIK Tazkia — tempat setiap baris kode, desain antarmuka, riset inovatif, dan karya seni dihargai dan ditampilkan kepada dunia.
+              Karya Tazkia adalah platform portofolio digital resmi mahasiswa STMIK Tazkia tempat setiap baris kode, desain antarmuka, riset inovatif, dan karya seni dihargai dan ditampilkan kepada dunia.
             </p>
             <p>
               Kami percaya bahwa setiap mahasiswa memiliki potensi luar biasa. Platform ini hadir sebagai jembatan antara kreasi akademik dan peluang nyata di industri.
