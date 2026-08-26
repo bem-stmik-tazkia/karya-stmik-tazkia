@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Mail, Folder, ChevronRight } from "lucide-react";
-import { Student } from "@/lib/data";
+import { Student } from "@/lib/feedData";
 import { StickerBadge } from "@/components/ui/StickerBadge";
 import { getSkillColor } from "@/utils/skillColor";
 

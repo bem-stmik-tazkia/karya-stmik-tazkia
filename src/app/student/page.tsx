@@ -1,27 +1,67 @@
 "use client";
 
-import React, { useState, useMemo, Suspense } from "react";
+import React, { useState, useMemo, useEffect, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { UserX, Users, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
-import { students, projects, Student } from "@/lib/data";
+import { getMahasiswaProfiles, getKarya } from "@/lib/data";
+import type { MahasiswaProfile } from "@/types/karya";
+import type { Karya } from "@/types/karya";
+import { Student } from "@/lib/feedData";
 import MahasiswaHero from "@/components/mahasiswa/MahasiswaHero";
 import MahasiswaCard from "@/components/mahasiswa/MahasiswaCard";
 import MahasiswaProfileDrawer from "@/components/mahasiswa/MahasiswaProfileDrawer";
 import { ALL_PRODI_VALUE, isAllProdi } from "@/utils/prodiOptions";
 import { BouncyButton } from "@/components/ui/BouncyButton";
 
+// Adapter: convert MahasiswaProfile (Supabase) → Student (local type for UI components)
+function toStudent(m: MahasiswaProfile): Student {
+  return {
+    id: m.id,
+    nim: m.nim ?? "",
+    name: m.full_name,
+    angkatan: m.angkatan,
+    prodi: m.prodi,
+    bio: m.bio ?? "",
+    avatarUrl: m.avatar_url ?? "",
+    coverUrl: m.cover_url ?? undefined,
+    statusBadge: m.status_badge ?? undefined,
+    skills: m.skills ?? [],
+    contactEmail: m.email,
+    socials: {
+      github: m.github_url ?? undefined,
+      linkedin: m.linkedin_url ?? undefined,
+      instagram: m.instagram_url ?? undefined,
+      website: m.website_url ?? undefined,
+    },
+    isFeatured: m.is_featured ?? false,
+  };
+}
+
 function StudentShowcaseContent() {
+  const [allMahasiswa, setAllMahasiswa] = useState<MahasiswaProfile[]>([]);
+  const [allKarya, setAllKarya] = useState<Karya[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAngkatan, setSelectedAngkatan] = useState<number | null>(null);
   const [selectedProdi, setSelectedProdi] = useState(ALL_PRODI_VALUE);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
+  useEffect(() => {
+    Promise.all([getMahasiswaProfiles(), getKarya()]).then(([mahasiswa, karya]) => {
+      setAllMahasiswa(mahasiswa);
+      setAllKarya(karya);
+      setLoading(false);
+    });
+  }, []);
+
+  const students = allMahasiswa.map(toStudent);
+
   // Extract available angkatan list
   const availableAngkatan = useMemo(() => {
     const years = Array.from(new Set(students.map((s) => s.angkatan))).sort((a, b) => a - b);
     return years;
-  }, []);
+  }, [students]);
 
   // Filter students based on Angkatan, Prodi, and Search Query
   const filteredStudents = useMemo(() => {
@@ -44,19 +84,20 @@ function StudentShowcaseContent() {
         const matchesBio = student.bio.toLowerCase().includes(query);
         const matchesSkills = student.skills?.some((sk) => sk.toLowerCase().includes(query));
 
-        const studentProjects = projects.filter((p) => p.studentId === student.id);
+        const studentProjects = allKarya.filter((k) => (k.team ?? []).some(member => member.name.toLowerCase() === student.name.toLowerCase()));
         const matchesProject = studentProjects.some(
           (p) =>
             p.title.toLowerCase().includes(query) ||
-            p.tags.some((t) => t.toLowerCase().includes(query))
+            (p.tech_stack ?? []).some((t) => t.toLowerCase().includes(query))
         );
 
         return matchesName || matchesNIM || matchesBio || matchesSkills || matchesProject;
       }
 
+
       return true;
     });
-  }, [searchQuery, selectedAngkatan, selectedProdi]);
+  }, [searchQuery, selectedAngkatan, selectedProdi, students, allKarya]);
 
   // Pagination Logic
   const ITEMS_PER_PAGE = 8;
@@ -75,8 +116,18 @@ function StudentShowcaseContent() {
 
   const selectedStudentProjects = useMemo(() => {
     if (!selectedStudent) return [];
-    return projects.filter((p) => p.studentId === selectedStudent.id);
-  }, [selectedStudent]);
+    // match karya by team member name (karya table doesn't have mahasiswa FK)
+    return allKarya.filter((k) => (k.team ?? []).some(member => member.name.toLowerCase() === selectedStudent.name.toLowerCase()));
+  }, [selectedStudent, allKarya]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="font-bold text-muted-foreground">Memuat data mahasiswa...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -98,7 +149,7 @@ function StudentShowcaseContent() {
           setCurrentPage(1);
         }}
         totalMahasiswa={students.length}
-        totalProjects={projects.length}
+        totalProjects={allKarya.length}
         availableAngkatan={availableAngkatan}
       />
 
@@ -129,12 +180,11 @@ function StudentShowcaseContent() {
         {filteredStudents.length > 0 ? (
           <>
             <motion.div
-              layout
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
             >
-              <AnimatePresence mode="popLayout">
+              <AnimatePresence mode="wait">
                 {paginatedStudents.map((student) => {
-                  const studentProjCount = projects.filter((p) => p.studentId === student.id).length;
+                  const studentProjCount = allKarya.filter((k) => (k.team ?? []).some(member => member.name.toLowerCase() === student.name.toLowerCase())).length;
                   return (
                     <motion.div
                       layout

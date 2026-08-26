@@ -42,7 +42,7 @@ export function Footer() {
               Are you a student? Showcase your best work to the world.
             </p>
             <Link
-              href="/explore"
+              href="/auth"
               className="btn-3d btn-3d-secondary rounded-xl px-4 py-2 text-sm font-black inline-block"
             >
               SUBMIT WORK 🚀

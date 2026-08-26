@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { dummyPosts, FeedPost, students } from "@/lib/data";
+import { dummyPosts, FeedPost, students } from "@/lib/feedData";
 import FeedPostCard from "@/components/feed/FeedPostCard";
 import CreatePost from "@/components/feed/CreatePost";
 import { MessageSquare, TrendingUp, Users, UserPlus, PenSquare } from "lucide-react";

@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, MessageCircle, Share2, MoreHorizontal, GraduationCap, Send, Check } from "lucide-react";
-import { FeedPost, Student } from "@/lib/data";
+import { FeedPost, Student } from "@/lib/feedData";
 import { StickerBadge } from "@/components/ui/StickerBadge";
 import { getSkillColor } from "@/utils/skillColor";
 

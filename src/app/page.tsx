@@ -1,15 +1,22 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { projects, students } from "@/lib/data";
-import { ArrowRight, Flame, Sparkles, Star, Eye, Users, Heart, Folder } from "lucide-react";
-import { formatNumber } from "@/lib/utils";
+import { getKarya } from "@/lib/data";
+import type { Karya } from "@/types/karya";
+import { KARYA_CATEGORIES } from "@/types/karya";
+import { ArrowRight, Flame, Users, Eye, Heart, Folder } from "lucide-react";
+import { formatNumber } from "@/lib/data";
 import { BouncyButton } from "@/components/ui/BouncyButton";
 import { StickerBadge } from "@/components/ui/StickerBadge";
 
 export default function Home() {
-  const featuredProjects = projects.slice(0, 3);
+  const [featuredKarya, setFeaturedKarya] = useState<Karya[]>([]);
+
+  useEffect(() => {
+    getKarya().then((data) => setFeaturedKarya(data.slice(0, 3)));
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -31,8 +38,6 @@ export default function Home() {
         <div className="absolute inset-0 opacity-10 dark:opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)', backgroundSize: '32px 32px' }} />
 
         <div className="container mx-auto px-4 md:px-6 relative z-10">
-
-
           <motion.h1
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -83,129 +88,115 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
-            {featuredProjects.map((project, index) => {
-              const author = students.find((s) => s.id === project.studentId);
-              return (
-              <motion.div
-                key={project.id}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ type: "spring", bounce: 0.4, delay: index * 0.1 }}
-                className="h-full"
-              >
-                <Link href={`/project/${project.id}`} className="block h-full">
-                  <div className="card-3d overflow-hidden flex flex-col h-full bg-card group">
-                    {/* Cover Image */}
-                    <div className="aspect-[16/10] w-full overflow-hidden relative border-b-4 border-border bg-muted">
-                      <img
-                        src={project.imageUrl}
-                        alt={project.title}
-                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute top-3 left-3 flex flex-wrap items-start gap-2">
-                        {/* @ts-ignore */}
-                        {project.badge && (
-                          <StickerBadge variant="warning" className="text-xs">
-                            {/* @ts-ignore */}
-                            {project.badge}
-                          </StickerBadge>
-                        )}
-                        <StickerBadge variant="default" className="text-xs">
-                          {project.category}
-                        </StickerBadge>
-                      </div>
-                    </div>
-
-                    {/* Card Details */}
-                    <div className="p-5 flex flex-col flex-grow justify-between">
-                      <div>
-                        <h3 className="text-lg font-black text-foreground group-hover:text-primary transition-colors line-clamp-1 mb-2">
-                          {project.title}
-                        </h3>
-                        <p className="text-sm font-medium text-muted-foreground line-clamp-2 leading-relaxed mb-4">
-                          {project.description}
-                        </p>
-
-                        {/* Tags */}
-                        <div className="flex flex-wrap gap-1.5 mb-4">
-                          {project.tags.slice(0, 3).map((tag) => (
-                            <span key={tag} className="inline-flex items-center rounded-lg bg-accent/20 border-2 border-border px-2.5 py-0.5 text-xs font-bold text-foreground">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Footer Info: Author & Stats */}
-                      <div className="pt-4 border-t-2 border-border flex items-center justify-between mt-auto">
-                        {(() => {
-                          const isTeam = project.teamMembers && project.teamMembers.length > 1;
-                          const teamMembers = isTeam 
-                            ? project.teamMembers!.map(m => students.find(s => s.id === m.studentId)).filter(Boolean)
-                            : author ? [author] : [];
-                          
-                          if (teamMembers.length > 1) {
-                            return (
-                              <div className="flex items-center gap-2">
-                                <div className="flex -space-x-3">
-                                  {teamMembers.slice(0, 3).map((member, i) => (
-                                    <img
-                                      key={member!.id}
-                                      src={member!.avatarUrl}
-                                      alt={member!.name}
-                                      className="w-7 h-7 rounded-full object-cover border-2 border-card relative"
-                                      style={{ zIndex: 3 - i }}
-                                      title={member!.name}
-                                    />
-                                  ))}
-                                  {teamMembers.length > 3 && (
-                                    <div className="w-7 h-7 rounded-full border-2 border-card bg-muted flex items-center justify-center text-[10px] font-bold z-0 relative -ml-3">
-                                      +{teamMembers.length - 3}
-                                    </div>
-                                  )}
-                                </div>
-                                <span className="text-xs font-bold text-foreground truncate max-w-[80px]" title={teamMembers.map(m => m!.name).join(', ')}>
-                                  {teamMembers[0]!.name.split(' ')[0]} +{teamMembers.length - 1}
-                                </span>
-                              </div>
-                            );
-                          } else if (teamMembers.length === 1) {
-                            return (
-                              <div className="flex items-center gap-2">
-                                <img
-                                  src={teamMembers[0]!.avatarUrl}
-                                  alt={teamMembers[0]!.name}
-                                  className="w-7 h-7 rounded-xl object-cover border-2 border-border"
-                                />
-                                <span className="text-xs font-bold text-foreground truncate max-w-[120px]">
-                                  {teamMembers[0]!.name}
-                                </span>
-                              </div>
-                            );
-                          }
-                          
-                          return (
-                            <div className="flex items-center gap-1 text-xs font-bold text-muted-foreground">
-                              <Folder className="w-4 h-4 text-primary" /> Karya Tazkia
-                            </div>
-                          );
-                        })()}
-
-                        <div className="flex items-center gap-3 text-xs font-black text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Eye className="w-4 h-4 text-primary" /> {formatNumber(project.views)}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Heart className="w-4 h-4 text-secondary" /> {formatNumber(project.likes)}
-                          </span>
-                        </div>
-                      </div>
+            {featuredKarya.length === 0
+              ? // Skeleton loading
+                [1, 2, 3].map((n) => (
+                  <div key={n} className="card-3d bg-card border-4 border-border rounded-2xl overflow-hidden animate-pulse">
+                    <div className="aspect-[16/10] bg-muted" />
+                    <div className="p-5 space-y-3">
+                      <div className="h-5 bg-muted rounded-lg w-3/4" />
+                      <div className="h-4 bg-muted rounded-lg w-full" />
+                      <div className="h-4 bg-muted rounded-lg w-2/3" />
                     </div>
                   </div>
-                </Link>
-              </motion.div>
-            )})}
+                ))
+              : featuredKarya.map((item, index) => {
+                  const categoryLabel =
+                    KARYA_CATEGORIES.find((c) => c.value === item.category)?.label ?? item.category;
+
+                  return (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-100px" }}
+                      transition={{ type: "spring", bounce: 0.4, delay: index * 0.1 }}
+                      className="h-full"
+                    >
+                      <Link href={`/project/${item.id}`} className="block h-full">
+                        <div className="card-3d overflow-hidden flex flex-col h-full bg-card group">
+                          {/* Cover Image */}
+                          <div className="aspect-[16/10] w-full overflow-hidden relative border-b-4 border-border bg-muted">
+                            {item.image_url ? (
+                              <img
+                                src={item.image_url}
+                                alt={item.title}
+                                className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <span className="text-4xl">📁</span>
+                              </div>
+                            )}
+                            <div className="absolute top-3 left-3">
+                              <StickerBadge variant="default" className="text-xs">
+                                {categoryLabel}
+                              </StickerBadge>
+                            </div>
+                          </div>
+
+                          {/* Card Details */}
+                          <div className="p-5 flex flex-col flex-grow justify-between">
+                            <div>
+                              <h3 className="text-lg font-black text-foreground group-hover:text-primary transition-colors line-clamp-1 mb-2">
+                                {item.title}
+                              </h3>
+                              <p className="text-sm font-medium text-muted-foreground line-clamp-2 leading-relaxed mb-4">
+                                {item.description}
+                              </p>
+                              {/* Tech Stack */}
+                              <div className="flex flex-wrap gap-1.5 mb-4">
+                                {(item.tech_stack ?? []).slice(0, 3).map((tech) => (
+                                  <span key={tech} className="inline-flex items-center rounded-lg bg-accent/20 border-2 border-border px-2.5 py-0.5 text-xs font-bold text-foreground">
+                                    {tech}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Footer: Stats */}
+                            <div className="pt-4 border-t-2 border-border flex items-center justify-between mt-auto">
+                              <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground max-w-[60%]">
+                                {item.team && item.team.length > 0 ? (
+                                  <>
+                                    <div className="w-7 h-7 rounded-full overflow-hidden bg-muted border-2 border-border shrink-0 shadow-sm">
+                                      {item.team[0].avatar ? (
+                                        <img src={item.team[0].avatar} alt={item.team[0].name} className="w-full h-full object-cover" />
+                                      ) : (
+                                        <div className="w-full h-full bg-secondary text-white flex items-center justify-center text-[11px] font-black uppercase">
+                                          {item.team[0].name.charAt(0)}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <span className="truncate">{item.team[0].name}</span>
+                                    {item.team.length > 1 && (
+                                      <span className="text-[10px] bg-muted-foreground/20 px-1.5 py-0.5 rounded-md">+{item.team.length - 1}</span>
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[11px] font-black shrink-0 shadow-sm">
+                                      K
+                                    </div>
+                                    <span className="truncate">Karya Tazkia</span>
+                                  </>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-3 text-xs font-black text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <Eye className="w-4 h-4 text-primary" /> {formatNumber(item.views ?? 0)}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Heart className="w-4 h-4 text-secondary" /> {formatNumber(item.likes ?? 0)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  );
+                })}
           </div>
 
           <div className="mt-12 flex justify-center">

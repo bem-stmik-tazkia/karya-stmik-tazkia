@@ -3,14 +3,15 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Mail, Code, Globe, ExternalLink, Folder, GraduationCap, Eye, Heart, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { Student, Project } from "@/lib/data";
+import { Student } from "@/lib/feedData";
+import type { Karya } from "@/types/karya";
 import { BouncyButton } from "@/components/ui/BouncyButton";
 import { StickerBadge } from "@/components/ui/StickerBadge";
 import { getSkillColor } from "@/utils/skillColor";
 
 interface MahasiswaProfileDrawerProps {
   student: Student | null;
-  projects: Project[];
+  projects: Karya[];
   onClose: () => void;
 }
 
@@ -67,11 +68,17 @@ export default function MahasiswaProfileDrawer({
             {/* Avatar & Title Info */}
             <div className="relative -mt-14 mb-4 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
               <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl p-1 bg-card border-4 border-border shadow-[4px_4px_0px_var(--color-border)] overflow-hidden shrink-0">
-                <img
-                  src={student.avatarUrl}
-                  alt={student.name}
-                  className="w-full h-full object-cover rounded-xl"
-                />
+                {student.avatarUrl ? (
+                  <img
+                    src={student.avatarUrl}
+                    alt={student.name}
+                    className="w-full h-full object-cover rounded-xl"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-secondary text-white flex items-center justify-center text-4xl font-black rounded-xl uppercase">
+                    {student.name.charAt(0)}
+                  </div>
+                )}
               </div>
               <Link href={`/student/${student.id}`} onClick={onClose} className="w-full sm:w-auto">
                 <BouncyButton variant="secondary" className="w-full text-xs px-4 py-2">
@@ -168,11 +175,17 @@ export default function MahasiswaProfileDrawer({
                       key={proj.id}
                       className="card-3d bg-card p-3 rounded-2xl border-2 border-border flex gap-3 group items-center"
                     >
-                      <img
-                        src={proj.imageUrl}
-                        alt={proj.title}
-                        className="w-20 h-20 object-cover rounded-xl border-2 border-border shrink-0"
-                      />
+                      {proj.image_url ? (
+                        <img
+                          src={proj.image_url}
+                          alt={proj.title}
+                          className="w-20 h-20 object-cover rounded-xl border-2 border-border shrink-0"
+                        />
+                      ) : (
+                        <div className="w-20 h-20 rounded-xl border-2 border-border shrink-0 bg-muted flex items-center justify-center text-2xl">
+                          📁
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <StickerBadge variant="warning" className="text-[9px] py-0 px-1.5">
@@ -187,10 +200,10 @@ export default function MahasiswaProfileDrawer({
                         </p>
                         <div className="flex items-center gap-3 mt-2 text-[10px] font-bold text-muted-foreground">
                           <span className="flex items-center gap-1">
-                            <Eye className="w-3 h-3 text-primary" /> {proj.views}
+                            <Eye className="w-3 h-3 text-primary" /> {proj.views ?? 0}
                           </span>
                           <span className="flex items-center gap-1">
-                            <Heart className="w-3 h-3 text-secondary" /> {proj.likes}
+                            <Heart className="w-3 h-3 text-secondary" /> {proj.likes ?? 0}
                           </span>
                           <Link
                             href={`/project/${proj.id}`}
