@@ -71,6 +71,39 @@ export async function incrementKaryaView(karyaId: string, deviceId: string) {
   if (error) console.error("[incrementKaryaView] Error:", error.message);
 }
 
+/**
+ * Cek apakah user/device sudah like karya ini.
+ */
+export async function checkKaryaLiked(karyaId: string, deviceId: string, userId: string | null = null): Promise<boolean> {
+  const { data, error } = await supabase.rpc("check_karya_liked", {
+    p_karya_id: karyaId,
+    p_device_id: deviceId,
+    p_user_id: userId,
+  });
+  if (error) {
+    console.error("[checkKaryaLiked] Error:", error.message);
+    return false;
+  }
+  return data ?? false;
+}
+
+/**
+ * Toggle like/unlike karya.
+ * Mengembalikan status like terbaru (true jika jadi liked, false jika di-unlike).
+ */
+export async function toggleKaryaLike(karyaId: string, deviceId: string, userId: string | null = null): Promise<boolean> {
+  const { data, error } = await supabase.rpc("toggle_karya_like", {
+    p_karya_id: karyaId,
+    p_device_id: deviceId,
+    p_user_id: userId,
+  });
+  if (error) {
+    console.error("[toggleKaryaLike] Error:", error.message);
+    return false;
+  }
+  return data ?? false;
+}
+
 // ============================================================
 // Mahasiswa Profiles — from shared Supabase `mahasiswa_profiles` table
 // ============================================================

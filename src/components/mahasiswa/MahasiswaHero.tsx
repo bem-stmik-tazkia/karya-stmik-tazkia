@@ -145,8 +145,8 @@ export default function MahasiswaHero({
             <button
               onClick={() => setSelectedAngkatan(null)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-black uppercase border-2 border-border transition-all ${selectedAngkatan === null
-                  ? "bg-primary text-primary-foreground shadow-[2px_2px_0px_var(--color-border)]"
-                  : "bg-card text-foreground hover:bg-muted"
+                ? "bg-primary text-primary-foreground shadow-[2px_2px_0px_var(--color-border)]"
+                : "bg-card text-foreground hover:bg-muted"
                 }`}
             >
               Semua
@@ -156,8 +156,8 @@ export default function MahasiswaHero({
                 key={year}
                 onClick={() => setSelectedAngkatan(year)}
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-black uppercase border-2 border-border transition-all ${selectedAngkatan === year
-                    ? "bg-primary text-primary-foreground shadow-[2px_2px_0px_var(--color-border)]"
-                    : "bg-card text-foreground hover:bg-muted"
+                  ? "bg-primary text-primary-foreground shadow-[2px_2px_0px_var(--color-border)]"
+                  : "bg-card text-foreground hover:bg-muted"
                   }`}
               >
                 {year}
@@ -173,8 +173,8 @@ export default function MahasiswaHero({
                 key={opt.value}
                 onClick={() => setSelectedProdi(opt.value)}
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border-2 border-border transition-all ${selectedProdi === opt.value
-                    ? "bg-secondary text-secondary-foreground shadow-[2px_2px_0px_var(--color-border)]"
-                    : "bg-card text-foreground hover:bg-muted"
+                  ? "bg-secondary text-secondary-foreground shadow-[2px_2px_0px_var(--color-border)]"
+                  : "bg-card text-foreground hover:bg-muted"
                   }`}
               >
                 {opt.label}

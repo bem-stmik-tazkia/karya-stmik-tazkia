@@ -91,8 +91,6 @@ export default function MahasiswaProfileDrawer({
               <h2 className="text-2xl sm:text-3xl font-black text-foreground">{student.name}</h2>
               <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground mt-1">
                 <GraduationCap className="w-4 h-4 text-secondary shrink-0" />
-                <span>NIM: {student.nim}</span>
-                <span>•</span>
                 <span>{student.prodi}</span>
               </div>
             </div>
@@ -171,9 +169,11 @@ export default function MahasiswaProfileDrawer({
               {projects.length > 0 ? (
                 <div className="space-y-3">
                   {projects.map((proj) => (
-                    <div
+                    <Link
+                      href={`/project/${proj.id}`}
+                      onClick={onClose}
                       key={proj.id}
-                      className="card-3d bg-card p-3 rounded-2xl border-2 border-border flex gap-3 group items-center"
+                      className="block card-3d bg-card p-3 rounded-2xl border-2 border-border flex gap-3 group items-center"
                     >
                       {proj.image_url ? (
                         <img
@@ -205,16 +205,14 @@ export default function MahasiswaProfileDrawer({
                           <span className="flex items-center gap-1">
                             <Heart className="w-3 h-3 text-secondary" /> {proj.likes ?? 0}
                           </span>
-                          <Link
-                            href={`/project/${proj.id}`}
-                            onClick={onClose}
-                            className="ml-auto flex items-center gap-0.5 text-primary font-black uppercase hover:underline"
+                          <span
+                            className="ml-auto flex items-center gap-0.5 text-primary font-black uppercase group-hover:underline"
                           >
                             Detail <ExternalLink className="w-3 h-3" />
-                          </Link>
+                          </span>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               ) : (

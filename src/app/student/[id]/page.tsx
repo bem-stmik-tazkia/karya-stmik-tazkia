@@ -2,7 +2,9 @@
 
 import { use, useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { getMahasiswaById, getMahasiswaProjects, formatNumber } from "@/lib/data";
+import { getMahasiswaById, getMahasiswaProjects, formatNumber, toggleKaryaLike } from "@/lib/data";
+import { getDeviceId } from "@/utils/identity";
+import { supabase } from "@/lib/supabase";
 import type { MahasiswaProfile, MahasiswaProject, Karya } from "@/types/karya";
 import { KARYA_CATEGORIES } from "@/types/karya";
 import Link from "next/link";
@@ -21,12 +23,15 @@ import {
   Eye,
   Heart,
   Loader2,
+  Share2,
 } from "lucide-react";
 import { notFound } from "next/navigation";
 import { motion } from "framer-motion";
 import { BouncyButton } from "@/components/ui/BouncyButton";
 import { StickerBadge } from "@/components/ui/StickerBadge";
 import { getSkillColor } from "@/utils/skillColor";
+import ShareProfileModal from "@/components/mahasiswa/ShareProfileModal";
+import TechStackTags from "@/components/ui/TechStackTags";
 
 export default function StudentProfilePage({
   params,
@@ -41,12 +46,39 @@ export default function StudentProfilePage({
   const [activeCategory, setActiveCategory] = useState("All");
   const [likedKarya, setLikedKarya] = useState<Record<string, boolean>>({});
   const [currentPage, setCurrentPage] = useState(1);
+  const [showShareModal, setShowShareModal] = useState(false);
   const ITEMS_PER_PAGE = 6;
 
-  const toggleLike = (e: React.MouseEvent, id: string) => {
+  const shareUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/student/${resolvedParams.id}`
+      : "";
+
+  const [isLiking, setIsLiking] = useState<Record<string, boolean>>({});
+
+  const toggleLike = async (e: React.MouseEvent, id: string) => {
     e.preventDefault();
     e.stopPropagation();
-    setLikedKarya((prev) => ({ ...prev, [id]: !prev[id] }));
+    
+    if (isLiking[id]) return;
+    
+    setIsLiking(prev => ({ ...prev, [id]: true }));
+    const wasLiked = likedKarya[id];
+    setLikedKarya((prev) => ({ ...prev, [id]: !wasLiked }));
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id || null;
+      const deviceId = getDeviceId();
+      
+      const isNowLiked = await toggleKaryaLike(id, deviceId, userId);
+      setLikedKarya((prev) => ({ ...prev, [id]: isNowLiked }));
+    } catch (err) {
+      console.error(err);
+      setLikedKarya((prev) => ({ ...prev, [id]: wasLiked }));
+    } finally {
+      setIsLiking(prev => ({ ...prev, [id]: false }));
+    }
   };
 
   const filteredProjects = useMemo(() => {
@@ -158,11 +190,6 @@ export default function StudentProfilePage({
             <div className="flex items-center justify-center md:justify-start gap-2 text-base sm:text-xl text-primary font-black uppercase mb-4">
               <GraduationCap className="w-6 h-6 shrink-0" />
               <span>{mahasiswa.prodi}</span>
-              {mahasiswa.nim && (
-                <span className="text-muted-foreground text-sm font-bold">
-                  • NIM: {mahasiswa.nim}
-                </span>
-              )}
             </div>
 
             <p className="text-sm sm:text-base text-muted-foreground font-medium max-w-2xl mb-6 leading-relaxed">
@@ -190,6 +217,14 @@ export default function StudentProfilePage({
                   KIRIM EMAIL
                 </BouncyButton>
               </a>
+
+              <button
+                onClick={() => setShowShareModal(true)}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-muted border-4 border-border font-black text-sm uppercase text-foreground shadow-[4px_4px_0px_var(--color-border)] hover:-translate-y-1 hover:shadow-[4px_6px_0px_var(--color-border)] active:translate-y-[2px] active:shadow-[2px_2px_0px_var(--color-border)] transition-all"
+              >
+                <Share2 className="w-5 h-5 text-secondary" />
+                Share Profil
+              </button>
 
               <div className="flex gap-2">
                 {mahasiswa.website_url && (
@@ -331,16 +366,7 @@ export default function StudentProfilePage({
                           <p className="text-sm font-medium text-muted-foreground line-clamp-2 leading-relaxed mb-4">
                             {project.description}
                           </p>
-                          <div className="flex flex-wrap gap-1.5 mb-4">
-                            {(project.tech_stack ?? []).slice(0, 3).map((tech: string) => (
-                              <span
-                                key={tech}
-                                className="inline-flex items-center rounded-lg bg-accent/20 border-2 border-border px-2.5 py-0.5 text-xs font-bold text-foreground"
-                              >
-                                {tech}
-                              </span>
-                            ))}
-                          </div>
+                          <TechStackTags techs={project.tech_stack ?? []} maxVisible={3} className="mb-4" />
                         </div>
 
                         {/* Footer */}
@@ -431,6 +457,15 @@ export default function StudentProfilePage({
           </div>
         )}
       </div>
+
+      {/* Share Profile Modal */}
+      {showShareModal && mahasiswa && (
+        <ShareProfileModal
+          studentName={mahasiswa.full_name}
+          shareUrl={shareUrl}
+          onClose={() => setShowShareModal(false)}
+        />
+      )}
     </div>
   );
 }

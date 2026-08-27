@@ -22,9 +22,7 @@ export function Navbar() {
         <div className="container mx-auto px-4 flex h-16 items-center justify-between bg-background">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0" onClick={() => setIsOpen(false)}>
-            <div className="w-9 h-9 bg-primary rounded-xl border-2 border-primary-shadow shadow-[0_2px_0_0_var(--color-primary-shadow)] flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-white" />
-            </div>
+
             <span className="font-black text-lg sm:text-xl tracking-tight">
               Karya<span className="text-primary">Tazkia</span>
             </span>
@@ -71,9 +69,7 @@ export function Navbar() {
           {/* Header inside mobile menu */}
           <div className="flex items-center justify-between pb-6 border-b-4 border-border">
             <Link href="/" className="flex items-center gap-2" onClick={() => setIsOpen(false)}>
-              <div className="w-9 h-9 bg-primary rounded-xl border-2 border-primary-shadow flex items-center justify-center">
-                <BookOpen className="w-5 h-5 text-white" />
-              </div>
+
               <span className="font-black text-xl">Karya<span className="text-primary">Tazkia</span></span>
             </Link>
             <button

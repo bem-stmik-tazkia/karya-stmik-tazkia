@@ -5,11 +5,15 @@
 :root {
   --background: #ffffff;
   --foreground: #334155;
-  --primary: #f97316; /* Flat Orange */
-  --primary-shadow: #c2410c; /* Darker orange for 3D shadow */
+  --primary: #f97316;
+  /* Flat Orange */
+  --primary-shadow: #c2410c;
+  /* Darker orange for 3D shadow */
   --primary-foreground: #ffffff;
-  --secondary: #1e3a8a; /* Flat Navy */
-  --secondary-shadow: #1e3a8a; /* Darker navy for 3D shadow */
+  --secondary: #1e3a8a;
+  /* Flat Navy */
+  --secondary-shadow: #1e3a8a;
+  /* Darker navy for 3D shadow */
   --secondary-foreground: #ffffff;
   --accent: #f59e0b;
   --accent-shadow: #d97706;
@@ -19,7 +23,8 @@
   --border: #e2e8f0;
   --card: #ffffff;
   --card-foreground: #334155;
-  --radius: 1.5rem; /* Chunkier radius */
+  --radius: 1.5rem;
+  /* Chunkier radius */
 }
 
 .dark {
@@ -69,7 +74,9 @@
   * {
     @apply border-border;
   }
-  html, body {
+
+  html,
+  body {
     @apply bg-background text-foreground font-sans max-w-full overflow-x-hidden w-full relative;
     touch-action: pan-y;
   }
@@ -79,16 +86,20 @@
   .btn-3d {
     @apply relative border-2 border-transparent transition-all duration-150 active:translate-y-[4px] active:border-b-2 active:mb-0 mb-[4px];
   }
+
   .btn-3d-primary {
     @apply bg-primary text-primary-foreground border-primary-shadow border-b-[6px] active:border-b-2;
   }
+
   .btn-3d-secondary {
     @apply bg-secondary text-secondary-foreground border-secondary-shadow border-b-[6px] active:border-b-2;
   }
+
   .btn-3d-muted {
     @apply bg-muted text-foreground border-border border-b-[6px] active:border-b-2;
   }
+
   .card-3d {
-    @apply bg-card border-2 border-border shadow-[0_4px_0_0_rgba(226,232,240,1)] dark:shadow-[0_4px_0_0_rgba(51,65,85,1)] rounded-3xl transition-transform hover:-translate-y-1 hover:shadow-[0_8px_0_0_rgba(226,232,240,1)] dark:hover:shadow-[0_8px_0_0_rgba(51,65,85,1)];
+    @apply bg-card border-2 border-border shadow-[0_4px_0_0_#e2e8f0] dark:shadow-[0_4px_0_0_#334155] rounded-3xl transition-transform hover:-translate-y-1 hover:shadow-[0_8px_0_0_#e2e8f0] dark:hover:shadow-[0_8px_0_0_#334155];
   }
 }

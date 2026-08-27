@@ -66,7 +66,7 @@ export default function MahasiswaCard({
         {/* Avatar + Email button (floating keluar dari banner, layout BEM) */}
         <div className="relative -mt-6 sm:-mt-8 mb-2 sm:mb-3 flex items-end justify-between">
           {/* Avatar */}
-          <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-[10px] sm:rounded-2xl p-0.5 bg-card overflow-hidden border-4 border-border shadow-[2px_2px_0px_var(--color-border)] group-hover:border-secondary transition-all duration-300 shrink-0">
+          <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-[10px] sm:rounded-2xl p-0.5 bg-card overflow-hidden border-4 border-border shadow-[2px_2px_0px_var(--color-border)] group-hover:border-primary transition-all duration-300 shrink-0">
             {student.avatarUrl && !imgError ? (
               <img
                 src={student.avatarUrl}
@@ -94,7 +94,7 @@ export default function MahasiswaCard({
 
         {/* Name & Prodi */}
         <div className="mb-1.5 sm:mb-2">
-          <h3 className="text-sm sm:text-base font-black text-foreground group-hover:text-secondary transition-colors line-clamp-1">
+          <h3 className="text-sm sm:text-base font-black text-foreground group-hover:text-primary transition-colors line-clamp-1">
             {student.name}
           </h3>
           <p className="text-[10px] sm:text-xs font-semibold text-muted-foreground mt-0.5 line-clamp-1">

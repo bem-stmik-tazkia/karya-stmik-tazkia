@@ -10,6 +10,7 @@ import { ArrowRight, Flame, Users, Eye, Heart, Folder } from "lucide-react";
 import { formatNumber } from "@/lib/data";
 import { BouncyButton } from "@/components/ui/BouncyButton";
 import { StickerBadge } from "@/components/ui/StickerBadge";
+import TechStackTags from "@/components/ui/TechStackTags";
 
 export default function Home() {
   const [featuredKarya, setFeaturedKarya] = useState<Karya[]>([]);
@@ -45,7 +46,8 @@ export default function Home() {
             className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-foreground max-w-4xl mx-auto uppercase"
             style={{ textShadow: "3px 3px 0px var(--color-border)" }}
           >
-            Showcase <span className="text-primary">STMIK Tazkia</span>
+            Showcase <br />
+            <span className="text-primary inline-block">STMIK Tazkia</span>
           </motion.h1>
 
           <motion.p
@@ -145,13 +147,7 @@ export default function Home() {
                                 {item.description}
                               </p>
                               {/* Tech Stack */}
-                              <div className="flex flex-wrap gap-1.5 mb-4">
-                                {(item.tech_stack ?? []).slice(0, 3).map((tech) => (
-                                  <span key={tech} className="inline-flex items-center rounded-lg bg-accent/20 border-2 border-border px-2.5 py-0.5 text-xs font-bold text-foreground">
-                                    {tech}
-                                  </span>
-                                ))}
-                              </div>
+                              <TechStackTags techs={item.tech_stack ?? []} maxVisible={3} className="mb-4" />
                             </div>
 
                             {/* Footer: Stats */}

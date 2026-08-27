@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { getKarya } from "@/lib/data";
+import { getKarya, toggleKaryaLike } from "@/lib/data";
+import { getDeviceId } from "@/utils/identity";
+import { supabase } from "@/lib/supabase";
 import type { Karya } from "@/types/karya";
 import { KARYA_CATEGORIES } from "@/types/karya";
 import Link from "next/link";
@@ -19,6 +21,7 @@ import {
 } from "lucide-react";
 import { StickerBadge } from "@/components/ui/StickerBadge";
 import { formatNumber } from "@/lib/data";
+import TechStackTags from "@/components/ui/TechStackTags";
 
 export default function ExplorePage() {
   const [karya, setKarya] = useState<Karya[]>([]);
@@ -39,10 +42,31 @@ export default function ExplorePage() {
     fetchData();
   }, []);
 
-  const toggleLike = (e: React.MouseEvent, id: string) => {
+  const [isLiking, setIsLiking] = useState<Record<string, boolean>>({});
+
+  const toggleLike = async (e: React.MouseEvent, id: string) => {
     e.preventDefault();
     e.stopPropagation();
-    setLikedKarya((prev) => ({ ...prev, [id]: !prev[id] }));
+
+    if (isLiking[id]) return;
+
+    setIsLiking(prev => ({ ...prev, [id]: true }));
+    const wasLiked = likedKarya[id];
+    setLikedKarya((prev) => ({ ...prev, [id]: !wasLiked }));
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id || null;
+      const deviceId = getDeviceId();
+
+      const isNowLiked = await toggleKaryaLike(id, deviceId, userId);
+      setLikedKarya((prev) => ({ ...prev, [id]: isNowLiked }));
+    } catch (err) {
+      console.error(err);
+      setLikedKarya((prev) => ({ ...prev, [id]: wasLiked }));
+    } finally {
+      setIsLiking(prev => ({ ...prev, [id]: false }));
+    }
   };
 
   const filteredKarya = useMemo(() => {
@@ -116,20 +140,18 @@ export default function ExplorePage() {
                 className="relative group flex flex-col items-center gap-2 outline-none shrink-0 py-2 px-1"
               >
                 <div
-                  className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl border-4 flex items-center justify-center font-black text-xs sm:text-sm transition-all duration-200 ${
-                    isActive
+                  className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl border-4 flex items-center justify-center font-black text-xs sm:text-sm transition-all duration-200 ${isActive
                       ? "bg-primary border-border text-primary-foreground scale-105 shadow-[4px_4px_0px_var(--color-border)] -translate-y-1"
                       : "bg-card border-border text-foreground shadow-[2px_2px_0px_var(--color-border)] hover:-translate-y-1 hover:shadow-[4px_4px_0px_var(--color-border)]"
-                  }`}
+                    }`}
                 >
                   {index + 1}
                 </div>
                 <span
-                  className={`font-black uppercase text-[10px] sm:text-xs tracking-wide text-center leading-tight max-w-[70px] ${
-                    isActive
+                  className={`font-black uppercase text-[10px] sm:text-xs tracking-wide text-center leading-tight max-w-[70px] ${isActive
                       ? "text-primary"
                       : "text-muted-foreground group-hover:text-foreground"
-                  }`}
+                    }`}
                 >
                   {cat.label}
                 </span>
@@ -231,16 +253,7 @@ export default function ExplorePage() {
                               </p>
 
                               {/* Tech Stack Tags */}
-                              <div className="flex flex-wrap gap-1.5 mb-4">
-                                {(item.tech_stack ?? []).slice(0, 3).map((tech) => (
-                                  <span
-                                    key={tech}
-                                    className="inline-flex items-center rounded-lg bg-accent/20 border-2 border-border px-2.5 py-0.5 text-xs font-bold text-foreground"
-                                  >
-                                    {tech}
-                                  </span>
-                                ))}
-                              </div>
+                              <TechStackTags techs={item.tech_stack ?? []} maxVisible={3} className="mb-4" />
                             </div>
 
                             {/* Footer Info: Links & Stats */}
@@ -279,9 +292,8 @@ export default function ExplorePage() {
                                 </span>
                                 <button
                                   onClick={(e) => toggleLike(e, item.id)}
-                                  className={`flex items-center gap-1 hover:text-secondary transition-colors ${
-                                    isLiked ? "text-secondary font-black" : ""
-                                  }`}
+                                  className={`flex items-center gap-1 hover:text-secondary transition-colors ${isLiked ? "text-secondary font-black" : ""
+                                    }`}
                                 >
                                   <Heart
                                     className={`w-4 h-4 ${isLiked ? "fill-current text-secondary" : ""}`}
@@ -312,11 +324,10 @@ export default function ExplorePage() {
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`w-10 h-10 rounded-xl border-2 border-border text-xs font-black transition-all ${
-                        currentPage === page
+                      className={`w-10 h-10 rounded-xl border-2 border-border text-xs font-black transition-all ${currentPage === page
                           ? "bg-primary text-primary-foreground shadow-[2px_2px_0px_var(--color-border)]"
                           : "bg-card text-foreground hover:bg-muted"
-                      }`}
+                        }`}
                     >
                       {page}
                     </button>

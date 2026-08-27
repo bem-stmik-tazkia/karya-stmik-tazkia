@@ -2,12 +2,15 @@
 
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getKaryaById, getKarya, formatNumber } from "@/lib/data";
+import { getKaryaById, getKarya, formatNumber, incrementKaryaView, checkKaryaLiked, toggleKaryaLike } from "@/lib/data";
+import { supabase } from "@/lib/supabase";
+import { getDeviceId } from "@/utils/identity";
 import type { Karya } from "@/types/karya";
 import { KARYA_CATEGORIES } from "@/types/karya";
 import Link from "next/link";
 import {
   ArrowLeft,
+  X,
   ExternalLink,
   Globe,
   Code,
@@ -189,7 +192,66 @@ export default function ProjectDetailPage({
   const [relatedKarya, setRelatedKarya] = useState<Karya[]>([]);
   const [loading, setLoading] = useState(true);
   const [likedLocal, setLikedLocal] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [isLiking, setIsLiking] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      if (!id) return;
+      const data = await getKaryaById(id);
+      if (data) {
+        setKarya(data);
+        
+        // Fetch related karya
+        const all = await getKarya({ category: data.category });
+        setRelatedKarya(all.filter((k) => k.id !== data.id).slice(0, 3));
+
+        setLikeCount(data.likes ?? 0);
+        
+        // Track View
+        const deviceId = getDeviceId();
+        
+        // Check if liked
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id || null;
+        
+        const isLiked = await checkKaryaLiked(data.id, deviceId, userId);
+        setLikedLocal(isLiked);
+        
+        // Increment view (this will only increment in DB once per 24 hours per device due to anti-spam in RPC)
+        await incrementKaryaView(data.id, deviceId);
+      }
+      setLoading(false);
+    }
+    fetchData();
+  }, [id]);
+
+  const handleLike = async () => {
+    if (!karya || isLiking) return;
+    
+    setIsLiking(true);
+    // Optimistic update
+    setLikedLocal(!likedLocal);
+    setLikeCount(prev => likedLocal ? Math.max(0, prev - 1) : prev + 1);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id || null;
+      const deviceId = getDeviceId();
+      
+      const isNowLiked = await toggleKaryaLike(karya.id, deviceId, userId);
+      setLikedLocal(isNowLiked);
+    } catch (err) {
+      console.error(err);
+      // Revert if error
+      setLikedLocal(likedLocal);
+      setLikeCount(prev => likedLocal ? prev + 1 : Math.max(0, prev - 1));
+    } finally {
+      setIsLiking(false);
+    }
+  };
 
   const handleShare = async () => {
     if (!karya) return;
@@ -215,23 +277,6 @@ export default function ProjectDetailPage({
       }
     }
   };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      const data = await getKaryaById(id);
-      if (!data) {
-        notFound();
-        return;
-      }
-      setKarya(data);
-
-      const all = await getKarya({ category: data.category });
-      setRelatedKarya(all.filter((k) => k.id !== data.id).slice(0, 3));
-      setLoading(false);
-    };
-    fetchData();
-  }, [id]);
 
   useEffect(() => {
     if (!loading && karya) {
@@ -315,17 +360,17 @@ export default function ProjectDetailPage({
                   <Eye className="w-4 h-4" /> {formatNumber(karya.views ?? 0)} Views
                 </span>
                 <button
-                  onClick={() => setLikedLocal((v) => !v)}
-                  className={`flex items-center gap-1.5 transition-colors ${likedLocal ? "text-red-500" : "text-muted-foreground hover:text-red-400"}`}
-                >
-                  <motion.div
-                    animate={likedLocal ? { scale: [1, 1.5, 1] } : {}}
-                    transition={{ duration: 0.4, ease: "easeInOut" }}
-                  >
-                    <Heart className={`w-4 h-4 ${likedLocal ? "fill-red-500" : ""}`} />
-                  </motion.div>
-                  {formatNumber((karya.likes ?? 0) + (likedLocal ? 1 : 0))} Likes
-                </button>
+                onClick={handleLike}
+                disabled={isLiking}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-4 font-black text-sm uppercase shadow-[4px_4px_0px_var(--color-border)] active:translate-y-[2px] active:shadow-none transition-all ${
+                  likedLocal
+                    ? "bg-red-500 border-red-600 text-white"
+                    : "bg-muted border-border text-foreground hover:bg-red-100 hover:text-red-500"
+                } ${isLiking ? "opacity-70 cursor-wait" : ""}`}
+              >
+                <Heart className={`w-5 h-5 ${likedLocal ? "fill-white" : ""}`} />
+                {formatNumber(likeCount)} Suka
+              </button>
               </div>
             </div>
           </motion.div>
@@ -433,14 +478,19 @@ export default function ProjectDetailPage({
                   Gallery & Documentation
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {gallery.map((item: any, i: number) => (
+                  {gallery.map((item: any, i: number) => {
+                    const imgUrl = typeof item === "string" ? item : item.url;
+                    return (
                     <div
                       key={i}
                       className="rounded-2xl overflow-hidden border-2 border-border shadow-[2px_2px_0px_var(--color-border)] bg-muted group"
                     >
-                      <div className="overflow-hidden relative border-b-2 border-border">
+                      <button
+                        onClick={() => setSelectedImage(imgUrl)}
+                        className="overflow-hidden relative border-b-2 border-border w-full block text-left outline-none cursor-zoom-in"
+                      >
                         <img
-                          src={typeof item === "string" ? item : item.url}
+                          src={imgUrl}
                           alt={typeof item === "object" && item.caption ? item.caption : `Dokumentasi ${i + 1}`}
                           className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500"
                         />
@@ -449,7 +499,7 @@ export default function ProjectDetailPage({
                             <Eye className="text-white w-5 h-5" />
                           </div>
                         </div>
-                      </div>
+                      </button>
                       {typeof item === "object" && item.caption && (
                         <div className="p-4 bg-muted">
                           <p className="text-xs font-bold text-muted-foreground border-l-4 border-secondary pl-3">
@@ -458,7 +508,7 @@ export default function ProjectDetailPage({
                         </div>
                       )}
                     </div>
-                  ))}
+                  )})}
                 </div>
               </div>
             )}
@@ -644,6 +694,43 @@ export default function ProjectDetailPage({
             </div>
             Link berhasil disalin!
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Image Lightbox Modal */}
+      <AnimatePresence>
+        {selectedImage && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedImage(null)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-zoom-out"
+            />
+            
+            {/* Image Container */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: "spring", bounce: 0.3 }}
+              className="relative z-10 max-w-5xl w-full max-h-[90vh] flex flex-col items-center justify-center"
+            >
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="absolute -top-4 -right-4 sm:-top-6 sm:-right-6 w-10 h-10 rounded-xl bg-card border-2 border-border flex items-center justify-center text-foreground hover:bg-destructive hover:text-white transition-colors shadow-[4px_4px_0px_var(--color-border)] z-20"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <img
+                src={selectedImage}
+                alt="Galeri Fullscreen"
+                className="w-full h-auto max-h-[85vh] object-contain rounded-2xl border-4 border-border shadow-[8px_8px_0px_var(--color-border)] bg-muted"
+              />
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>
