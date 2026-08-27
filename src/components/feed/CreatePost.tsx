@@ -2,6 +2,8 @@
 
 import React, { useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { Image as ImageIcon, Send, X, Code, Users, Lightbulb, Hash } from "lucide-react";
 import { BouncyButton } from "@/components/ui/BouncyButton";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,6 +13,9 @@ interface CreatePostProps {
 }
 
 export default function CreatePost({ onPostSubmit }: CreatePostProps) {
+  const { user } = useAuth();
+  const router = useRouter();
+  
   const [isExpanded, setIsExpanded] = useState(false);
   const [content, setContent] = useState("");
   const [type, setType] = useState<"project" | "update" | "collab">("update");
@@ -92,7 +97,16 @@ export default function CreatePost({ onPostSubmit }: CreatePostProps) {
   return (
     <div className="card-3d bg-card border-4 border-border rounded-3xl p-4 sm:p-5 mb-8">
       {/* Trigger Bar */}
-      <div onClick={() => setIsExpanded(true)} className="flex items-center gap-4 cursor-pointer">
+      <div 
+        onClick={() => {
+          if (!user) {
+            router.push("/login");
+            return;
+          }
+          setIsExpanded(true);
+        }} 
+        className="flex items-center gap-4 cursor-pointer"
+      >
         <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center font-black text-white text-xl border-2 border-border shadow-[2px_2px_0px_var(--color-border)] shrink-0">
           A
         </div>

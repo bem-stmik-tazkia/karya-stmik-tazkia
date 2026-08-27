@@ -1,19 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Nunito } from "next/font/google";
+import { Lexend } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
+import { AuthProvider } from "@/components/providers/AuthProvider";
+import { AppLayoutWrapper } from "@/components/layout/AppLayoutWrapper";
 
-const nunito = Nunito({
-  variable: "--font-nunito",
+const lexend = Lexend({
+  variable: "--font-lexend",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
-  title: "Student Portfolio Gallery",
-  description: "Showcasing innovation & creativity: Explore student portfolios.",
+  title: "Karya Tazkia - Galeri Portofolio Mahasiswa STMIK Tazkia",
+  description: "Galeri digital karya mahasiswa STMIK Tazkia. Temukan inovasi, kreativitas, dan portofolio terbaik mahasiswa.",
 };
 
 export const viewport: Viewport = {
@@ -29,20 +29,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${nunito.variable} font-sans antialiased max-w-full overflow-x-clip`} suppressHydrationWarning>
+    <html lang="id" className={`${lexend.variable} font-sans antialiased max-w-full overflow-x-clip`} suppressHydrationWarning>
       <body className="min-h-screen bg-background text-foreground flex flex-col max-w-full overflow-x-clip relative" suppressHydrationWarning>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Navbar />
-          <main className="flex-1 w-full max-w-full overflow-x-clip pt-16">
-            {children}
-          </main>
-          <Footer />
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <AppLayoutWrapper>
+              {children}
+            </AppLayoutWrapper>
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

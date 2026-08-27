@@ -81,9 +81,9 @@ export type KaryaCategory = "Technology" | "Programming" | "Research" | "IoT" | 
 
 export const KARYA_CATEGORIES: { value: string; label: string }[] = [
   { value: "All", label: "Semua Karya" },
-  { value: "Technology", label: "Web & System Apps" },
+  { value: "Technology", label: "Web & Sistem" },
   { value: "Programming", label: "Mobile Apps" },
-  { value: "Research", label: "Research & Journals" },
-  { value: "IoT", label: "IoT Projects" },
-  { value: "Multimedia", label: "Design & Others" },
+  { value: "Research", label: "Riset & Jurnal" },
+  { value: "IoT", label: "Proyek IoT" },
+  { value: "Multimedia", label: "Desain & Lainnya" },
 ];

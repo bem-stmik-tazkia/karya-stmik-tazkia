@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import { getKarya, toggleKaryaLike } from "@/lib/data";
 import { getDeviceId } from "@/utils/identity";
@@ -18,18 +20,31 @@ import {
   ChevronRight,
   RotateCcw,
   Loader2,
+  UploadCloud,
 } from "lucide-react";
 import { StickerBadge } from "@/components/ui/StickerBadge";
 import { formatNumber } from "@/lib/data";
 import TechStackTags from "@/components/ui/TechStackTags";
 
-export default function ExplorePage() {
+function ExploreContent() {
+  const { user } = useAuth();
+  const router = useRouter();
+
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams.get("category") || "All";
+
   const [karya, setKarya] = useState<Karya[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeCategory, setActiveCategory] = useState(categoryParam);
   const [currentPage, setCurrentPage] = useState(1);
   const [likedKarya, setLikedKarya] = useState<Record<string, boolean>>({});
+
+  // Sync category if URL param changes
+  useEffect(() => {
+    setActiveCategory(categoryParam);
+    setCurrentPage(1);
+  }, [categoryParam]);
 
   // Fetch data from Supabase on mount
   useEffect(() => {
@@ -47,6 +62,11 @@ export default function ExplorePage() {
   const toggleLike = async (e: React.MouseEvent, id: string) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (!user) {
+      router.push("/login");
+      return;
+    }
 
     if (isLiking[id]) return;
 
@@ -122,6 +142,26 @@ export default function ExplorePage() {
           Temukan berbagai hasil karya inovatif, riset, dan proyek teknologi
           terbaik ciptaan mahasiswa STMIK Tazkia.
         </motion.p>
+        <motion.div
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: "spring", bounce: 0.5, delay: 0.3 }}
+          className="mt-8 flex justify-center"
+        >
+          <button
+            onClick={() => {
+              if (!user) {
+                router.push("/login");
+              } else {
+                router.push("/submit");
+              }
+            }}
+            className="flex items-center gap-2 px-6 py-3 bg-secondary text-white border-4 border-border rounded-xl font-black shadow-[4px_4px_0px_var(--color-border)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_var(--color-border)] active:translate-y-1 active:shadow-none transition-all uppercase"
+          >
+            <UploadCloud className="w-5 h-5" />
+            Upload Karya Anda
+          </button>
+        </motion.div>
       </div>
 
       {/* Category Filter */}
@@ -141,16 +181,16 @@ export default function ExplorePage() {
               >
                 <div
                   className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl border-4 flex items-center justify-center font-black text-xs sm:text-sm transition-all duration-200 ${isActive
-                      ? "bg-primary border-border text-primary-foreground scale-105 shadow-[4px_4px_0px_var(--color-border)] -translate-y-1"
-                      : "bg-card border-border text-foreground shadow-[2px_2px_0px_var(--color-border)] hover:-translate-y-1 hover:shadow-[4px_4px_0px_var(--color-border)]"
+                    ? "bg-primary border-border text-primary-foreground scale-105 shadow-[4px_4px_0px_var(--color-border)] -translate-y-1"
+                    : "bg-card border-border text-foreground shadow-[2px_2px_0px_var(--color-border)] hover:-translate-y-1 hover:shadow-[4px_4px_0px_var(--color-border)]"
                     }`}
                 >
                   {index + 1}
                 </div>
                 <span
                   className={`font-black uppercase text-[10px] sm:text-xs tracking-wide text-center leading-tight max-w-[70px] ${isActive
-                      ? "text-primary"
-                      : "text-muted-foreground group-hover:text-foreground"
+                    ? "text-primary"
+                    : "text-muted-foreground group-hover:text-foreground"
                     }`}
                 >
                   {cat.label}
@@ -318,15 +358,15 @@ export default function ExplorePage() {
                     disabled={currentPage === 1}
                     className="flex items-center gap-1 px-4 py-2 rounded-xl bg-card border-2 border-border text-xs font-black uppercase disabled:opacity-40 hover:bg-muted transition-all"
                   >
-                    <ChevronLeft className="w-4 h-4" /> Prev
+                    <ChevronLeft className="w-4 h-4" /> Sebelumnya
                   </button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
                       className={`w-10 h-10 rounded-xl border-2 border-border text-xs font-black transition-all ${currentPage === page
-                          ? "bg-primary text-primary-foreground shadow-[2px_2px_0px_var(--color-border)]"
-                          : "bg-card text-foreground hover:bg-muted"
+                        ? "bg-primary text-primary-foreground shadow-[2px_2px_0px_var(--color-border)]"
+                        : "bg-card text-foreground hover:bg-muted"
                         }`}
                     >
                       {page}
@@ -337,7 +377,7 @@ export default function ExplorePage() {
                     disabled={currentPage === totalPages}
                     className="flex items-center gap-1 px-4 py-2 rounded-xl bg-card border-2 border-border text-xs font-black uppercase disabled:opacity-40 hover:bg-muted transition-all"
                   >
-                    Next <ChevronRight className="w-4 h-4" />
+                    Berikutnya <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
               )}
@@ -362,12 +402,20 @@ export default function ExplorePage() {
                 onClick={handleResetFilters}
                 className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-black uppercase border-2 border-border shadow-[2px_2px_0px_var(--color-border)] hover:bg-secondary/90 transition-all"
               >
-                <RotateCcw className="w-4 h-4" /> RESET FILTERS
+                <RotateCcw className="w-4 h-4" /> RESET FILTER
               </button>
             </motion.div>
           )}
         </AnimatePresence>
       )}
     </div>
+  );
+}
+
+export default function ExplorePage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center py-24"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>}>
+      <ExploreContent />
+    </Suspense>
   );
 }

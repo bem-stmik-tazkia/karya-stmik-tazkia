@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, MessageCircle, Share2, MoreHorizontal, GraduationCap, Send, Check } from "lucide-react";
 import { FeedPost, Student } from "@/lib/feedData";
@@ -31,6 +33,9 @@ interface FeedPostCardProps {
 }
 
 export default function FeedPostCard({ post, author, isCommentsOpen = false, onToggleComments, onCloseComments }: FeedPostCardProps) {
+  const { user } = useAuth();
+  const router = useRouter();
+
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(post.likes);
   const [shareCopied, setShareCopied] = useState(false);
@@ -53,6 +58,10 @@ export default function FeedPostCard({ post, author, isCommentsOpen = false, onT
   }, [isCommentsOpen, onCloseComments]);
 
   const handleLike = () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
     setLiked(!liked);
     setLikesCount(liked ? likesCount - 1 : likesCount + 1);
   };
@@ -152,7 +161,13 @@ export default function FeedPostCard({ post, author, isCommentsOpen = false, onT
             data-comment-toggle="true"
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.9 }}
-            onClick={() => onToggleComments?.()}
+            onClick={() => {
+              if (!user) {
+                router.push("/login");
+                return;
+              }
+              onToggleComments?.();
+            }}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 font-black text-xs sm:text-sm transition-all shadow-[2px_2px_0px_var(--color-border)] ${
               isCommentsOpen ? "bg-secondary/10 border-secondary text-secondary" : "bg-card border-border text-foreground hover:bg-muted"
             }`}

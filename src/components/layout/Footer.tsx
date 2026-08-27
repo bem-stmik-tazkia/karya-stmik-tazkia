@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { BookOpen } from "lucide-react";
 
 export function Footer() {
   return (
@@ -8,54 +7,52 @@ export function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-xl border-2 border-primary-shadow shadow-[0_2px_0_0_var(--color-primary-shadow)] flex items-center justify-center">
-                <BookOpen className="w-4 h-4 text-white" />
-              </div>
               <span className="font-black text-xl tracking-tight">
                 Karya<span className="text-primary">Tazkia</span>
               </span>
             </Link>
             <p className="text-sm font-bold text-muted-foreground leading-relaxed">
-              A vibrant gallery showcasing creativity, research, and innovation from STMIK Tazkia students.
+              Galeri portofolio digital mahasiswa STMIK Tazkia. Tempat kreativitas, riset, dan inovasi bertemu.
             </p>
           </div>
           <div>
-            <h3 className="font-black text-lg uppercase mb-4 text-foreground">Explore</h3>
+            <h3 className="font-black text-lg uppercase mb-4 text-foreground">Jelajahi</h3>
             <ul className="space-y-2 font-bold text-sm text-muted-foreground">
-              <li><Link href="/explore" className="hover:text-primary transition-colors">All Portfolios</Link></li>
-              <li><Link href="/explore" className="hover:text-primary transition-colors">Design Works</Link></li>
-              <li><Link href="/explore" className="hover:text-primary transition-colors">Tech & Code</Link></li>
-              <li><Link href="/explore" className="hover:text-primary transition-colors">Research Projects</Link></li>
+              <li><Link href="/explore" className="hover:text-primary transition-colors">Semua Karya</Link></li>
+              <li><Link href="/explore?category=Technology" className="hover:text-primary transition-colors">Web &amp; Sistem</Link></li>
+              <li><Link href="/explore?category=Programming" className="hover:text-primary transition-colors">Mobile Apps</Link></li>
+              <li><Link href="/explore?category=Research" className="hover:text-primary transition-colors">Riset &amp; Jurnal</Link></li>
+              <li><Link href="/explore?category=Multimedia" className="hover:text-primary transition-colors">Desain &amp; Multimedia</Link></li>
             </ul>
           </div>
           <div>
-            <h3 className="font-black text-lg uppercase mb-4 text-foreground">About</h3>
+            <h3 className="font-black text-lg uppercase mb-4 text-foreground">Komunitas</h3>
             <ul className="space-y-2 font-bold text-sm text-muted-foreground">
-              <li><Link href="/about" className="hover:text-primary transition-colors">Our Mission</Link></li>
-              <li><Link href="/about" className="hover:text-primary transition-colors">Community</Link></li>
-              <li><Link href="/about" className="hover:text-primary transition-colors">FAQ</Link></li>
+              <li><Link href="/feed" className="hover:text-primary transition-colors">Feed &amp; Koneksi</Link></li>
+              <li><Link href="/student" className="hover:text-primary transition-colors">Mahasiswa</Link></li>
+              <li><Link href="/about" className="hover:text-primary transition-colors">Tentang Kami</Link></li>
             </ul>
           </div>
           <div>
-            <h3 className="font-black text-lg uppercase mb-4 text-foreground">Join Us</h3>
+            <h3 className="font-black text-lg uppercase mb-4 text-foreground">Bergabung</h3>
             <p className="text-sm font-bold text-muted-foreground mb-4 leading-relaxed">
-              Are you a student? Showcase your best work to the world.
+              Kamu mahasiswa STMIK Tazkia? Pamerkan karya terbaikmu ke dunia.
             </p>
             <Link
-              href="/auth"
+              href="/submit"
               className="btn-3d btn-3d-secondary rounded-xl px-4 py-2 text-sm font-black inline-block"
             >
-              SUBMIT WORK 🚀
+              KIRIM KARYA 🚀
             </Link>
           </div>
         </div>
         <div className="mt-12 pt-8 border-t-2 border-border border-dashed flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm font-bold text-muted-foreground text-center sm:text-left">
-            © {new Date().getFullYear()} STMIK Tazkia. All rights reserved.
+            © {new Date().getFullYear()} STMIK Tazkia. Hak cipta dilindungi.
           </p>
           <div className="flex gap-4 font-bold text-sm text-muted-foreground">
-            <Link href="#" className="hover:text-primary transition-colors">Terms</Link>
-            <Link href="#" className="hover:text-primary transition-colors">Privacy</Link>
+            <Link href="#" className="hover:text-primary transition-colors">Syarat & Ketentuan</Link>
+            <Link href="#" className="hover:text-primary transition-colors">Privasi</Link>
           </div>
         </div>
       </div>
