@@ -27,6 +27,11 @@ export type Karya = {
   video_url?: string | null;
   user_id?: string | null;
   created_at: string;
+  // AI Review fields
+  ai_review_status?: "pending_review" | "processing" | "reviewed";
+  ai_review_score?: number | null;
+  ai_review_reason?: string | null;
+  ai_reviewed_at?: string | null;
 };
 
 /**

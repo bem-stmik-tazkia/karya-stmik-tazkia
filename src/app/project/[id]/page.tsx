@@ -355,22 +355,26 @@ export default function ProjectDetailPage({
               </div>
 
               {/* Stats di pojok kanan bawah thumbnail */}
-              <div className="absolute bottom-4 right-4 flex items-center gap-4 py-2 px-4 bg-background/90 backdrop-blur-sm border-2 border-border rounded-xl text-xs font-black shadow-[2px_2px_0px_rgba(0,0,0,0.3)]">
-                <span className="flex items-center gap-1.5 text-primary">
-                  <Eye className="w-4 h-4" /> {formatNumber(karya.views ?? 0)} Views
-                </span>
+              <div className="absolute bottom-4 right-4 flex items-center gap-2 p-1.5 bg-card/95 backdrop-blur-md border-2 border-border rounded-2xl shadow-[4px_4px_0px_var(--color-border)]">
+                <div className="flex items-center gap-1.5 px-3 py-2 text-sm font-black text-muted-foreground">
+                  <Eye className="w-4 h-4" /> 
+                  <span>{formatNumber(karya.views ?? 0)} Views</span>
+                </div>
+                
+                <div className="w-0.5 h-6 bg-border/50 rounded-full mx-1" />
+
                 <button
-                onClick={handleLike}
-                disabled={isLiking}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-4 font-black text-sm uppercase shadow-[4px_4px_0px_var(--color-border)] active:translate-y-[2px] active:shadow-none transition-all ${
-                  likedLocal
-                    ? "bg-red-500 border-red-600 text-white"
-                    : "bg-muted border-border text-foreground hover:bg-red-100 hover:text-red-500"
-                } ${isLiking ? "opacity-70 cursor-wait" : ""}`}
-              >
-                <Heart className={`w-5 h-5 ${likedLocal ? "fill-white" : ""}`} />
-                {formatNumber(likeCount)} Suka
-              </button>
+                  onClick={handleLike}
+                  disabled={isLiking}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black transition-all active:scale-95 ${
+                    likedLocal
+                      ? "bg-red-500 text-white shadow-[2px_2px_0px_#991b1b]"
+                      : "bg-muted text-foreground hover:bg-red-100 hover:text-red-500"
+                  } ${isLiking ? "opacity-70 cursor-wait" : ""}`}
+                >
+                  <Heart className={`w-4 h-4 ${likedLocal ? "fill-white" : ""}`} />
+                  <span>{formatNumber(likeCount)} Suka</span>
+                </button>
               </div>
             </div>
           </motion.div>
@@ -382,7 +386,7 @@ export default function ProjectDetailPage({
             transition={{ delay: 0.1 }}
             className="bg-card border-4 border-border shadow-[4px_4px_0px_var(--color-border)] rounded-[2rem] p-6 sm:p-10"
           >
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-6 uppercase leading-tight bg-gradient-to-br from-white to-slate-400 dark:from-slate-100 dark:to-slate-400 bg-clip-text text-transparent drop-shadow-sm">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-6 uppercase leading-tight bg-gradient-to-br from-slate-800 to-slate-500 dark:from-slate-100 dark:to-slate-400 bg-clip-text text-transparent drop-shadow-sm">
               {karya.title}
             </h1>
 

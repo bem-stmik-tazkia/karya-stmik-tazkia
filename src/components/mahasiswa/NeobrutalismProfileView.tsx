@@ -116,7 +116,7 @@ export function NeobrutalismProfileView({
                 </StickerBadge>
               )}
               {profile.status_badge && (
-                <StickerBadge variant="default" className="text-xs sm:text-sm">
+                <StickerBadge variant="accent" className="text-xs sm:text-sm">
                   {profile.status_badge}
                 </StickerBadge>
               )}

@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { FiSave, FiUser, FiInfo, FiAlertCircle, FiX, FiCheck } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/components/providers/AuthProvider";
+import toast from "react-hot-toast";
+import { fetchMasterProdiOptions, fetchMasterAngkatanOptions } from "@/utils/prodiOptions";
 
 const PREDEFINED_SKILLS = [
   "Frontend Developer", "Backend Developer", "Fullstack Developer", 
@@ -48,14 +50,25 @@ export default function ProfileSettingsPage() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-
   const [skillInput, setSkillInput] = useState("");
 
-  const showToast = (type: 'success' | 'error', text: string) => {
-    setToastMessage({ type, text });
-    setTimeout(() => setToastMessage(null), 3000);
-  };
+  const [prodiOptions, setProdiOptions] = useState<{ value: string; label: string }[]>([
+    { value: "Teknik Informatika", label: "Teknik Informatika" },
+    { value: "Sistem Informasi", label: "Sistem Informasi" },
+    { value: "Bisnis Digital", label: "Bisnis Digital" },
+  ]);
+
+  const [angkatanOptions, setAngkatanOptions] = useState<{ value: string; label: string }[]>([
+    { value: "1", label: "Angkatan 1" },
+    { value: "2", label: "Angkatan 2" },
+    { value: "3", label: "Angkatan 3" },
+  ]);
+
+  useEffect(() => {
+    // Fetch master options from system_settings (same DB as BEM)
+    fetchMasterProdiOptions().then(setProdiOptions);
+    fetchMasterAngkatanOptions().then(setAngkatanOptions);
+  }, []);
 
   useEffect(() => {
     if (isAuthLoading) return;
@@ -146,7 +159,7 @@ export default function ProfileSettingsPage() {
 
   const addSkill = (skill: string) => {
     if (formData.skills.length >= 5) {
-      showToast('error', 'Maksimal 5 keahlian');
+      toast.error('Maksimal 5 keahlian');
       return;
     }
     if (formData.skills.includes(skill)) return;
@@ -223,10 +236,10 @@ export default function ProfileSettingsPage() {
     setSaving(false);
 
     if (error) {
-      showToast('error', `Gagal menyimpan: ${error.message}`);
+      toast.error(`Gagal menyimpan: ${error.message}`);
     } else {
       setIsDirty(false);
-      showToast('success', 'Profil berhasil disimpan!');
+      toast.success('Profil berhasil disimpan! ✅');
       setTimeout(() => {
         router.push("/dashboard");
         router.refresh();
@@ -245,25 +258,6 @@ export default function ProfileSettingsPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl relative">
       
-      {/* Toast */}
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className={`fixed top-8 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl border-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center gap-3 font-black text-sm ${
-              toastMessage.type === 'success' 
-                ? 'bg-[#A3E635] text-black border-black' 
-                : 'bg-destructive text-destructive-foreground border-border'
-            }`}
-          >
-            {toastMessage.type === 'success' ? <FiCheck size={18} /> : <FiAlertCircle size={18} />}
-            {toastMessage.text}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <div className="flex items-center gap-4 mb-8">
         <div className="w-14 h-14 bg-secondary text-secondary-foreground border-4 border-border shadow-[4px_4px_0px_0px_var(--color-border)] rounded-2xl flex items-center justify-center">
           <FiUser size={28} />
@@ -364,9 +358,11 @@ export default function ProfileSettingsPage() {
                 onChange={handleChange}
                 className="w-full px-4 py-3 rounded-xl border-4 border-border bg-background font-bold outline-none focus:border-primary focus:shadow-[4px_4px_0px_0px_var(--color-primary)] transition-all appearance-none"
               >
-                <option value="Teknik Informatika">Teknik Informatika</option>
-                <option value="Sistem Informasi">Sistem Informasi</option>
-                <option value="Bisnis Digital">Bisnis Digital</option>
+                {prodiOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -380,9 +376,11 @@ export default function ProfileSettingsPage() {
                 onChange={handleChange}
                 className="w-full px-4 py-3 rounded-xl border-4 border-border bg-background font-bold outline-none focus:border-primary focus:shadow-[4px_4px_0px_0px_var(--color-primary)] transition-all appearance-none"
               >
-                <option value="1">Angkatan 1 (2023)</option>
-                <option value="2">Angkatan 2 (2024)</option>
-                <option value="3">Angkatan 3 (2025)</option>
+                {angkatanOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

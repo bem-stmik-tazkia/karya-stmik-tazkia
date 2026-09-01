@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { AppLayoutWrapper } from "@/components/layout/AppLayoutWrapper";
+import { Toaster } from "react-hot-toast";
 
 const lexend = Lexend({
   variable: "--font-lexend",
@@ -38,6 +39,19 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
+            <Toaster 
+              position="top-center" 
+              toastOptions={{ 
+                duration: 4000, 
+                style: { 
+                  background: 'var(--card)', 
+                  color: 'var(--foreground)', 
+                  border: '2px solid var(--border)', 
+                  borderRadius: '1rem', 
+                  fontWeight: 'bold' 
+                } 
+              }} 
+            />
             <AppLayoutWrapper>
               {children}
             </AppLayoutWrapper>

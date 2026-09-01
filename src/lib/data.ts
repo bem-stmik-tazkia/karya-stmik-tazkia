@@ -63,10 +63,11 @@ export async function getKaryaById(id: string): Promise<Karya | null> {
  * Tambah view ke karya (anti-spam 24 jam per device).
  * Memanggil RPC function yang sudah ada di Supabase BEM.
  */
-export async function incrementKaryaView(karyaId: string, deviceId: string) {
+export async function incrementKaryaView(karyaId: string, deviceId: string, userId?: string | null) {
   const { error } = await supabase.rpc("increment_karya_view", {
     p_karya_id: karyaId,
     p_device_id: deviceId,
+    p_user_id: userId || null,
   });
   if (error) console.error("[incrementKaryaView] Error:", error.message);
 }

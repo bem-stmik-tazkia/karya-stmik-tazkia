@@ -11,12 +11,24 @@ import { formatNumber } from "@/lib/data";
 import { BouncyButton } from "@/components/ui/BouncyButton";
 import { StickerBadge } from "@/components/ui/StickerBadge";
 import TechStackTags from "@/components/ui/TechStackTags";
+import { supabase } from "@/lib/supabase";
 
 export default function Home() {
   const [featuredKarya, setFeaturedKarya] = useState<Karya[]>([]);
+  const [totalKarya, setTotalKarya] = useState<number | null>(null);
+  const [totalMahasiswa, setTotalMahasiswa] = useState<number | null>(null);
 
   useEffect(() => {
     getKarya().then((data) => setFeaturedKarya(data.slice(0, 3)));
+
+    // Fetch real stats
+    Promise.all([
+      supabase.from("karya").select("id", { count: "exact", head: true }).eq("status", "approved"),
+      supabase.from("mahasiswa_profiles").select("user_id", { count: "exact", head: true }),
+    ]).then(([karyaRes, mahasiswaRes]) => {
+      if (karyaRes.count !== null) setTotalKarya(karyaRes.count);
+      if (mahasiswaRes.count !== null) setTotalMahasiswa(mahasiswaRes.count);
+    });
   }, []);
 
   return (
@@ -29,8 +41,14 @@ export default function Home() {
           transition={{ repeat: Infinity, duration: 15, ease: "linear" }}
           className="flex gap-8 items-center font-bold text-sm sm:text-lg whitespace-nowrap w-max px-4"
         >
-          <span className="flex items-center"><Flame className="w-5 h-5 sm:w-6 sm:h-6 mr-2 fill-current" /> 120+ Postingan Baru Minggu Ini!</span>
-          <span className="flex items-center"><Users className="w-5 h-5 sm:w-6 sm:h-6 mr-2 fill-current" /> 500+ Mahasiswa Aktif Berjejaring</span>
+          <span className="flex items-center">
+            <Flame className="w-5 h-5 sm:w-6 sm:h-6 mr-2 fill-current" />
+            {totalKarya !== null ? `${totalKarya}+ Karya Dipublikasikan!` : "Karya Mahasiswa Terbaik!"}
+          </span>
+          <span className="flex items-center">
+            <Users className="w-5 h-5 sm:w-6 sm:h-6 mr-2 fill-current" />
+            {totalMahasiswa !== null ? `${totalMahasiswa}+ Mahasiswa Bergabung` : "Mahasiswa Aktif Berjejaring"}
+          </span>
         </motion.div>
       </div>
 
@@ -131,7 +149,7 @@ export default function Home() {
                               </div>
                             )}
                             <div className="absolute top-3 left-3">
-                              <StickerBadge variant="default" className="text-xs">
+                              <StickerBadge variant="accent" className="text-xs">
                                 {categoryLabel}
                               </StickerBadge>
                             </div>

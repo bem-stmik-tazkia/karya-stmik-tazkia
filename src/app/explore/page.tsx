@@ -128,8 +128,8 @@ function ExploreContent() {
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: "spring", bounce: 0.5, delay: 0.1 }}
-          className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight mb-4 uppercase"
-          style={{ textShadow: "3px 3px 0px var(--color-border)" }}
+          className="text-2xl sm:text-5xl md:text-6xl font-black tracking-tight mb-3 uppercase"
+          style={{ textShadow: "2px 2px 0px var(--color-border)" }}
         >
           Eksplorasi <span className="text-primary">Portofolio Karya</span>
         </motion.h1>
@@ -202,7 +202,7 @@ function ExploreContent() {
       </div>
 
       {/* Search Bar */}
-      <div className="flex justify-center mb-10">
+      <div className="flex justify-center mb-6">
         <div className="relative w-full max-w-xl">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground font-black pointer-events-none" />
           <input
@@ -225,6 +225,18 @@ function ExploreContent() {
           )}
         </div>
       </div>
+
+      {!loading && filteredKarya.length > 0 && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8 flex justify-center"
+        >
+          <div className="bg-secondary/10 text-secondary border-2 border-secondary/30 px-4 py-1.5 rounded-full font-black text-xs sm:text-sm uppercase tracking-wide">
+            Ditemukan {filteredKarya.length} Karya
+          </div>
+        </motion.div>
+      )}
 
       {/* Loading State */}
       {loading && (

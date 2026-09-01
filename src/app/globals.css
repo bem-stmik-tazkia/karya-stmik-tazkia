@@ -25,6 +25,13 @@
   --card-foreground: #334155;
   --radius: 1.5rem;
   /* Chunkier radius */
+
+  /* BEM-compatible aliases (for reused components) */
+  --surface: #ffffff;
+  --surface-variant: #f1f5f9;
+  --on-surface: #334155;
+  --on-surface-variant: #64748b;
+  --outline-variant: #e2e8f0;
 }
 
 .dark {
@@ -44,6 +51,13 @@
   --border: #334155;
   --card: #1e293b;
   --card-foreground: #f8fafc;
+
+  /* BEM-compatible aliases (dark mode) */
+  --surface: #1e293b;
+  --surface-variant: #0f172a;
+  --on-surface: #f8fafc;
+  --on-surface-variant: #94a3b8;
+  --outline-variant: #334155;
 }
 
 @theme inline {
@@ -63,6 +77,11 @@
   --color-primary-shadow: var(--primary-shadow);
   --color-secondary-shadow: var(--secondary-shadow);
   --color-accent-shadow: var(--accent-shadow);
+  --color-surface: var(--surface);
+  --color-surface-variant: var(--surface-variant);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-outline-variant: var(--outline-variant);
   --radius-xl: calc(var(--radius) + 8px);
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 4px);
@@ -101,5 +120,13 @@
 
   .card-3d {
     @apply bg-card border-2 border-border shadow-[0_4px_0_0_#e2e8f0] dark:shadow-[0_4px_0_0_#334155] rounded-3xl transition-transform hover:-translate-y-1 hover:shadow-[0_8px_0_0_#e2e8f0] dark:hover:shadow-[0_8px_0_0_#334155];
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }

@@ -181,7 +181,7 @@ export default function StudentProfilePage({
                 Angkatan {mahasiswa.angkatan}
               </StickerBadge>
               {mahasiswa.status_badge && (
-                <StickerBadge variant="default" className="text-xs sm:text-sm">
+                <StickerBadge variant="accent" className="text-xs sm:text-sm">
                   {mahasiswa.status_badge}
                 </StickerBadge>
               )}

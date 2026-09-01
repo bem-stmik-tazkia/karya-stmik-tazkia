@@ -10,7 +10,7 @@ import { Student } from "@/lib/feedData";
 import MahasiswaHero from "@/components/mahasiswa/MahasiswaHero";
 import MahasiswaCard from "@/components/mahasiswa/MahasiswaCard";
 import MahasiswaProfileDrawer from "@/components/mahasiswa/MahasiswaProfileDrawer";
-import { ALL_PRODI_VALUE, isAllProdi } from "@/utils/prodiOptions";
+import { ALL_PRODI_VALUE, isAllProdi, fetchMasterAngkatanOptions, fetchMasterProdiOptions } from "@/utils/prodiOptions";
 import { BouncyButton } from "@/components/ui/BouncyButton";
 
 // Adapter: convert MahasiswaProfile (Supabase) → Student (local type for UI components)
@@ -47,21 +47,33 @@ function StudentShowcaseContent() {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
+  const [angkatanOptions, setAngkatanOptions] = useState<{ value: string; label: string }[]>([]);
+  const [prodiOptions, setProdiOptions] = useState<{ value: string; label: string }[]>([]);
+
   useEffect(() => {
-    Promise.all([getMahasiswaProfiles(), getKarya()]).then(([mahasiswa, karya]) => {
+    Promise.all([
+      getMahasiswaProfiles(),
+      getKarya(),
+      fetchMasterAngkatanOptions(),
+      fetchMasterProdiOptions(),
+    ]).then(([mahasiswa, karya, angkData, prodiData]) => {
       setAllMahasiswa(mahasiswa);
       setAllKarya(karya);
+      setAngkatanOptions(angkData);
+      setProdiOptions([{ value: ALL_PRODI_VALUE, label: "Semua Prodi" }, ...prodiData]);
       setLoading(false);
     });
   }, []);
 
   const students = allMahasiswa.map(toStudent);
 
-  // Extract available angkatan list
+  // Fallback available angkatan if master list empty
   const availableAngkatan = useMemo(() => {
-    const years = Array.from(new Set(students.map((s) => s.angkatan))).sort((a, b) => a - b);
-    return years;
-  }, [students]);
+    if (angkatanOptions.length > 0) {
+      return angkatanOptions.map(a => Number(a.value)).filter(n => !isNaN(n));
+    }
+    return Array.from(new Set(students.map((s) => s.angkatan))).sort((a, b) => a - b);
+  }, [students, angkatanOptions]);
 
   // Filter students based on Angkatan, Prodi, and Search Query
   const filteredStudents = useMemo(() => {
@@ -151,6 +163,8 @@ function StudentShowcaseContent() {
         totalMahasiswa={students.length}
         totalProjects={allKarya.length}
         availableAngkatan={availableAngkatan}
+        angkatanOptions={angkatanOptions}
+        prodiOptions={prodiOptions}
       />
 
       {/* Main Grid Content */}
@@ -158,18 +172,18 @@ function StudentShowcaseContent() {
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-black text-foreground uppercase flex items-center gap-2" style={{ textShadow: "2px 2px 0px var(--color-border)" }}>
-              <Users className="text-primary w-7 h-7" />
+            <h2 className="text-sm sm:text-2xl md:text-3xl font-black text-foreground uppercase flex items-center gap-1.5 whitespace-nowrap tracking-tight" style={{ textShadow: "1px 1px 0px var(--color-border)" }}>
+              <Users className="text-primary w-4 h-4 sm:w-7 sm:h-7 shrink-0" />
               {selectedAngkatan ? `Mahasiswa Angkatan ${selectedAngkatan}` : "Daftar Seluruh Mahasiswa"}
             </h2>
-            <p className="text-muted-foreground font-bold text-sm mt-1">
+            <p className="text-muted-foreground font-bold text-[11px] sm:text-sm mt-0.5">
               Menampilkan {filteredStudents.length} mahasiswa STMIK Tazkia
             </p>
           </div>
           {(searchQuery || selectedAngkatan !== null || !isAllProdi(selectedProdi)) && (
             <button
               onClick={handleResetFilters}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted border-2 border-border text-xs font-black uppercase text-foreground hover:bg-card transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted border-2 border-border text-[10px] sm:text-xs font-black uppercase text-foreground hover:bg-card transition-all"
             >
               <RotateCcw className="w-3.5 h-3.5" /> Reset Filter
             </button>
@@ -180,7 +194,7 @@ function StudentShowcaseContent() {
         {filteredStudents.length > 0 ? (
           <>
             <motion.div
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+              className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-6"
             >
               <AnimatePresence mode="wait">
                 {paginatedStudents.map((student) => {

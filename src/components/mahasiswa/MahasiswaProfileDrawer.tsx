@@ -53,7 +53,7 @@ export default function MahasiswaProfileDrawer({
             />
             <div className="relative z-10 flex gap-2">
               <StickerBadge variant="warning">Angkatan {student.angkatan}</StickerBadge>
-              {student.statusBadge && <StickerBadge variant="default">{student.statusBadge}</StickerBadge>}
+              {student.statusBadge && <StickerBadge variant="accent">{student.statusBadge}</StickerBadge>}
             </div>
             <button
               onClick={onClose}

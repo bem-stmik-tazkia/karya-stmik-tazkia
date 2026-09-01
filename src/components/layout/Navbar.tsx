@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { ThemeToggle } from "../ui/ThemeToggle";
-import { Menu, X, Sparkles, Compass, Users, Info, LogOut, UploadCloud, ChevronDown, User } from "lucide-react";
+import { Menu, X, Sparkles, Compass, Users, Info, LogOut, UploadCloud, ChevronDown, User, Shield } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { BouncyButton } from "../ui/BouncyButton";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { supabase } from "@/lib/supabase";
+import { NotificationBell } from "../dashboard/NotificationBell";
+import { LogoutConfirmModal } from "../ui/LogoutConfirmModal";
 
 const navLinks = [
   { href: "/feed", label: "Feed & Koneksi", icon: Users },
@@ -18,6 +20,8 @@ const navLinks = [
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
@@ -32,16 +36,32 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // Cek apakah user adalah admin
+  useEffect(() => {
+    if (user) {
+      supabase
+        .from("admin_users")
+        .select("role")
+        .eq("user_id", user.id)
+        .single()
+        .then(({ data }) => {
+          setIsAdmin(!!data);
+        });
+    } else {
+      setIsAdmin(false);
+    }
+  }, [user]);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    setShowLogoutConfirm(false);
     setIsDropdownOpen(false);
     setIsOpen(false);
   };
 
-  // Ambil nama asli dari metadata Google
-  const displayName = (user?.user_metadata?.full_name 
-    || user?.user_metadata?.name 
-    || user?.email?.split("@")[0]) 
+  const displayName = (user?.user_metadata?.full_name
+    || user?.user_metadata?.name
+    || user?.email?.split("@")[0])
     ?? "";
   const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
   const avatarLetter = displayName.charAt(0).toUpperCase();
@@ -73,6 +93,7 @@ export function Navbar() {
           {/* Right side */}
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
+            <NotificationBell />
 
             {/* Auth section */}
             {user ? (
@@ -96,30 +117,42 @@ export function Navbar() {
                 {isDropdownOpen && (
                   <div className="absolute right-0 top-[calc(100%+8px)] w-52 bg-card border-4 border-border rounded-2xl shadow-[4px_4px_0px_var(--color-border)] overflow-hidden z-50">
                     <div className="px-4 py-3 border-b-2 border-border bg-muted/50">
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase">Masuk sebagai</p>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase">{isAdmin ? "Akun Admin" : "Masuk sebagai"}</p>
                       <p className="text-xs font-black text-foreground truncate mt-0.5">{user.email}</p>
                     </div>
                     <div className="p-2 flex flex-col gap-1">
-                      <Link
-                        href="/dashboard"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-muted font-bold text-sm text-foreground transition-colors"
-                      >
-                        <User className="w-4 h-4 text-primary" />
-                        Dashboard Saya
-                      </Link>
-                      <Link
-                        href="/submit"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-muted font-bold text-sm text-foreground transition-colors"
-                      >
-                        <UploadCloud className="w-4 h-4 text-secondary" />
-                        Upload Karya
-                      </Link>
+                      {isAdmin ? (
+                        <Link
+                          href="/admin/karya"
+                          onClick={() => setIsDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-muted font-bold text-sm text-foreground transition-colors"
+                        >
+                          <Shield className="w-4 h-4 text-purple-500" />
+                          Kelola Karya
+                        </Link>
+                      ) : (
+                        <>
+                          <Link
+                            href="/dashboard"
+                            onClick={() => setIsDropdownOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-muted font-bold text-sm text-foreground transition-colors"
+                          >
+                            <User className="w-4 h-4 text-primary" />
+                            Dashboard Saya
+                          </Link>
+                          <Link
+                            href="/submit"
+                            onClick={() => setIsDropdownOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-muted font-bold text-sm text-foreground transition-colors"
+                          >
+                            <UploadCloud className="w-4 h-4 text-secondary" />
+                            Upload Karya
+                          </Link>
+                        </>
+                      )}
                       <button
-                        onClick={handleLogout}
                         className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-destructive/10 hover:text-destructive font-bold text-sm text-foreground transition-colors w-full text-left"
-                      >
+                        onClick={() => { setIsDropdownOpen(false); setShowLogoutConfirm(true); }}>
                         <LogOut className="w-4 h-4" />
                         Keluar
                       </button>
@@ -151,7 +184,6 @@ export function Navbar() {
       {/* Mobile Fullscreen Menu */}
       {isOpen && (
         <div className="fixed inset-0 z-50 md:hidden bg-background flex flex-col p-6 animate-in fade-in zoom-in-95 duration-200">
-          {/* Header inside mobile menu */}
           <div className="flex items-center justify-between pb-6 border-b-4 border-border">
             <Link href="/" className="flex items-center gap-2" onClick={() => setIsOpen(false)}>
               <span className="font-black text-xl">Karya<span className="text-primary">Tazkia</span></span>
@@ -164,7 +196,6 @@ export function Navbar() {
             </button>
           </div>
 
-          {/* Navigation Links */}
           <div className="flex-1 flex flex-col justify-center gap-4 py-8">
             <Link
               href="/"
@@ -176,7 +207,7 @@ export function Navbar() {
               </div>
               Beranda
             </Link>
-            
+
             {navLinks.map((link) => {
               const Icon = link.icon;
               return (
@@ -195,7 +226,6 @@ export function Navbar() {
             })}
           </div>
 
-          {/* Bottom Action */}
           <div className="pt-4 border-t-4 border-border border-dashed">
             {user ? (
               <div className="flex flex-col gap-2">
@@ -208,13 +238,21 @@ export function Navbar() {
                     <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                   </div>
                 </div>
-                <Link href="/submit" onClick={() => setIsOpen(false)} className="block w-full">
-                  <BouncyButton className="w-full text-lg py-4">
-                    <UploadCloud className="w-5 h-5 mr-2 inline" /> UPLOAD KARYA
-                  </BouncyButton>
-                </Link>
+                {isAdmin ? (
+                  <Link href="/admin/karya" onClick={() => setIsOpen(false)} className="block w-full">
+                    <BouncyButton className="w-full text-lg py-4">
+                      <Shield className="w-5 h-5 mr-2 inline" /> KELOLA KARYA
+                    </BouncyButton>
+                  </Link>
+                ) : (
+                  <Link href="/submit" onClick={() => setIsOpen(false)} className="block w-full">
+                    <BouncyButton className="w-full text-lg py-4">
+                      <UploadCloud className="w-5 h-5 mr-2 inline" /> UPLOAD KARYA
+                    </BouncyButton>
+                  </Link>
+                )}
                 <button
-                  onClick={handleLogout}
+                  onClick={() => { setIsOpen(false); setShowLogoutConfirm(true); }}
                   className="w-full py-3 px-4 rounded-2xl border-2 border-border font-black text-muted-foreground hover:text-destructive hover:border-destructive transition-colors"
                 >
                   Keluar
@@ -230,6 +268,11 @@ export function Navbar() {
           </div>
         </div>
       )}
+      <LogoutConfirmModal
+        open={showLogoutConfirm}
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
     </>
   );
 }

@@ -1,12 +1,26 @@
 "use client";
 
+import { useState, useEffect } from "react";
+
 import { motion } from "framer-motion";
 import { Sparkles, Users, Lightbulb, Rocket } from "lucide-react";
 import { BouncyButton } from "@/components/ui/BouncyButton";
 import Link from "next/link";
 import { StickerBadge } from "@/components/ui/StickerBadge";
+import { supabase } from "@/lib/supabase";
 
 export default function AboutPage() {
+  const [totalMahasiswa, setTotalMahasiswa] = useState<number | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from("mahasiswa_profiles")
+      .select("user_id", { count: "exact", head: true })
+      .then(({ count }) => {
+        if (count !== null) setTotalMahasiswa(count);
+      });
+  }, []);
+
   return (
     <div className="container mx-auto px-4 md:px-6 py-8 sm:py-16 md:py-24 overflow-x-hidden">
       <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
@@ -93,7 +107,9 @@ export default function AboutPage() {
             className="absolute -bottom-6 left-0 sm:-bottom-8 sm:left-2 z-20"
           >
             <div className="bg-card border-3 sm:border-4 border-border shadow-[0_4px_0_0_var(--color-border)] p-3 sm:p-5 rounded-2xl sm:rounded-[2rem] flex items-center gap-3 -rotate-3">
-              <div className="text-2xl sm:text-4xl font-black text-primary">50+</div>
+              <div className="text-2xl sm:text-4xl font-black text-primary">
+                {totalMahasiswa !== null ? `${totalMahasiswa}+` : "..."}
+              </div>
               <div className="font-bold text-xs sm:text-sm text-muted-foreground leading-tight uppercase">
                 Kreator<br />Aktif
               </div>
