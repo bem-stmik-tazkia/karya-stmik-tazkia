@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { getMahasiswaById, getMahasiswaProjects, formatNumber, toggleKaryaLike } from "@/lib/data";
 import { getDeviceId } from "@/utils/identity";
 import { supabase } from "@/lib/supabase";
+import { checkIsFollowing, toggleFollow } from "@/lib/followService";
+import { useAuth } from "@/components/providers/AuthProvider";
 import type { MahasiswaProfile, MahasiswaProject, Karya } from "@/types/karya";
 import { KARYA_CATEGORIES } from "@/types/karya";
 import Link from "next/link";
@@ -24,6 +26,7 @@ import {
   Heart,
   Loader2,
   Share2,
+  Users,
 } from "lucide-react";
 import { notFound } from "next/navigation";
 import { motion } from "framer-motion";
@@ -32,6 +35,10 @@ import { StickerBadge } from "@/components/ui/StickerBadge";
 import { getSkillColor } from "@/utils/skillColor";
 import ShareProfileModal from "@/components/mahasiswa/ShareProfileModal";
 import TechStackTags from "@/components/ui/TechStackTags";
+import FollowersListModal from "@/components/mahasiswa/FollowersListModal";
+import FeedPostCard from "@/components/feed/FeedPostCard";
+import { getFeedPosts, RealFeedPost } from "@/lib/feedService";
+import { MessageSquare } from "lucide-react";
 
 export default function StudentProfilePage({
   params,
@@ -40,13 +47,20 @@ export default function StudentProfilePage({
 }) {
   const resolvedParams = use(params);
   const router = useRouter();
+  const { user } = useAuth();
   const [mahasiswa, setMahasiswa] = useState<MahasiswaProfile | null>(null);
   const [projects, setProjects] = useState<Karya[]>([]);
+  const [posts, setPosts] = useState<RealFeedPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("All");
   const [likedKarya, setLikedKarya] = useState<Record<string, boolean>>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [isFollowingProfile, setIsFollowingProfile] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [modalType, setModalType] = useState<"followers" | "following" | null>(null);
   const ITEMS_PER_PAGE = 6;
 
   const shareUrl =
@@ -113,13 +127,52 @@ export default function StudentProfilePage({
         return;
       }
       setMahasiswa(data);
-      // Use user_id (auth uid) or fall back to profile id to search karya
+      setFollowersCount((data as any).followers_count || 0);
+      setFollowingCount((data as any).following_count || 0);
+
+      // Check if current user is following
+      if (user && data.user_id) {
+        const following = await checkIsFollowing(data.user_id, user.id);
+        setIsFollowingProfile(following);
+      }
+
       const projs = await getMahasiswaProjects(data.user_id ?? data.id);
       setProjects(projs);
+
+      if (data.user_id) {
+        const feedPosts = await getFeedPosts(user?.id, data.user_id);
+        setPosts(feedPosts);
+      }
+      
       setLoading(false);
     };
     fetchData();
-  }, [resolvedParams.id]);
+  }, [resolvedParams.id, user]);
+
+  const isOwnProfile = user?.id === mahasiswa?.user_id;
+
+  const handleFollowToggle = async () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    if (!mahasiswa?.user_id || followLoading) return;
+
+    setFollowLoading(true);
+    const currentlyFollowing = isFollowingProfile;
+    setIsFollowingProfile(!currentlyFollowing);
+    setFollowersCount(prev => currentlyFollowing ? prev - 1 : prev + 1);
+
+    try {
+      await toggleFollow(mahasiswa.user_id, user.id, currentlyFollowing);
+    } catch (error) {
+      console.error("Failed to toggle follow", error);
+      setIsFollowingProfile(currentlyFollowing);
+      setFollowersCount(prev => currentlyFollowing ? prev + 1 : prev - 1);
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -192,16 +245,35 @@ export default function StudentProfilePage({
               <span>{mahasiswa.prodi}</span>
             </div>
 
+            {/* Followers / Following Stats */}
+            <div className="flex items-center justify-center md:justify-start gap-6 mb-6">
+              <div 
+                className="text-center md:text-left cursor-pointer group"
+                onClick={() => setModalType("followers")}
+              >
+                <p className="text-2xl font-black text-foreground group-hover:text-primary transition-colors">{followersCount}</p>
+                <p className="text-xs font-bold text-muted-foreground uppercase group-hover:text-foreground transition-colors">Pengikut</p>
+              </div>
+              <div className="w-0.5 h-8 bg-border" />
+              <div 
+                className="text-center md:text-left cursor-pointer group"
+                onClick={() => setModalType("following")}
+              >
+                <p className="text-2xl font-black text-foreground group-hover:text-primary transition-colors">{followingCount}</p>
+                <p className="text-xs font-bold text-muted-foreground uppercase group-hover:text-foreground transition-colors">Mengikuti</p>
+              </div>
+            </div>
+
             <p className="text-sm sm:text-base text-muted-foreground font-medium max-w-2xl mb-6 leading-relaxed">
               {mahasiswa.bio || "Mahasiswa kreatif STMIK Tazkia."}
             </p>
 
             {/* Skills */}
-            {(mahasiswa.skills ?? []).length > 0 && (
+            {(mahasiswa.skills ?? []).filter(Boolean).length > 0 && (
               <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-8">
-                {(mahasiswa.skills ?? []).map((skill) => (
+                {(mahasiswa.skills ?? []).filter(Boolean).map((skill, i) => (
                   <span
-                    key={skill}
+                    key={`${skill}-${i}`}
                     className={`px-3 py-1 rounded-xl border-2 text-xs font-black ${getSkillColor(skill)}`}
                   >
                     {skill}
@@ -211,12 +283,35 @@ export default function StudentProfilePage({
             )}
 
             <div className="flex flex-wrap justify-center md:justify-start items-center gap-4">
-              <a href={`mailto:${mahasiswa.email}`}>
-                <BouncyButton>
-                  <Mail className="w-5 h-5 mr-2" />
-                  KIRIM EMAIL
-                </BouncyButton>
-              </a>
+              {isOwnProfile ? (
+                <a href={`/dashboard/profile`}>
+                  <BouncyButton>
+                    <Mail className="w-5 h-5 mr-2" />
+                    EDIT PROFIL
+                  </BouncyButton>
+                </a>
+              ) : (
+                <>
+                  <a href={`mailto:${mahasiswa.email}`}>
+                    <BouncyButton>
+                      <Mail className="w-5 h-5 mr-2" />
+                      KIRIM EMAIL
+                    </BouncyButton>
+                  </a>
+                  <button
+                    onClick={handleFollowToggle}
+                    disabled={followLoading}
+                    className={`inline-flex items-center gap-2 px-5 py-3 rounded-2xl border-4 font-black text-sm uppercase shadow-[4px_4px_0px_var(--color-border)] hover:-translate-y-1 hover:shadow-[4px_6px_0px_var(--color-border)] active:translate-y-[2px] active:shadow-[2px_2px_0px_var(--color-border)] transition-all ${
+                      isFollowingProfile
+                        ? "bg-muted border-border text-foreground"
+                        : "bg-primary border-border text-white"
+                    } ${followLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                  >
+                    <Users className="w-5 h-5" />
+                    {isFollowingProfile ? "UNFOLLOW" : "IKUTI"}
+                  </button>
+                </>
+              )}
 
               <button
                 onClick={() => setShowShareModal(true)}
@@ -458,12 +553,51 @@ export default function StudentProfilePage({
         )}
       </div>
 
+      {/* ── POSTS SECTION ── */}
+      <div className="mt-16">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+          <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight flex items-center gap-2 shrink-0">
+            <MessageSquare className="w-7 h-7 text-primary" /> Postingan
+            <span className="ml-2 text-base text-muted-foreground font-bold">({posts.length})</span>
+          </h2>
+          <div className="h-2 flex-grow bg-border rounded-full border-b-2 border-border/50 border-dashed hidden md:block" />
+        </div>
+
+        {posts.length > 0 ? (
+          <div className="space-y-6 max-w-2xl mx-auto md:mx-0">
+            {posts.map((post) => (
+              <FeedPostCard
+                key={post.id}
+                post={post}
+                author={post.author!}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16 bg-muted border-4 border-border border-dashed rounded-3xl">
+            <p className="text-lg font-bold text-muted-foreground uppercase">
+              Belum ada postingan dari mahasiswa ini.
+            </p>
+          </div>
+        )}
+      </div>
+
       {/* Share Profile Modal */}
       {showShareModal && mahasiswa && (
         <ShareProfileModal
           studentName={mahasiswa.full_name}
           shareUrl={shareUrl}
           onClose={() => setShowShareModal(false)}
+        />
+      )}
+
+      {/* Followers/Following Modal */}
+      {modalType && mahasiswa?.user_id && (
+        <FollowersListModal
+          userId={mahasiswa.user_id}
+          type={modalType}
+          title={modalType === "followers" ? "Daftar Pengikut" : "Daftar Mengikuti"}
+          onClose={() => setModalType(null)}
         />
       )}
     </div>

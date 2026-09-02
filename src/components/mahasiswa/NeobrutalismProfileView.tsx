@@ -21,6 +21,12 @@ import { StickerBadge } from "@/components/ui/StickerBadge";
 import { getSkillColor } from "@/utils/skillColor";
 import ShareProfileModal from "@/components/mahasiswa/ShareProfileModal";
 import { NeobrutalismProjectCard, ProjectData } from "./NeobrutalismProjectCard";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { checkIsFollowing, toggleFollow } from "@/lib/followService";
+import { useRouter } from "next/navigation";
+import FeedPostCard from "@/components/feed/FeedPostCard";
+import { RealFeedPost } from "@/lib/feedService";
+import { MessageSquare, PenSquare } from "lucide-react";
 
 export interface ProfileViewData {
   id?: string;
@@ -38,21 +44,70 @@ export interface ProfileViewData {
   linkedin_url?: string;
   instagram_url?: string;
   website_url?: string;
+  followers_count?: number;
+  following_count?: number;
 }
 
 interface NeobrutalismProfileViewProps {
   profile: ProfileViewData;
   projects: ProjectData[];
+  posts?: RealFeedPost[];
   isOwnProfile?: boolean;
 }
 
 export function NeobrutalismProfileView({
   profile,
   projects,
+  posts = [],
   isOwnProfile = false,
 }: NeobrutalismProfileViewProps) {
+  const { user } = useAuth();
+  const router = useRouter();
+
   const [activeCategory, setActiveCategory] = useState("Semua");
   const [showShareModal, setShowShareModal] = useState(false);
+  
+  // Follow state
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(profile.followers_count || 0);
+  const [isFollowLoading, setIsFollowLoading] = useState(false);
+
+  // Check if following on mount
+  React.useEffect(() => {
+    async function checkFollowStatus() {
+      if (!isOwnProfile && user && profile.user_id) {
+        const following = await checkIsFollowing(profile.user_id, user.id);
+        setIsFollowing(following);
+      }
+    }
+    checkFollowStatus();
+  }, [isOwnProfile, user, profile.user_id]);
+
+  const handleToggleFollow = async () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    if (!profile.user_id || isFollowLoading) return;
+
+    setIsFollowLoading(true);
+    const currentlyFollowing = isFollowing;
+    
+    // Optimistic UI
+    setIsFollowing(!currentlyFollowing);
+    setFollowersCount(prev => currentlyFollowing ? prev - 1 : prev + 1);
+
+    try {
+      await toggleFollow(profile.user_id, user.id, currentlyFollowing);
+    } catch (error) {
+      console.error("Failed to toggle follow", error);
+      // Revert
+      setIsFollowing(currentlyFollowing);
+      setFollowersCount(prev => currentlyFollowing ? prev + 1 : prev - 1);
+    } finally {
+      setIsFollowLoading(false);
+    }
+  };
 
   const shareUrl =
     typeof window !== "undefined"
@@ -130,6 +185,19 @@ export function NeobrutalismProfileView({
               </div>
             )}
 
+            {/* Followers / Following Stats */}
+            <div className="flex items-center justify-center md:justify-start gap-6 mb-6">
+              <div className="text-center md:text-left">
+                <p className="text-2xl font-black text-foreground">{followersCount}</p>
+                <p className="text-xs font-bold text-muted-foreground uppercase">Pengikut</p>
+              </div>
+              <div className="w-1 h-8 bg-border rounded-full" />
+              <div className="text-center md:text-left">
+                <p className="text-2xl font-black text-foreground">{profile.following_count || 0}</p>
+                <p className="text-xs font-bold text-muted-foreground uppercase">Mengikuti</p>
+              </div>
+            </div>
+
             {/* Bio */}
             <p className="text-sm sm:text-base text-muted-foreground font-medium max-w-2xl mb-6 leading-relaxed">
               {profile.bio || "Mahasiswa kreatif STMIK Tazkia."}
@@ -159,12 +227,21 @@ export function NeobrutalismProfileView({
                   </BouncyButton>
                 </Link>
               ) : (
-                <a href={`mailto:${profile.contact_email || profile.email}`}>
-                  <BouncyButton>
-                    <Mail className="w-5 h-5 mr-2" />
-                    KIRIM EMAIL
-                  </BouncyButton>
-                </a>
+                <button
+                  onClick={handleToggleFollow}
+                  disabled={isFollowLoading}
+                  className={`inline-flex items-center gap-2 px-5 py-3 rounded-2xl border-4 font-black text-sm uppercase shadow-[4px_4px_0px_var(--color-border)] hover:-translate-y-1 hover:shadow-[4px_6px_0px_var(--color-border)] active:translate-y-[2px] active:shadow-[2px_2px_0px_var(--color-border)] transition-all ${
+                    isFollowing 
+                      ? "bg-muted border-border text-foreground" 
+                      : "bg-primary border-border text-primary-foreground"
+                  } ${isFollowLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  {isFollowing ? (
+                    <>UNFOLLOW</>
+                  ) : (
+                    <>FOLLOW</>
+                  )}
+                </button>
               )}
 
               <button
@@ -293,6 +370,52 @@ export function NeobrutalismProfileView({
                 className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary text-primary-foreground font-black text-sm border-4 border-border shadow-[4px_4px_0px_var(--color-border)] hover:-translate-y-1 hover:shadow-[4px_6px_0px_var(--color-border)] transition-all uppercase"
               >
                 Upload Karya Pertama
+              </Link>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── POSTS SECTION ── */}
+      <div className="mt-16">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+          <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight flex items-center gap-2 shrink-0">
+            <MessageSquare className="w-7 h-7 text-primary" /> {isOwnProfile ? "Postingan Saya" : "Postingan"}
+            <span className="ml-2 text-base text-muted-foreground font-bold">({posts.length})</span>
+          </h2>
+          <div className="h-2 flex-grow bg-border rounded-full border-b-2 border-border/50 border-dashed hidden md:block" />
+          {isOwnProfile && (
+            <Link
+              href="/feed"
+              className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-primary text-primary-foreground font-black text-xs border-4 border-border shadow-[3px_3px_0px_var(--color-border)] hover:-translate-y-0.5 hover:shadow-[3px_5px_0px_var(--color-border)] transition-all uppercase"
+            >
+              <PenSquare className="w-4 h-4" />
+              Buat Post
+            </Link>
+          )}
+        </div>
+
+        {posts.length > 0 ? (
+          <div className="space-y-6 max-w-2xl mx-auto md:mx-0">
+            {posts.map((post) => (
+              <FeedPostCard
+                key={post.id}
+                post={post}
+                author={post.author!}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16 bg-muted border-4 border-border border-dashed rounded-3xl">
+            <p className="text-lg font-bold text-muted-foreground uppercase">
+              {isOwnProfile ? "Belum ada postingan." : "Belum ada postingan dari mahasiswa ini."}
+            </p>
+            {isOwnProfile && (
+              <Link
+                href="/feed"
+                className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-secondary text-secondary-foreground font-black text-sm border-4 border-border shadow-[4px_4px_0px_var(--color-border)] hover:-translate-y-1 hover:shadow-[4px_6px_0px_var(--color-border)] transition-all uppercase"
+              >
+                Buat Postingan
               </Link>
             )}
           </div>

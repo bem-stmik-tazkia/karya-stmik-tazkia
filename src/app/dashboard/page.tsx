@@ -2,6 +2,7 @@ import React from "react";
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import { NeobrutalismProfileView } from "@/components/mahasiswa/NeobrutalismProfileView";
+import { getFeedPosts } from "@/lib/feedService";
 
 export const revalidate = 0;
 
@@ -74,11 +75,15 @@ export default async function DashboardProfilePage() {
     views_count: k.views || 0,
   }));
 
+  // Get user's feed posts
+  const posts = await getFeedPosts(user.id, user.id);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <NeobrutalismProfileView
         profile={profile}
         projects={projects}
+        posts={posts}
         isOwnProfile={true}
       />
     </div>

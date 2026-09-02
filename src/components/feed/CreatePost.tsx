@@ -4,12 +4,13 @@ import React, { useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { Image as ImageIcon, Send, X, Code, Users, Lightbulb, Hash } from "lucide-react";
+import { Image as ImageIcon, Send, X, Code, Users, Lightbulb, Hash, Loader2 } from "lucide-react";
 import { BouncyButton } from "@/components/ui/BouncyButton";
 import { motion, AnimatePresence } from "framer-motion";
+import { createBrowserClient } from "@supabase/ssr";
 
 interface CreatePostProps {
-  onPostSubmit: (postData: { content: string; type: "project" | "update" | "collab"; tags: string[]; imageUrl?: string }) => void;
+  onPostSubmit: (postData: { content: string; type: "project" | "update" | "collab"; tags: string[]; imageUrl?: string }) => Promise<void>;
 }
 
 export default function CreatePost({ onPostSubmit }: CreatePostProps) {
@@ -22,9 +23,16 @@ export default function CreatePost({ onPostSubmit }: CreatePostProps) {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   React.useEffect(() => {
     const handleOpen = () => setIsExpanded(true);
@@ -66,14 +74,16 @@ export default function CreatePost({ onPostSubmit }: CreatePostProps) {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setImageFile(file);
       const url = URL.createObjectURL(file);
       setPreviewImage(url);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim()) return;
+    if (!content.trim() || isSubmitting) return;
+    setIsSubmitting(true);
 
     // Also add any remaining tagInput
     const finalTags = [...tags];
@@ -82,17 +92,41 @@ export default function CreatePost({ onPostSubmit }: CreatePostProps) {
       if (cleaned && !finalTags.includes(cleaned)) finalTags.push(cleaned);
     }
 
-    onPostSubmit({ content, type, tags: finalTags, imageUrl: previewImage || undefined });
+    let imageUrl = undefined;
+    if (imageFile && user) {
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `feed-${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `feed_images/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('public_images')
+        .upload(filePath, imageFile);
+
+      if (!uploadError) {
+        const { data: { publicUrl } } = supabase.storage
+          .from('public_images')
+          .getPublicUrl(filePath);
+        imageUrl = publicUrl;
+      } else {
+        console.error("Gagal upload gambar", uploadError);
+      }
+    }
+
+    await onPostSubmit({ content, type, tags: finalTags, imageUrl });
 
     setContent("");
     setTags([]);
     setTagInput("");
     setPreviewImage(null);
+    setImageFile(null);
     setType("update");
+    setIsSubmitting(false);
     setIsExpanded(false);
   };
 
-  const closeModal = () => setIsExpanded(false);
+  const closeModal = () => {
+    if (!isSubmitting) setIsExpanded(false);
+  };
 
   return (
     <div className="card-3d bg-card border-4 border-border rounded-3xl p-4 sm:p-5 mb-8">
@@ -107,8 +141,12 @@ export default function CreatePost({ onPostSubmit }: CreatePostProps) {
         }} 
         className="flex items-center gap-4 cursor-pointer"
       >
-        <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center font-black text-white text-xl border-2 border-border shadow-[2px_2px_0px_var(--color-border)] shrink-0">
-          A
+        <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center font-black text-white text-xl border-2 border-border shadow-[2px_2px_0px_var(--color-border)] shrink-0 overflow-hidden">
+          {user?.user_metadata?.avatar_url ? (
+            <img src={user.user_metadata.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+          ) : (
+            user?.email?.charAt(0).toUpperCase() || "A"
+          )}
         </div>
         <div className="flex-1 h-12 bg-muted border-2 border-border rounded-xl px-4 flex items-center text-muted-foreground font-bold hover:bg-muted/80 transition-colors shadow-[2px_2px_0px_var(--color-border)] truncate">
           Bagikan karya atau idemu hari ini...
@@ -151,8 +189,9 @@ export default function CreatePost({ onPostSubmit }: CreatePostProps) {
                     <motion.button
                       type="button"
                       onClick={closeModal}
+                      disabled={isSubmitting}
                       whileTap={{ scale: 0.85 }}
-                      className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground transition-colors border-2 border-transparent hover:border-border"
+                      className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground transition-colors border-2 border-transparent hover:border-border disabled:opacity-50"
                     >
                       <X className="w-5 h-5" />
                     </motion.button>
@@ -163,8 +202,9 @@ export default function CreatePost({ onPostSubmit }: CreatePostProps) {
                     ref={textareaRef}
                     value={content}
                     onChange={handleContentChange}
+                    disabled={isSubmitting}
                     placeholder="Apa yang sedang kamu kerjakan? Butuh tim atau masukan?"
-                    className="w-full min-h-[100px] bg-muted/50 border-2 border-border rounded-2xl p-4 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all resize-none mb-5"
+                    className="w-full min-h-[100px] bg-muted/50 border-2 border-border rounded-2xl p-4 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all resize-none mb-5 disabled:opacity-70"
                     autoFocus
                     style={{ height: "100px", overflowY: "hidden" }}
                   />
@@ -177,8 +217,9 @@ export default function CreatePost({ onPostSubmit }: CreatePostProps) {
                       </div>
                       <button
                         type="button"
-                        onClick={() => setPreviewImage(null)}
-                        className="absolute top-2 right-2 p-1.5 bg-card border-2 border-border rounded-lg hover:bg-rose-100 hover:text-rose-600 hover:border-rose-300 transition-colors shadow-sm"
+                        disabled={isSubmitting}
+                        onClick={() => { setPreviewImage(null); setImageFile(null); }}
+                        className="absolute top-2 right-2 p-1.5 bg-card border-2 border-border rounded-lg hover:bg-rose-100 hover:text-rose-600 hover:border-rose-300 transition-colors shadow-sm disabled:opacity-50"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -199,9 +240,9 @@ export default function CreatePost({ onPostSubmit }: CreatePostProps) {
                             key={opt.value}
                             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border-2 cursor-pointer transition-all font-bold text-xs ${
                               type === opt.value ? opt.active : "bg-card border-border text-muted-foreground hover:bg-muted"
-                            }`}
+                            } ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
                           >
-                            <input type="radio" name="type" value={opt.value} checked={type === opt.value} onChange={() => setType(opt.value)} className="hidden" />
+                            <input type="radio" name="type" value={opt.value} checked={type === opt.value} onChange={() => !isSubmitting && setType(opt.value)} disabled={isSubmitting} className="hidden" />
                             {opt.icon} {opt.label}
                           </label>
                         ))}
@@ -225,9 +266,11 @@ export default function CreatePost({ onPostSubmit }: CreatePostProps) {
                               className="flex items-center gap-1 px-2 py-0.5 bg-secondary/10 border-2 border-secondary text-secondary rounded-lg text-xs font-black"
                             >
                               #{tag}
-                              <button type="button" onClick={() => setTags(tags.filter((t) => t !== tag))} className="ml-0.5 hover:text-rose-500">
-                                <X className="w-3 h-3" />
-                              </button>
+                              {!isSubmitting && (
+                                <button type="button" onClick={() => setTags(tags.filter((t) => t !== tag))} className="ml-0.5 hover:text-rose-500">
+                                  <X className="w-3 h-3" />
+                                </button>
+                              )}
                             </motion.span>
                           ))}
                         </AnimatePresence>
@@ -237,8 +280,9 @@ export default function CreatePost({ onPostSubmit }: CreatePostProps) {
                           onChange={(e) => setTagInput(e.target.value)}
                           onKeyDown={handleTagKeyDown}
                           onBlur={handleTagBlur}
+                          disabled={isSubmitting}
                           placeholder={tags.length === 0 ? "InfoKampus, LombaDesign, WebDev..." : ""}
-                          className="flex-1 min-w-[120px] bg-transparent outline-none text-sm font-bold text-foreground placeholder:text-muted-foreground"
+                          className="flex-1 min-w-[120px] bg-transparent outline-none text-sm font-bold text-foreground placeholder:text-muted-foreground disabled:opacity-50"
                         />
                       </div>
                     </div>
@@ -246,19 +290,26 @@ export default function CreatePost({ onPostSubmit }: CreatePostProps) {
 
                   {/* Footer */}
                   <div className="flex items-center justify-between pt-4 border-t-2 border-border">
-                    <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageChange} />
+                    <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageChange} disabled={isSubmitting} />
                     <motion.button
                       type="button"
                       whileTap={{ scale: 0.92 }}
+                      disabled={isSubmitting}
                       onClick={() => fileInputRef.current?.click()}
-                      className="flex items-center gap-2 px-3 py-2 rounded-xl bg-card border-2 border-border text-foreground font-black text-xs hover:bg-muted transition-all shadow-[2px_2px_0px_var(--color-border)]"
+                      className="flex items-center gap-2 px-3 py-2 rounded-xl bg-card border-2 border-border text-foreground font-black text-xs hover:bg-muted transition-all shadow-[2px_2px_0px_var(--color-border)] disabled:opacity-50"
                     >
                       <ImageIcon className="w-4 h-4 text-primary" />
                       <span className="hidden sm:inline">Upload Gambar</span>
                     </motion.button>
 
-                    <BouncyButton type="submit" disabled={!content.trim()} className="px-6 py-2.5 text-sm">
-                      <span className="flex items-center gap-2">POSTING <Send className="w-4 h-4" /></span>
+                    <BouncyButton type="submit" disabled={!content.trim() || isSubmitting} className="px-6 py-2.5 text-sm">
+                      <span className="flex items-center gap-2">
+                        {isSubmitting ? (
+                          <>POSTING... <Loader2 className="w-4 h-4 animate-spin" /></>
+                        ) : (
+                          <>POSTING <Send className="w-4 h-4" /></>
+                        )}
+                      </span>
                     </BouncyButton>
                   </div>
                 </form>

@@ -34,6 +34,9 @@ function toStudent(m: MahasiswaProfile): Student {
       website: m.website_url ?? undefined,
     },
     isFeatured: m.is_featured ?? false,
+    userId: m.user_id ?? undefined,
+    followersCount: (m as any).followers_count || 0,
+    followingCount: (m as any).following_count || 0,
   };
 }
 

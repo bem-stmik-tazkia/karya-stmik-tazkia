@@ -42,13 +42,14 @@ export default function RootLayout({
             <Toaster 
               position="top-center" 
               toastOptions={{ 
-                duration: 4000, 
                 style: { 
                   background: 'var(--card)', 
                   color: 'var(--foreground)', 
                   border: '2px solid var(--border)', 
                   borderRadius: '1rem', 
-                  fontWeight: 'bold' 
+                  fontWeight: 'bold',
+                  maxWidth: '420px',
+                  width: '100%',
                 } 
               }} 
             />

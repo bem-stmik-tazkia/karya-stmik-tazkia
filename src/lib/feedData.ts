@@ -34,6 +34,9 @@ export type Student = {
     portfolio?: string;
   };
   isFeatured?: boolean;
+  userId?: string;
+  followersCount?: number;
+  followingCount?: number;
 };
 
 // Dummy data untuk Feed (sementara, sebelum fitur Feed pindah ke Supabase)
