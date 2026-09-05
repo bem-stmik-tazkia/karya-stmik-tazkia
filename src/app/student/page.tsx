@@ -12,6 +12,10 @@ import MahasiswaCard from "@/components/mahasiswa/MahasiswaCard";
 import MahasiswaProfileDrawer from "@/components/mahasiswa/MahasiswaProfileDrawer";
 import { ALL_PRODI_VALUE, isAllProdi, fetchMasterAngkatanOptions, fetchMasterProdiOptions } from "@/utils/prodiOptions";
 import { BouncyButton } from "@/components/ui/BouncyButton";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/components/providers/AuthProvider";
+import toast from "react-hot-toast";
 
 // Adapter: convert MahasiswaProfile (Supabase) → Student (local type for UI components)
 function toStudent(m: MahasiswaProfile): Student {
@@ -49,6 +53,9 @@ function StudentShowcaseContent() {
   const [selectedProdi, setSelectedProdi] = useState(ALL_PRODI_VALUE);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isMessaging, setIsMessaging] = useState(false);
+  const router = useRouter();
+  const { user } = useAuth();
 
   const [angkatanOptions, setAngkatanOptions] = useState<{ value: string; label: string }[]>([]);
   const [prodiOptions, setProdiOptions] = useState<{ value: string; label: string }[]>([]);
@@ -135,6 +142,79 @@ function StudentShowcaseContent() {
     return allKarya.filter((k) => (k.team ?? []).some(member => member.name.toLowerCase() === selectedStudent.name.toLowerCase()));
   }, [selectedStudent, allKarya]);
 
+  const handleMessageClick = async (student: Student) => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    if (isMessaging) return;
+    
+    if (!student.userId) {
+      toast.error("Mahasiswa ini belum mengaktifkan fitur pesan.");
+      return;
+    }
+    
+    if (student.userId === user.id) return; // Cannot message self
+
+    setIsMessaging(true);
+    const toastId = toast.loading("Membuka obrolan...");
+    try {
+      const { data: myConvs } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('student_id', user.id);
+
+      if (myConvs && myConvs.length > 0) {
+        const convIds = myConvs.map(c => c.conversation_id);
+        const { data: sharedConvs } = await supabase
+          .from('conversation_participants')
+          .select('conversation_id')
+          .in('conversation_id', convIds)
+          .eq('student_id', student.userId);
+
+        if (sharedConvs && sharedConvs.length > 0) {
+          toast.dismiss(toastId);
+          router.push(`/inbox/${sharedConvs[0].conversation_id}`);
+          return;
+        }
+      }
+
+      const newConvId = crypto.randomUUID();
+
+      const { error: convError } = await supabase
+        .from('conversations')
+        .insert([{ id: newConvId, updated_at: new Date().toISOString() }]);
+
+      if (convError) {
+        console.error("Conversation insert error:", convError);
+        toast.error("Gagal membuat percakapan. Akun mungkin belum ditautkan dengan benar.");
+        setIsMessaging(false);
+        return;
+      }
+
+      const { error: partError } = await supabase
+        .from('conversation_participants')
+        .insert([
+          { conversation_id: newConvId, student_id: user.id },
+          { conversation_id: newConvId, student_id: student.userId }
+        ]);
+      
+      if (partError) {
+        console.error("Participant insert error:", partError);
+        toast.error("Gagal menambahkan peserta. Akun mahasiswa mungkin tidak valid.", { id: toastId });
+        setIsMessaging(false);
+        return;
+      }
+      toast.dismiss(toastId);
+      router.push(`/inbox/${newConvId}`);
+    } catch (error) {
+      console.error("Failed to start message", error);
+      toast.error("Terjadi kesalahan sistem saat membuka pesan.", { id: toastId });
+    } finally {
+      setIsMessaging(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
@@ -217,6 +297,7 @@ function StudentShowcaseContent() {
                         projectCount={studentProjCount}
                         searchQuery={searchQuery}
                         onSelect={(s) => setSelectedStudent(s)}
+                        onMessageClick={user?.id !== student.userId ? handleMessageClick : undefined}
                       />
                     </motion.div>
                   );

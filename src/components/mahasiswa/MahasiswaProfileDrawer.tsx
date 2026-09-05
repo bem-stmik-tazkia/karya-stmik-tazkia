@@ -2,17 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Mail, Code, Globe, ExternalLink, Folder, GraduationCap, Eye, Heart, ArrowRight, Users } from "lucide-react";
+import { X, Mail, Code, Globe, ExternalLink, Folder, GraduationCap, Eye, Heart, ArrowRight, Users, MessageSquare } from "lucide-react";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 import { Student } from "@/lib/feedData";
 import type { Karya } from "@/types/karya";
 import { BouncyButton } from "@/components/ui/BouncyButton";
 import { StickerBadge } from "@/components/ui/StickerBadge";
 import { getSkillColor } from "@/utils/skillColor";
+import { PREDEFINED_SKILLS } from "@/utils/skillOptions";
 import FollowersListModal from "./FollowersListModal";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { checkIsFollowing, toggleFollow } from "@/lib/followService";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 interface MahasiswaProfileDrawerProps {
   student: Student | null;
@@ -29,6 +32,7 @@ export default function MahasiswaProfileDrawer({
   const [isFollowing, setIsFollowing] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
   const [followLoading, setFollowLoading] = useState(false);
+  const [isMessaging, setIsMessaging] = useState(false);
   
   const { user } = useAuth();
   const router = useRouter();
@@ -66,6 +70,71 @@ export default function MahasiswaProfileDrawer({
       setFollowersCount(prev => currentlyFollowing ? prev + 1 : prev - 1);
     } finally {
       setFollowLoading(false);
+    }
+  };
+
+  const handleMessage = async () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    if (!student?.userId || isMessaging) return;
+
+    setIsMessaging(true);
+    try {
+      // 1. Check if conversation already exists
+      const { data: myConvs } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('student_id', user.id);
+
+      if (myConvs && myConvs.length > 0) {
+        const convIds = myConvs.map(c => c.conversation_id);
+        const { data: sharedConvs } = await supabase
+          .from('conversation_participants')
+          .select('conversation_id')
+          .in('conversation_id', convIds)
+          .eq('student_id', student.userId);
+
+        if (sharedConvs && sharedConvs.length > 0) {
+          router.push(`/inbox/${sharedConvs[0].conversation_id}`);
+          return;
+        }
+      }
+
+      const newConvId = crypto.randomUUID();
+
+      // 2. Create new conversation
+      const { error: convError } = await supabase
+        .from('conversations')
+        .insert([{ id: newConvId, updated_at: new Date().toISOString() }]);
+
+      if (convError) {
+        console.error("Conversation insert error:", convError);
+        toast.error("Gagal membuat percakapan. Akun mungkin belum ditautkan dengan benar.");
+        setIsMessaging(false);
+        return;
+      }
+
+      const { error: partError } = await supabase
+        .from('conversation_participants')
+        .insert([
+          { conversation_id: newConvId, student_id: user.id },
+          { conversation_id: newConvId, student_id: student.userId }
+        ]);
+      
+      if (partError) {
+        console.error("Participant insert error:", partError);
+        toast.error("Gagal menambahkan peserta. Akun mahasiswa mungkin tidak valid.");
+        setIsMessaging(false);
+        return;
+      }
+      router.push(`/inbox/${newConvId}`);
+    } catch (error) {
+      console.error("Failed to start message", error);
+      toast.error("Terjadi kesalahan sistem saat membuka pesan.");
+    } finally {
+      setIsMessaging(false);
     }
   };
 
@@ -179,6 +248,15 @@ export default function MahasiswaProfileDrawer({
                       {isFollowing ? "Unfollow" : "Ikuti"}
                     </button>
                   )}
+                  {!isOwnProfile && student.userId && (
+                    <button
+                      onClick={handleMessage}
+                      disabled={isMessaging}
+                      className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-black uppercase transition-all shadow-[2px_2px_0px_var(--color-border)] bg-secondary border-2 border-border text-secondary-foreground hover:bg-secondary/80 ${isMessaging ? "opacity-50 cursor-not-allowed" : ""}`}
+                    >
+                      <MessageSquare className="w-4 h-4" /> Pesan
+                    </button>
+                  )}
                   <a
                     href={`mailto:${student.contactEmail}`}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-muted border-2 border-border hover:bg-primary hover:text-primary-foreground transition-all shadow-[2px_2px_0px_var(--color-border)]"
@@ -224,11 +302,11 @@ export default function MahasiswaProfileDrawer({
                 </div>
 
                 {/* Skills Section */}
-                {student.skills && student.skills.filter(Boolean).length > 0 && (
+                {student.skills && student.skills.filter(s => PREDEFINED_SKILLS.includes(s)).length > 0 && (
                   <div>
                     <h3 className="text-xs font-black uppercase text-muted-foreground mb-2">Keahlian & Tech Stack</h3>
                     <div className="flex flex-wrap gap-2">
-                      {student.skills.filter(Boolean).map((skill, i) => (
+                      {student.skills.filter(s => PREDEFINED_SKILLS.includes(s)).map((skill, i) => (
                         <span
                           key={`${skill}-${i}`}
                           className={`px-3 py-1 rounded-xl border-2 text-xs font-black ${getSkillColor(skill)}`}

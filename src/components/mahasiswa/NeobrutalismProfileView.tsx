@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Globe,
@@ -19,6 +20,7 @@ import { FiGithub, FiLinkedin, FiInstagram } from "react-icons/fi";
 import { BouncyButton } from "@/components/ui/BouncyButton";
 import { StickerBadge } from "@/components/ui/StickerBadge";
 import { getSkillColor } from "@/utils/skillColor";
+import { PREDEFINED_SKILLS } from "@/utils/skillOptions";
 import ShareProfileModal from "@/components/mahasiswa/ShareProfileModal";
 import { NeobrutalismProjectCard, ProjectData } from "./NeobrutalismProjectCard";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -71,6 +73,7 @@ export function NeobrutalismProfileView({
   const [isFollowing, setIsFollowing] = useState(false);
   const [followersCount, setFollowersCount] = useState(profile.followers_count || 0);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
+  const [isMessaging, setIsMessaging] = useState(false);
 
   // Check if following on mount
   React.useEffect(() => {
@@ -109,6 +112,58 @@ export function NeobrutalismProfileView({
     }
   };
 
+  const handleMessage = async () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    if (!profile.user_id || isMessaging) return;
+
+    setIsMessaging(true);
+    try {
+      // 1. Check if conversation already exists
+      const { data: myConvs } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('student_id', user.id);
+
+      if (myConvs && myConvs.length > 0) {
+        const convIds = myConvs.map(c => c.conversation_id);
+        const { data: sharedConvs } = await supabase
+          .from('conversation_participants')
+          .select('conversation_id')
+          .in('conversation_id', convIds)
+          .eq('student_id', profile.user_id);
+
+        if (sharedConvs && sharedConvs.length > 0) {
+          router.push(`/inbox/${sharedConvs[0].conversation_id}`);
+          return;
+        }
+      }
+
+      // 2. Create new conversation
+      const { data: newConv, error: convError } = await supabase
+        .from('conversations')
+        .insert({})
+        .select()
+        .single();
+
+      if (newConv && !convError) {
+        await supabase
+          .from('conversation_participants')
+          .insert([
+            { conversation_id: newConv.id, student_id: user.id },
+            { conversation_id: newConv.id, student_id: profile.user_id }
+          ]);
+        router.push(`/inbox/${newConv.id}`);
+      }
+    } catch (error) {
+      console.error("Failed to start message", error);
+    } finally {
+      setIsMessaging(false);
+    }
+  };
+
   const shareUrl =
     typeof window !== "undefined"
       ? `${window.location.origin}/student/${profile.id || profile.user_id}`
@@ -123,6 +178,8 @@ export function NeobrutalismProfileView({
     if (activeCategory === "Semua") return projects;
     return projects.filter((p) => p.category === activeCategory);
   }, [projects, activeCategory]);
+
+  const validSkills = (profile.skills ?? []).filter(s => PREDEFINED_SKILLS.includes(s));
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-8 max-w-6xl">
@@ -204,9 +261,9 @@ export function NeobrutalismProfileView({
             </p>
 
             {/* Skills */}
-            {(profile.skills ?? []).length > 0 && (
+            {validSkills.length > 0 && (
               <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-8">
-                {(profile.skills ?? []).map((skill) => (
+                {validSkills.map((skill) => (
                   <span
                     key={skill}
                     className={`px-3 py-1 rounded-xl border-2 text-xs font-black ${getSkillColor(skill)}`}
@@ -241,6 +298,19 @@ export function NeobrutalismProfileView({
                   ) : (
                     <>FOLLOW</>
                   )}
+                </button>
+              )}
+
+              {!isOwnProfile && (
+                <button
+                  onClick={handleMessage}
+                  disabled={isMessaging}
+                  className={`inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-secondary border-4 border-border font-black text-sm uppercase text-secondary-foreground shadow-[4px_4px_0px_var(--color-border)] hover:-translate-y-1 hover:shadow-[4px_6px_0px_var(--color-border)] active:translate-y-[2px] active:shadow-[2px_2px_0px_var(--color-border)] transition-all ${
+                    isMessaging ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                >
+                  <MessageSquare className="w-5 h-5" />
+                  Kirim Pesan
                 </button>
               )}
 

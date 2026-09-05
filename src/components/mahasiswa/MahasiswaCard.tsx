@@ -2,16 +2,18 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Folder, ChevronRight } from "lucide-react";
+import { Mail, Folder, ChevronRight, MessageSquare, Users } from "lucide-react";
 import { Student } from "@/lib/feedData";
 import { StickerBadge } from "@/components/ui/StickerBadge";
 import { getSkillColor } from "@/utils/skillColor";
+import { PREDEFINED_SKILLS } from "@/utils/skillOptions";
 
 export interface MahasiswaCardProps {
   student: Student;
   projectCount: number;
   onSelect: (student: Student) => void;
   searchQuery?: string;
+  onMessageClick?: (student: Student) => void;
 }
 
 export default function MahasiswaCard({
@@ -19,6 +21,7 @@ export default function MahasiswaCard({
   projectCount,
   onSelect,
   searchQuery = "",
+  onMessageClick,
 }: MahasiswaCardProps) {
   const [imgError, setImgError] = useState(false);
 
@@ -81,15 +84,28 @@ export default function MahasiswaCard({
             )}
           </div>
 
-          {/* Email button — desktop only */}
-          <a
-            href={`mailto:${student.contactEmail}`}
-            onClick={(e) => e.stopPropagation()}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-muted border-2 border-border hover:bg-primary hover:text-primary-foreground transition-all shadow-[2px_2px_0px_var(--color-border)]"
-          >
-            <Mail className="w-3 h-3 text-secondary" />
-            <span>Email</span>
-          </a>
+          {/* Buttons — desktop only */}
+          <div className="hidden sm:flex flex-wrap justify-end items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+            {onMessageClick && (
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMessageClick(student); }}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold bg-secondary border-2 border-border text-secondary-foreground hover:bg-secondary/80 transition-all shadow-[2px_2px_0px_var(--color-border)]"
+                title="Kirim Pesan"
+              >
+                <MessageSquare className="w-3 h-3" />
+                <span>Pesan</span>
+              </button>
+            )}
+            <a
+              href={`mailto:${student.contactEmail}`}
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold bg-muted border-2 border-border hover:bg-primary hover:text-primary-foreground transition-all shadow-[2px_2px_0px_var(--color-border)] text-foreground"
+              title="Kirim Email"
+            >
+              <Mail className="w-3 h-3" />
+              <span>Email</span>
+            </a>
+          </div>
         </div>
 
         {/* Name & Prodi */}
@@ -103,10 +119,10 @@ export default function MahasiswaCard({
         </div>
 
         {/* Skills */}
-        {student.skills && student.skills.length > 0 && (
+        {student.skills && student.skills.filter(s => PREDEFINED_SKILLS.includes(s)).length > 0 && (
           <div className="flex items-center gap-1 mb-1 sm:mb-3">
             {(() => {
-              let displaySkills = [...student.skills];
+              let displaySkills = student.skills.filter(s => PREDEFINED_SKILLS.includes(s));
               if (searchQuery.trim() !== "") {
                 const query = searchQuery.toLowerCase();
                 const matchIdx = displaySkills.findIndex((s) => s.toLowerCase().includes(query));
@@ -132,9 +148,23 @@ export default function MahasiswaCard({
         )}
 
         {/* Bio — desktop only */}
-        <p className="hidden sm:block text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-4 flex-1">
+        <p className="hidden sm:block text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-3 flex-1">
           {student.bio || "Mahasiswa kreatif STMIK Tazkia."}
         </p>
+
+        {/* Stats: Followers & Following */}
+        <div className="flex items-center gap-3 mb-4 pt-1">
+          <div className="flex items-center gap-1 text-[10px] font-bold">
+            <Users className="w-3.5 h-3.5 text-secondary" />
+            <span className="text-foreground">{student.followersCount || 0}</span>
+            <span className="text-muted-foreground">Pengikut</span>
+          </div>
+          <div className="w-px h-3 bg-border" />
+          <div className="flex items-center gap-1 text-[10px] font-bold">
+            <span className="text-foreground">{student.followingCount || 0}</span>
+            <span className="text-muted-foreground">Mengikuti</span>
+          </div>
+        </div>
 
         {/* Mobile spacer */}
         <div className="flex-1 sm:hidden" />

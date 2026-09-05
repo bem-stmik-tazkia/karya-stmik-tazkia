@@ -3,6 +3,7 @@ import { Lexend } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { E2EEProvider } from "@/components/providers/E2EEProvider";
 import { AppLayoutWrapper } from "@/components/layout/AppLayoutWrapper";
 import { Toaster } from "react-hot-toast";
 
@@ -53,9 +54,11 @@ export default function RootLayout({
                 } 
               }} 
             />
-            <AppLayoutWrapper>
-              {children}
-            </AppLayoutWrapper>
+            <E2EEProvider>
+              <AppLayoutWrapper>
+                {children}
+              </AppLayoutWrapper>
+            </E2EEProvider>
           </ThemeProvider>
         </AuthProvider>
       </body>

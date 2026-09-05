@@ -8,15 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/components/providers/AuthProvider";
 import toast from "react-hot-toast";
 import { fetchMasterProdiOptions, fetchMasterAngkatanOptions } from "@/utils/prodiOptions";
-
-const PREDEFINED_SKILLS = [
-  "Frontend Developer", "Backend Developer", "Fullstack Developer", 
-  "Mobile Developer", "UI/UX Designer", "Data Analyst", "Data Scientist", 
-  "Cyber Security", "DevOps Engineer", "System Administrator", "Cloud Engineer", 
-  "Machine Learning Engineer", "Game Developer", "Product Manager", 
-  "Quality Assurance (QA)", "Network Engineer", "IT Support", 
-  "Graphic Designer", "Digital Marketing"
-];
+import { PREDEFINED_SKILLS } from "@/utils/skillOptions";
 
 const PREDEFINED_STATUSES = [
   "🚀 Open for Collab", "💼 Mencari Magang", "🤝 Siap Freelance", 
@@ -96,7 +88,7 @@ export default function ProfileSettingsPage() {
           linkedin_url: data.linkedin_url || "",
           instagram_url: data.instagram_url || "",
           website_url: data.website_url || "",
-          skills: data.skills || [],
+          skills: (data.skills || []).filter((s: string) => PREDEFINED_SKILLS.includes(s)),
           avatar_url: data.avatar_url || ""
         });
         if (data.avatar_url) {
@@ -163,6 +155,10 @@ export default function ProfileSettingsPage() {
       return;
     }
     if (formData.skills.includes(skill)) return;
+    if (!PREDEFINED_SKILLS.includes(skill)) {
+      toast.error('Keahlian tidak valid');
+      return;
+    }
     
     setFormData(prev => ({ ...prev, skills: [...prev.skills, skill] }));
     setIsDirty(true);
@@ -441,27 +437,22 @@ export default function ProfileSettingsPage() {
             {/* Add Skill Input */}
             {formData.skills.length < 5 && (
               <div className="flex gap-2">
-                <input
-                  type="text"
+                <select
                   value={skillInput}
-                  onChange={(e) => setSkillInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if(skillInput) addSkill(skillInput.trim()); } }}
-                  placeholder="Ketik keahlian (mis: React, Node.js)"
-                  className="flex-1 px-4 py-3 rounded-xl border-4 border-border bg-background font-bold outline-none focus:border-secondary focus:shadow-[4px_4px_0px_0px_var(--color-secondary)] transition-all"
-                  list="skill-suggestions"
-                />
-                <datalist id="skill-suggestions">
-                  {PREDEFINED_SKILLS.filter(s => !formData.skills.includes(s)).map(s => (
-                    <option key={s} value={s} />
-                  ))}
-                </datalist>
-                <button
-                  type="button"
-                  onClick={() => { if(skillInput) addSkill(skillInput.trim()); }}
-                  className="px-6 py-3 rounded-xl bg-secondary text-secondary-foreground font-black border-4 border-border shadow-[4px_4px_0px_0px_var(--color-border)] hover:translate-y-0.5 hover:shadow-[2px_2px_0px_0px_var(--color-border)] transition-all whitespace-nowrap"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val) addSkill(val);
+                  }}
+                  className="flex-1 px-4 py-3 rounded-xl border-4 border-border bg-background font-bold outline-none focus:border-secondary focus:shadow-[4px_4px_0px_0px_var(--color-secondary)] transition-all appearance-none cursor-pointer"
                 >
-                  Tambah
-                </button>
+                  <option value="" disabled>Pilih keahlian...</option>
+                  {PREDEFINED_SKILLS.filter(s => !formData.skills.includes(s)).map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-[120px] flex items-center pointer-events-none px-2 hidden">
+                  {/* Just for UI, native select handles arrow */}
+                </div>
               </div>
             )}
           </div>
