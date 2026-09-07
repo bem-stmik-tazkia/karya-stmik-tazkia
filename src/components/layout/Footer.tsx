@@ -1,8 +1,24 @@
 import Link from "next/link";
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 export function Footer() {
   return (
-    <footer className="border-t-4 border-border bg-card py-12 px-4 sm:px-6 lg:px-8">
+    <footer className="relative border-t-4 border-border bg-card py-12 px-4 sm:px-6 lg:px-8">
+      {/* Tourist Car Strip - tampil di semua halaman */}
+      <style>{`
+        @keyframes driveCar {
+          0%   { transform: translateX(-320px); }
+          100% { transform: translateX(calc(100vw + 320px)); }
+        }
+      `}</style>
+      <div className="absolute left-0 right-0 bottom-full pointer-events-none z-10" style={{ height: "160px", overflow: "hidden" }}>
+        <div
+          className="absolute bottom-[-4px] w-[240px] sm:w-[280px]"
+          style={{ animation: "driveCar 14s linear infinite" }}
+        >
+          <DotLottieReact src="/animations/Tourists%20by%20car.lottie" loop autoplay />
+        </div>
+      </div>
       <div className="container mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           <div className="space-y-4">
@@ -51,7 +67,7 @@ export function Footer() {
             © {new Date().getFullYear()} STMIK Tazkia. Hak cipta dilindungi.
           </p>
           <div className="flex gap-4 font-bold text-sm text-muted-foreground">
-            <Link href="#" className="hover:text-primary transition-colors">Syarat & Ketentuan</Link>
+            <Link href="#" className="hover:text-primary transition-colors">Syarat &amp; Ketentuan</Link>
             <Link href="#" className="hover:text-primary transition-colors">Privasi</Link>
           </div>
         </div>

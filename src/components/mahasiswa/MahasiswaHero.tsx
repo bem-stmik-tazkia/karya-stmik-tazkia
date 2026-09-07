@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Search, Filter, X, Users, FolderCheck, GraduationCap } from "lucide-react";
+import { Search, Filter, X } from "lucide-react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { ALL_PRODI_VALUE, PRODI_FILTER_OPTIONS } from "@/utils/prodiOptions";
 
 interface MahasiswaHeroProps {
@@ -76,24 +77,24 @@ export default function MahasiswaHero({
           className="grid grid-cols-3 gap-2 sm:gap-6 my-5 sm:my-8 max-w-2xl mx-auto"
         >
           <div className="card-3d bg-card p-2 sm:p-4 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center text-center">
-            <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-xl bg-primary/10 text-primary mb-0.5 sm:mb-1">
-              <Users className="w-4 h-4 sm:w-7 sm:h-7" />
+            <div className="mb-1 sm:mb-2 flex items-center justify-center w-12 h-12 sm:w-20 sm:h-20">
+              <DotLottieReact src="/animations/People.lottie" loop autoplay renderConfig={{ autoResize: true }} style={{ width: '100%', height: '100%' }} />
             </div>
             <span className="text-base sm:text-3xl font-black text-foreground">{totalMahasiswa}</span>
             <span className="text-[9px] sm:text-xs font-bold text-muted-foreground uppercase">Mahasiswa</span>
           </div>
 
           <div className="card-3d bg-card p-2 sm:p-4 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center text-center">
-            <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-xl bg-secondary/10 text-secondary mb-0.5 sm:mb-1">
-              <FolderCheck className="w-4 h-4 sm:w-7 sm:h-7" />
+            <div className="mb-1 sm:mb-2 flex items-center justify-center w-12 h-12 sm:w-20 sm:h-20">
+              <DotLottieReact src="/animations/search-projek.lottie" loop autoplay renderConfig={{ autoResize: true }} style={{ width: '100%', height: '100%' }} />
             </div>
             <span className="text-base sm:text-3xl font-black text-foreground">{totalProjects}</span>
             <span className="text-[9px] sm:text-xs font-bold text-muted-foreground uppercase">Projek Karya</span>
           </div>
 
           <div className="card-3d bg-card p-2 sm:p-4 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center text-center">
-            <div className="p-1.5 sm:p-3 rounded-lg sm:rounded-xl bg-accent/20 text-accent-foreground mb-0.5 sm:mb-1">
-              <GraduationCap className="w-4 h-4 sm:w-7 sm:h-7" />
+            <div className="mb-1 sm:mb-2 flex items-center justify-center w-12 h-12 sm:w-20 sm:h-20">
+              <DotLottieReact src="/animations/toga.lottie" loop autoplay renderConfig={{ autoResize: true }} style={{ width: '100%', height: '100%' }} />
             </div>
             <span className="text-base sm:text-3xl font-black text-foreground">{availableAngkatan.length}</span>
             <span className="text-[9px] sm:text-xs font-bold text-muted-foreground uppercase">Angkatan</span>

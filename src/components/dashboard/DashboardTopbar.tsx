@@ -105,7 +105,7 @@ export function DashboardTopbar() {
 
               {/* Dropdown Menu */}
               {isDropdownOpen && (
-                <div className="absolute right-0 top-[calc(100%+8px)] w-56 bg-card border-4 border-border rounded-2xl shadow-[6px_6px_0px_var(--color-border)] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute right-0 sm:right-2 top-[calc(100%+8px)] w-56 bg-card border-4 border-border rounded-2xl shadow-[6px_6px_0px_var(--color-border)] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
                   <div className="px-4 py-3 border-b-2 border-border bg-muted/50">
                     <p className="text-[10px] font-bold text-muted-foreground uppercase">{isAdmin ? "Akun Admin" : "Akun Mahasiswa"}</p>
                     <p className="text-sm font-black text-foreground truncate mt-0.5">{fullName}</p>

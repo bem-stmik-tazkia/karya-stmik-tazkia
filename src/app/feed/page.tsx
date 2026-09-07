@@ -10,6 +10,7 @@ import { MessageSquare, TrendingUp, Users, UserPlus, PenSquare, Loader2, Check, 
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useRouter } from "next/navigation";
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 // Tipe untuk rekomendasi mahasiswa
 type RecommendedStudent = {
@@ -201,7 +202,15 @@ export default function FeedPage() {
                 className="text-3xl font-black text-foreground uppercase flex items-center gap-3"
                 style={{ textShadow: "3px 3px 0px var(--color-border)" }}
               >
-                <MessageSquare className="w-8 h-8 text-primary" />
+                <div className="w-24 h-24 sm:w-32 sm:h-32 -ml-6 sm:-ml-8 -mr-2 sm:-mr-4 -my-8 shrink-0 flex items-center justify-center relative z-10 pointer-events-none">
+                  <DotLottieReact 
+                    src="/animations/bubble-chat.lottie" 
+                    loop 
+                    autoplay 
+                    renderConfig={{ autoResize: true }}
+                    style={{ width: '100%', height: '100%' }}
+                  />
+                </div>
                 Medsos Kampus
               </h1>
               <p className="text-sm font-bold text-muted-foreground mt-2">

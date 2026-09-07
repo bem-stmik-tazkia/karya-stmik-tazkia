@@ -22,9 +22,11 @@ import {
   Loader2,
   UploadCloud,
 } from "lucide-react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { StickerBadge } from "@/components/ui/StickerBadge";
 import { formatNumber } from "@/lib/data";
 import TechStackTags from "@/components/ui/TechStackTags";
+import { RankBadge } from "@/components/ui/RankBadge";
 
 function ExploreContent() {
   const { user } = useAuth();
@@ -124,6 +126,20 @@ function ExploreContent() {
     <div className="container mx-auto px-4 md:px-6 py-12 max-w-7xl">
       {/* Page Title Header */}
       <div className="mb-12 text-center">
+        <motion.div
+           initial={{ scale: 0, y: 20 }}
+           animate={{ scale: 1, y: 0 }}
+           transition={{ type: "spring", bounce: 0.6 }}
+           className="w-32 h-32 sm:w-40 sm:h-40 mx-auto -mb-2 relative z-10 pointer-events-none"
+        >
+          <DotLottieReact 
+            src="/animations/Card.lottie" 
+            loop 
+            autoplay 
+            renderConfig={{ autoResize: true }} 
+            style={{ width: '100%', height: '100%' }} 
+          />
+        </motion.div>
         <motion.h1
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -156,7 +172,7 @@ function ExploreContent() {
                 router.push("/submit");
               }
             }}
-            className="flex items-center gap-2 px-6 py-3 bg-secondary text-white border-4 border-border rounded-xl font-black shadow-[4px_4px_0px_var(--color-border)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_var(--color-border)] active:translate-y-1 active:shadow-none transition-all uppercase"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-secondary text-white border-4 border-border rounded-xl font-black shadow-[4px_4px_0px_var(--color-border)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_var(--color-border)] active:translate-y-1 active:shadow-none transition-all uppercase"
           >
             <UploadCloud className="w-5 h-5" />
             Upload Karya Anda
@@ -262,6 +278,9 @@ function ExploreContent() {
                     KARYA_CATEGORIES.find((c) => c.value === item.category)?.label ??
                     item.category;
 
+                  const originalIndex = karya.findIndex(k => k.id === item.id);
+                  const rank = originalIndex !== -1 && originalIndex < 3 ? originalIndex + 1 : 0;
+
                   return (
                     <motion.div
                       layout
@@ -270,8 +289,9 @@ function ExploreContent() {
                       exit={{ opacity: 0, scale: 0.9 }}
                       transition={{ type: "spring", bounce: 0.4 }}
                       key={item.id}
-                      className="h-full"
+                      className="h-full relative"
                     >
+                      {rank > 0 && <RankBadge rank={rank} />}
                       <Link href={`/project/${item.id}`} className="block h-full">
                         <div className="card-3d overflow-hidden flex flex-col h-full bg-card group">
                           {/* Cover Image */}

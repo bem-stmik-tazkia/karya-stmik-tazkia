@@ -120,7 +120,7 @@ export default function MahasiswaCard({
 
         {/* Skills */}
         {student.skills && student.skills.filter(s => PREDEFINED_SKILLS.includes(s)).length > 0 && (
-          <div className="flex items-center gap-1 mb-1 sm:mb-3">
+          <div className="flex flex-wrap items-center gap-1 mb-1 sm:mb-3">
             {(() => {
               let displaySkills = student.skills.filter(s => PREDEFINED_SKILLS.includes(s));
               if (searchQuery.trim() !== "") {

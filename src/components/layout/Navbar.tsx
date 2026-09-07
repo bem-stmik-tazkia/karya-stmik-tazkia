@@ -115,7 +115,7 @@ export function Navbar() {
 
                 {/* Dropdown */}
                 {isDropdownOpen && (
-                  <div className="absolute right-0 top-[calc(100%+8px)] w-52 bg-card border-4 border-border rounded-2xl shadow-[4px_4px_0px_var(--color-border)] overflow-hidden z-50">
+                  <div className="absolute right-0 sm:right-2 top-[calc(100%+8px)] w-52 bg-card border-4 border-border rounded-2xl shadow-[4px_4px_0px_var(--color-border)] overflow-hidden z-50">
                     <div className="px-4 py-3 border-b-2 border-border bg-muted/50">
                       <p className="text-[10px] font-bold text-muted-foreground uppercase">{isAdmin ? "Akun Admin" : "Masuk sebagai"}</p>
                       <p className="text-xs font-black text-foreground truncate mt-0.5">{user.email}</p>
