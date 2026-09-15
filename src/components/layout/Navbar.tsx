@@ -22,6 +22,7 @@ export function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
@@ -102,10 +103,10 @@ export function Navbar() {
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="flex items-center gap-2 px-3 py-1.5 rounded-xl border-2 border-border bg-card font-black text-sm shadow-[2px_2px_0px_var(--color-border)] hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_var(--color-border)] transition-all"
                 >
-                  {avatarUrl ? (
-                    <img src={avatarUrl} alt={displayName} className="w-7 h-7 rounded-lg border-2 border-border object-cover" />
+                  {avatarUrl && !avatarError ? (
+                    <img src={avatarUrl} alt={displayName} className="w-7 h-7 rounded-lg border-2 border-border object-cover" onError={() => setAvatarError(true)} />
                   ) : (
-                    <div className="w-7 h-7 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-xs font-black border-2 border-border">
+                    <div className="w-7 h-7 rounded-lg bg-secondary text-white flex items-center justify-center text-xs font-black border-2 border-border">
                       {avatarLetter}
                     </div>
                   )}
@@ -230,7 +231,7 @@ export function Navbar() {
             {user ? (
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-3 p-4 bg-muted rounded-2xl border-2 border-border">
-                  <div className="w-10 h-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-black text-xl border-2 border-border">
+                  <div className="w-10 h-10 rounded-xl bg-secondary text-white flex items-center justify-center font-black text-xl border-2 border-border">
                     {avatarLetter}
                   </div>
                   <div className="flex-1 min-w-0">

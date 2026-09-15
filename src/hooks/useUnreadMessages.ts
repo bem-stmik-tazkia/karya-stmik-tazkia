@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/lib/supabase-server'; // Let's check how they do auth later, wait, I shouldn't guess.
+
 
 export function useUnreadMessages(userId: string | undefined) {
   const [unreadCount, setUnreadCount] = useState(0);
