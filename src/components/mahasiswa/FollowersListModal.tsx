@@ -105,11 +105,17 @@ export default function FollowersListModal({ userId, type, title, onClose }: Fol
               <div className="space-y-3">
                 {users.map((u) => (
                   <div key={u.id} className="flex items-center gap-3 p-2 rounded-2xl hover:bg-muted transition-colors group">
-                    <img
-                      src={u.avatar_url || "https://ui-avatars.com/api/?name=" + encodeURIComponent(u.full_name)}
-                      alt={u.full_name}
-                      className="w-12 h-12 rounded-xl border-2 border-border object-cover shrink-0 bg-background"
-                    />
+                    {u.avatar_url ? (
+                      <img
+                        src={u.avatar_url}
+                        alt={u.full_name}
+                        className="w-12 h-12 rounded-xl border-2 border-border object-cover shrink-0 bg-background"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-secondary text-white flex items-center justify-center text-xl font-black rounded-xl shrink-0 border-2 border-border">
+                        {u.full_name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <Link href={`/student/${u.id}`} onClick={onClose} className="block">
                         <h4 className="text-sm font-black text-foreground truncate group-hover:text-primary transition-colors">

@@ -31,6 +31,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import { StickerBadge } from "@/components/ui/StickerBadge";
 import { BouncyButton } from "@/components/ui/BouncyButton";
+import { SkeletonBlock } from "@/components/ui/Skeleton";
 
 // Mapping tech/tools ke ikon CDN
 // Returns: { src, type } where type = 'devicon' | 'simple'
@@ -293,9 +294,17 @@ export default function ProjectDetailPage({
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <Loader2 className="w-10 h-10 text-primary animate-spin" />
-        <p className="font-bold text-muted-foreground">Memuat detail karya...</p>
+      <div className="container mx-auto px-4 md:px-6 py-12 max-w-6xl">
+        <SkeletonBlock className="h-10 w-32 rounded-xl mb-8 bg-muted" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-8">
+            <SkeletonBlock className="w-full aspect-[16/9] rounded-[2rem] border-4 border-border bg-card shadow-[4px_4px_0px_var(--color-border)]" />
+            <SkeletonBlock className="h-64 w-full rounded-[2rem] border-4 border-border bg-card shadow-[4px_4px_0px_var(--color-border)] p-6" />
+          </div>
+          <div className="space-y-6">
+            <SkeletonBlock className="h-72 w-full rounded-[2rem] border-4 border-border bg-card shadow-[4px_4px_0px_var(--color-border)]" />
+          </div>
+        </div>
       </div>
     );
   }

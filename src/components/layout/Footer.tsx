@@ -67,8 +67,8 @@ export function Footer() {
             © {new Date().getFullYear()} STMIK Tazkia. Hak cipta dilindungi.
           </p>
           <div className="flex gap-4 font-bold text-sm text-muted-foreground">
-            <Link href="#" className="hover:text-primary transition-colors">Syarat &amp; Ketentuan</Link>
-            <Link href="#" className="hover:text-primary transition-colors">Privasi</Link>
+            <Link href="/terms" className="hover:text-primary transition-colors">Syarat & Ketentuan</Link>
+            <Link href="/privacy" className="hover:text-primary transition-colors">Privasi</Link>
           </div>
         </div>
       </div>

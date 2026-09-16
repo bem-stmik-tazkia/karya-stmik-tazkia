@@ -27,6 +27,7 @@ import { StickerBadge } from "@/components/ui/StickerBadge";
 import { formatNumber } from "@/lib/data";
 import TechStackTags from "@/components/ui/TechStackTags";
 import { RankBadge } from "@/components/ui/RankBadge";
+import { SkeletonProjectCard } from "@/components/ui/Skeleton";
 
 function ExploreContent() {
   const { user } = useAuth();
@@ -254,23 +255,27 @@ function ExploreContent() {
         </motion.div>
       )}
 
-      {/* Loading State */}
-      {loading && (
-        <div className="flex flex-col items-center justify-center py-24 gap-4">
-          <Loader2 className="w-10 h-10 text-primary animate-spin" />
-          <p className="font-bold text-muted-foreground">Memuat karya...</p>
-        </div>
-      )}
-
       {/* Projects Grid */}
-      {!loading && (
-        <AnimatePresence mode="wait">
-          {filteredKarya.length > 0 ? (
-            <>
-              <motion.div
-                layout
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              >
+      <AnimatePresence mode="wait">
+        {loading ? (
+          <motion.div 
+            key="skeleton"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <SkeletonProjectCard key={i} />
+            ))}
+          </motion.div>
+        ) : filteredKarya.length > 0 ? (
+          <>
+            <motion.div
+              key="content"
+              layout
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
                 {paginatedKarya.map((item) => {
                   const isLiked = likedKarya[item.id];
                   const likesCount = (item.likes ?? 0) + (isLiked ? 1 : 0);
@@ -439,14 +444,17 @@ function ExploreContent() {
             </motion.div>
           )}
         </AnimatePresence>
-      )}
     </div>
   );
 }
 
 export default function ExplorePage() {
   return (
-    <Suspense fallback={<div className="flex justify-center py-24"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>}>
+    <Suspense fallback={
+      <div className="container max-w-6xl mx-auto px-4 sm:px-6 mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[1, 2, 3, 4, 5, 6].map(i => <SkeletonProjectCard key={i} />)}
+      </div>
+    }>
       <ExploreContent />
     </Suspense>
   );

@@ -88,11 +88,11 @@ function LoginContent() {
         <div className="mt-8 text-center border-t-4 border-border border-dashed pt-6">
           <p className="text-xs font-bold text-muted-foreground">
             Dengan masuk, kamu menyetujui{" "}
-            <Link href="#" className="text-primary hover:underline">
+            <Link href="/terms" className="text-primary hover:underline">
               Syarat & Ketentuan
             </Link>{" "}
             serta{" "}
-            <Link href="#" className="text-primary hover:underline">
+            <Link href="/privacy" className="text-primary hover:underline">
               Kebijakan Privasi
             </Link>{" "}
             KaryaTazkia.

@@ -2,6 +2,7 @@ import React from "react";
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import { NeobrutalismProfileView } from "@/components/mahasiswa/NeobrutalismProfileView";
+import { CompleteProfileModalWrapper } from "@/components/mahasiswa/CompleteProfileModalWrapper";
 import { getFeedPosts } from "@/lib/feedService";
 
 export const revalidate = 0;
@@ -79,13 +80,16 @@ export default async function DashboardProfilePage() {
   const posts = await getFeedPosts(user.id, user.id);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 relative">
       <NeobrutalismProfileView
         profile={profile}
         projects={projects}
         posts={posts}
         isOwnProfile={true}
       />
+      {(!profile.prodi || !profile.angkatan) && (
+        <CompleteProfileModalWrapper userId={user.id} />
+      )}
     </div>
   );
 }

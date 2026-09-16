@@ -140,6 +140,14 @@ export function DashboardTopbar() {
                       Upload Karya
                     </Link>
                     <Link
+                      href="/mahasiswa"
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-muted font-bold text-sm text-foreground transition-colors"
+                    >
+                      <User className="w-4 h-4 text-blue-500" />
+                      Cari Mahasiswa
+                    </Link>
+                    <Link
                       href="/explore"
                       onClick={() => setIsDropdownOpen(false)}
                       className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-muted font-bold text-sm text-foreground transition-colors"

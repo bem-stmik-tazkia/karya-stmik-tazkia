@@ -14,6 +14,8 @@ export interface MahasiswaCardProps {
   onSelect: (student: Student) => void;
   searchQuery?: string;
   onMessageClick?: (student: Student) => void;
+  isFollowing?: boolean;
+  onFollowClick?: (e: React.MouseEvent) => void;
 }
 
 export default function MahasiswaCard({
@@ -22,6 +24,8 @@ export default function MahasiswaCard({
   onSelect,
   searchQuery = "",
   onMessageClick,
+  isFollowing = false,
+  onFollowClick,
 }: MahasiswaCardProps) {
   const [imgError, setImgError] = useState(false);
 
@@ -66,9 +70,8 @@ export default function MahasiswaCard({
       {/* ── Card Body ── */}
       <div className="px-2.5 sm:px-4 pb-2.5 sm:pb-4 pt-0 relative flex-1 flex flex-col">
 
-        {/* Avatar + Email button */}
-        <div className="relative -mt-4 sm:-mt-8 mb-1 sm:mb-3 flex items-end justify-between">
-          {/* Avatar */}
+        {/* Avatar and Email button */}
+        <div className="relative -mt-4 sm:-mt-8 mb-1 sm:mb-3 flex justify-between items-end">
           <div className="relative w-9 h-9 sm:w-16 sm:h-16 rounded-lg sm:rounded-2xl p-0.5 bg-card overflow-hidden border-2 sm:border-4 border-border shadow-[2px_2px_0px_var(--color-border)] group-hover:border-primary transition-all duration-300 shrink-0">
             {student.avatarUrl && !imgError ? (
               <img
@@ -83,23 +86,11 @@ export default function MahasiswaCard({
               </div>
             )}
           </div>
-
-          {/* Buttons — desktop only */}
-          <div className="hidden sm:flex flex-wrap justify-end items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-            {onMessageClick && (
-              <button
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMessageClick(student); }}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold bg-secondary border-2 border-border text-secondary-foreground hover:bg-secondary/80 transition-all shadow-[2px_2px_0px_var(--color-border)]"
-                title="Kirim Pesan"
-              >
-                <MessageSquare className="w-3 h-3" />
-                <span>Pesan</span>
-              </button>
-            )}
+          
+          <div className="hidden sm:block" onClick={(e) => e.stopPropagation()}>
             <a
               href={`mailto:${student.contactEmail}`}
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold bg-muted border-2 border-border hover:bg-primary hover:text-primary-foreground transition-all shadow-[2px_2px_0px_var(--color-border)] text-foreground"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold bg-card border-2 border-border hover:bg-primary hover:text-primary-foreground transition-all shadow-[2px_2px_0px_var(--color-border)] text-foreground"
               title="Kirim Email"
             >
               <Mail className="w-3 h-3" />
@@ -108,7 +99,7 @@ export default function MahasiswaCard({
           </div>
         </div>
 
-        {/* Name & Prodi */}
+        {/* Name, Prodi */}
         <div className="mb-1 sm:mb-2">
           <h3 className="text-xs sm:text-base font-black text-foreground group-hover:text-primary transition-colors line-clamp-1 leading-snug">
             {student.name}
@@ -152,8 +143,36 @@ export default function MahasiswaCard({
           {student.bio || "Mahasiswa kreatif STMIK Tazkia."}
         </p>
 
+        {/* Action Buttons — desktop only */}
+        <div className="hidden sm:flex flex-wrap items-center gap-1.5 mb-3" onClick={(e) => e.stopPropagation()}>
+          {onFollowClick && (
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onFollowClick(e); }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 flex-1 justify-center rounded-xl text-[10px] font-bold border-2 transition-all shadow-[2px_2px_0px_var(--color-border)] ${
+                isFollowing 
+                  ? "bg-transparent border-border text-muted-foreground hover:bg-rose-500 hover:text-white hover:border-rose-500" 
+                  : "bg-primary border-border text-primary-foreground hover:bg-primary/90"
+              }`}
+              title={isFollowing ? "Unfollow" : "Ikuti"}
+            >
+              <Users className="w-3 h-3" />
+              <span>{isFollowing ? "Unfollow" : "Ikuti"}</span>
+            </button>
+          )}
+          {onMessageClick && (
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMessageClick(student); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 flex-1 justify-center rounded-xl text-[10px] font-bold bg-secondary border-2 border-border text-secondary-foreground hover:bg-secondary/80 transition-all shadow-[2px_2px_0px_var(--color-border)]"
+              title="Kirim Pesan"
+            >
+              <MessageSquare className="w-3 h-3" />
+              <span>Pesan</span>
+            </button>
+          )}
+        </div>
+
         {/* Stats: Followers & Following */}
-        <div className="flex items-center gap-3 mb-4 pt-1">
+        <div className="flex items-center gap-3 mb-4 pt-1 border-t-2 border-border border-dashed">
           <div className="flex items-center gap-1 text-[10px] font-bold">
             <Users className="w-3.5 h-3.5 text-secondary" />
             <span className="text-foreground">{student.followersCount || 0}</span>

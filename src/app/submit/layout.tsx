@@ -11,17 +11,19 @@ export default async function SubmitLayout({ children }: { children: React.React
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (user) {
-    // Jika user ini terdaftar sebagai Admin, blokir dari halaman submit!
-    const { data: adminRecord } = await supabase
-      .from("admin_users")
-      .select("role")
-      .eq("user_id", user.id)
-      .single();
+  if (!user) {
+    redirect("/login");
+  }
 
-    if (adminRecord) {
-      redirect("/admin/karya");
-    }
+  // Jika user ini terdaftar sebagai Admin, blokir dari halaman submit!
+  const { data: adminRecord } = await supabase
+    .from("admin_users")
+    .select("role")
+    .eq("user_id", user.id)
+    .single();
+
+  if (adminRecord) {
+    redirect("/admin/karya");
   }
 
   return (

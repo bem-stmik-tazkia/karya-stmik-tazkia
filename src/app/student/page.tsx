@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/providers/AuthProvider";
 import toast from "react-hot-toast";
+import { checkIsFollowingBulk, toggleFollow } from "@/lib/followService";
 
 // Adapter: convert MahasiswaProfile (Supabase) → Student (local type for UI components)
 function toStudent(m: MahasiswaProfile): Student {
@@ -59,6 +60,31 @@ function StudentShowcaseContent() {
 
   const [angkatanOptions, setAngkatanOptions] = useState<{ value: string; label: string }[]>([]);
   const [prodiOptions, setProdiOptions] = useState<{ value: string; label: string }[]>([]);
+  const [followingStatus, setFollowingStatus] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (user && allMahasiswa.length > 0) {
+      const ids = allMahasiswa.map(m => m.user_id).filter(Boolean) as string[];
+      checkIsFollowingBulk(ids, user.id).then(setFollowingStatus);
+    }
+  }, [user, allMahasiswa]);
+
+  const handleToggleFollow = async (studentUserId: string) => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    const isCurrentlyFollowing = followingStatus[studentUserId] || false;
+    // Optimistic UI update
+    setFollowingStatus(prev => ({ ...prev, [studentUserId]: !isCurrentlyFollowing }));
+    try {
+      await toggleFollow(studentUserId, user.id, isCurrentlyFollowing);
+    } catch (error) {
+      // Revert if error
+      setFollowingStatus(prev => ({ ...prev, [studentUserId]: isCurrentlyFollowing }));
+      toast.error("Gagal melakukan aksi ikuti. Silakan coba lagi.");
+    }
+  };
 
   useEffect(() => {
     Promise.all([
@@ -298,6 +324,8 @@ function StudentShowcaseContent() {
                         searchQuery={searchQuery}
                         onSelect={(s) => setSelectedStudent(s)}
                         onMessageClick={user?.id !== student.userId ? handleMessageClick : undefined}
+                        isFollowing={student.userId ? followingStatus[student.userId] : false}
+                        onFollowClick={student.userId && student.userId !== user?.id ? () => handleToggleFollow(student.userId!) : undefined}
                       />
                     </motion.div>
                   );

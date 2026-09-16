@@ -11,6 +11,7 @@ import TechStackSelect from "@/components/upload/TechStackSelect";
 import KTIToolsSelect from "@/components/upload/KTIToolsSelect";
 import IoTComponentSelect from "@/components/upload/IoTComponentSelect";
 import MultimediaToolsSelect from "@/components/upload/MultimediaToolsSelect";
+import { SkeletonForm } from "@/components/ui/Skeleton";
 import TeamMemberAutocomplete from "@/components/upload/TeamMemberAutocomplete";
 import { useAuth } from "@/components/providers/AuthProvider";
 import toast from "react-hot-toast";
@@ -51,13 +52,29 @@ export default function UploadKaryaFormPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [invalidFields, setInvalidFields] = useState<string[]>([]);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [showDraftBadge, setShowDraftBadge] = useState(false);
   const [formData, setFormData] = useState({ ...initialFormState, category: typeParam });
   const [baseFormState, setBaseFormState] = useState({ ...initialFormState, category: typeParam });
   const [mahasiswaList, setMahasiswaList] = useState<any[]>([]);
+  const isInitialMount = React.useRef(true);
 
   useEffect(() => {
     if (!isLoading && !user) router.replace("/login");
   }, [user, isLoading, router]);
+
+  // Handle beforeunload to prevent accidental data loss
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      const isDirtyCheck = JSON.stringify(formData) !== JSON.stringify(baseFormState);
+      if (isDirtyCheck && !isSubmitting) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [formData, baseFormState, isSubmitting]);
 
   // Fetch mahasiswa profiles + auto-fill user
   useEffect(() => {
@@ -91,10 +108,24 @@ export default function UploadKaryaFormPage() {
     }
   }, [typeParam, editId]);
 
-  // Save draft to localStorage
+  // Save draft to localStorage with debounce
   useEffect(() => {
-    localStorage.setItem("karya_upload_draft", JSON.stringify(formData));
-  }, [formData]);
+    if (editId) return; // Don't auto-save draft if we are editing an existing item
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    setIsSavingDraft(true);
+    const handler = setTimeout(() => {
+      localStorage.setItem("karya_upload_draft", JSON.stringify(formData));
+      setIsSavingDraft(false);
+      setShowDraftBadge(true);
+      setTimeout(() => setShowDraftBadge(false), 2000);
+    }, 1000); // 1s debounce
+
+    return () => clearTimeout(handler);
+  }, [formData, editId]);
 
   // Load draft from localStorage
   useEffect(() => {
@@ -310,12 +341,12 @@ export default function UploadKaryaFormPage() {
         colors: ["#f97316", "#1e3a8a", "#fbbf24", "#ffffff"]
       });
       
-      toast.success(editId ? "Karya berhasil diperbarui!" : "Karya berhasil diupload!", { id: toastId });
+      toast.success(editId ? "Karya berhasil diperbarui!" : "Karya berhasil diupload!", { id: toastId, duration: 5000 });
       setTimeout(() => { router.push("/dashboard/projects"); }, 2000);
     } catch (err: any) {
       console.error(err);
       toast.dismiss(toastId);
-      toast.error(err.message || "Gagal mengunggah karya. Silakan coba lagi.");
+      toast.error(err.message || "Gagal mengunggah karya. Silakan coba lagi.", { duration: 5000 });
       setErrorMsg(err.message || "Gagal mengunggah karya. Silakan coba lagi.");
     } finally {
       setIsSubmitting(false);
@@ -330,7 +361,15 @@ export default function UploadKaryaFormPage() {
   const labelClass = "block text-sm font-black text-foreground mb-1.5 uppercase";
   const sectionTitleClass = "text-sm font-black text-primary uppercase tracking-wider mb-4 flex items-center gap-2";
 
-  if (isLoading || !user) return null;
+  if (isLoading || !user) {
+    return (
+      <div className="w-full pt-6 md:pt-10 pb-28 md:pb-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10">
+          <SkeletonForm />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full pt-6 md:pt-10 pb-28 md:pb-16">
@@ -346,9 +385,34 @@ export default function UploadKaryaFormPage() {
           <h1 className="text-3xl font-black text-primary uppercase tracking-tight">
             {editId ? "Edit Karya" : "Form Upload Karya"}
           </h1>
-          <p className="text-muted-foreground font-bold">
-            Kategori: <span className="text-foreground font-black">{KATEGORI_OPTIONS.find(o => o.id === formData.category)?.label || formData.category}</span>
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-muted-foreground font-bold">
+              Kategori: <span className="text-foreground font-black">{KATEGORI_OPTIONS.find(o => o.id === formData.category)?.label || formData.category}</span>
+            </p>
+            <div className="h-6 flex items-center">
+              <AnimatePresence>
+                {isSavingDraft ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex items-center gap-1.5 text-[10px] font-black text-muted-foreground uppercase"
+                  >
+                    <FiLoader className="w-3 h-3 animate-spin" /> Menyimpan draf...
+                  </motion.div>
+                ) : showDraftBadge ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8, y: 5 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, y: -5 }}
+                    className="flex items-center gap-1 px-2 py-1 rounded-md bg-secondary text-white border-2 border-secondary-shadow shadow-[2px_2px_0px_var(--color-secondary-shadow)] text-[10px] font-black uppercase rotate-2 origin-bottom-right"
+                  >
+                    <span className="w-3 h-3 font-bold">✓</span> Draft tersimpan
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+            </div>
+          </div>
         </div>
 
         <form noValidate onSubmit={handleSubmit} className="bg-card border-4 border-border rounded-3xl shadow-[8px_8px_0px_var(--color-border)] p-6 md:p-8 space-y-8">
@@ -476,7 +540,7 @@ export default function UploadKaryaFormPage() {
                     <div className="shrink-0">
                       {anggota.user_id ? (
                         <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-border bg-card flex items-center justify-center opacity-80 cursor-not-allowed">
-                          {anggota.avatar ? <img src={anggota.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-primary text-white flex items-center justify-center font-black text-xl">{anggota.name.charAt(0) || "?"}</div>}
+                          {anggota.avatar ? <img src={anggota.avatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-secondary text-white flex items-center justify-center font-black text-xl">{anggota.name.charAt(0) || "?"}</div>}
                         </div>
                       ) : (
                         <ImageUpload value={anggota.avatar || ""} onChange={(url) => handleTim(i, "avatar", url)} />

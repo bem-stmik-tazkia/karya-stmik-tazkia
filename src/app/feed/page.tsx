@@ -11,6 +11,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useRouter } from "next/navigation";
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { getTrendingHashtagsServerSide } from "@/app/actions/feedActions";
+import { SkeletonFeedPost, SkeletonBlock } from "@/components/ui/Skeleton";
 
 // Tipe untuk rekomendasi mahasiswa
 type RecommendedStudent = {
@@ -179,15 +181,16 @@ export default function FeedPage() {
     }
   };
 
-  // Kumpulkan semua hashtag dari postingan dan hitung kemunculannya (kalkulasi lokal untuk trending)
-  const trendingTags = useMemo(() => {
-    const tagCount: Record<string, number> = {};
-    posts.forEach((p) => p.tags?.forEach((t) => { tagCount[t] = (tagCount[t] || 0) + 1; }));
-    return Object.entries(tagCount)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 8)
-      .map(([tag]) => tag);
-  }, [posts]);
+  const [trendingTags, setTrendingTags] = useState<string[]>([]);
+  
+  // Fetch trending tags from server action
+  useEffect(() => {
+    async function loadTrending() {
+      const tags = await getTrendingHashtagsServerSide();
+      setTrendingTags(tags);
+    }
+    loadTrending();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background pt-24 pb-16">
@@ -226,10 +229,11 @@ export default function FeedPage() {
             {/* Feed Stream */}
             <div>
               {loading ? (
-                <div className="flex flex-col items-center justify-center py-20 gap-4">
-                  <Loader2 className="w-10 h-10 text-primary animate-spin" />
-                  <p className="font-bold text-muted-foreground">Memuat postingan...</p>
-                </div>
+                <>
+                  {[1, 2, 3].map((i) => (
+                    <SkeletonFeedPost key={i} />
+                  ))}
+                </>
               ) : (
                 <>
                   <AnimatePresence mode="popLayout">
@@ -278,7 +282,14 @@ export default function FeedPage() {
                 <TrendingUp className="w-4 h-4 text-secondary" /> Trending
               </h3>
               <div className="flex flex-wrap gap-2">
-                {trendingTags.length > 0 ? (
+                {loading ? (
+                  <>
+                    <SkeletonBlock className="h-6 w-20 rounded-xl bg-muted" />
+                    <SkeletonBlock className="h-6 w-16 rounded-xl bg-muted" />
+                    <SkeletonBlock className="h-6 w-24 rounded-xl bg-muted" />
+                    <SkeletonBlock className="h-6 w-14 rounded-xl bg-muted" />
+                  </>
+                ) : trendingTags.length > 0 ? (
                   trendingTags.map((tag) => (
                     <motion.span
                       key={tag}

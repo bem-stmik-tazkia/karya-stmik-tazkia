@@ -22,6 +22,7 @@ import { StickerBadge } from "@/components/ui/StickerBadge";
 import { getSkillColor } from "@/utils/skillColor";
 import { PREDEFINED_SKILLS } from "@/utils/skillOptions";
 import ShareProfileModal from "@/components/mahasiswa/ShareProfileModal";
+import FollowersListModal from "@/components/mahasiswa/FollowersListModal";
 import { NeobrutalismProjectCard, ProjectData } from "./NeobrutalismProjectCard";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { checkIsFollowing, toggleFollow } from "@/lib/followService";
@@ -68,6 +69,7 @@ export function NeobrutalismProfileView({
 
   const [activeCategory, setActiveCategory] = useState("Semua");
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showFollowModal, setShowFollowModal] = useState<"followers" | "following" | null>(null);
   
   // Follow state
   const [isFollowing, setIsFollowing] = useState(false);
@@ -244,15 +246,15 @@ export function NeobrutalismProfileView({
 
             {/* Followers / Following Stats */}
             <div className="flex items-center justify-center md:justify-start gap-6 mb-6">
-              <div className="text-center md:text-left">
-                <p className="text-2xl font-black text-foreground">{followersCount}</p>
-                <p className="text-xs font-bold text-muted-foreground uppercase">Pengikut</p>
-              </div>
+              <button onClick={() => setShowFollowModal("followers")} className="text-center md:text-left group transition-all cursor-pointer hover:scale-105">
+                <p className="text-2xl font-black text-foreground group-hover:text-primary transition-colors">{followersCount}</p>
+                <p className="text-xs font-bold text-muted-foreground uppercase group-hover:text-primary transition-colors">Pengikut</p>
+              </button>
               <div className="w-1 h-8 bg-border rounded-full" />
-              <div className="text-center md:text-left">
-                <p className="text-2xl font-black text-foreground">{profile.following_count || 0}</p>
-                <p className="text-xs font-bold text-muted-foreground uppercase">Mengikuti</p>
-              </div>
+              <button onClick={() => setShowFollowModal("following")} className="text-center md:text-left group transition-all cursor-pointer hover:scale-105">
+                <p className="text-2xl font-black text-foreground group-hover:text-secondary transition-colors">{profile.following_count || 0}</p>
+                <p className="text-xs font-bold text-muted-foreground uppercase group-hover:text-secondary transition-colors">Mengikuti</p>
+              </button>
             </div>
 
             {/* Bio */}
@@ -498,6 +500,16 @@ export function NeobrutalismProfileView({
           studentName={profile.full_name}
           shareUrl={shareUrl}
           onClose={() => setShowShareModal(false)}
+        />
+      )}
+
+      {/* Follow Modal */}
+      {showFollowModal && profile.user_id && (
+        <FollowersListModal
+          userId={profile.user_id}
+          type={showFollowModal}
+          title={showFollowModal === "followers" ? "Pengikut" : "Mengikuti"}
+          onClose={() => setShowFollowModal(null)}
         />
       )}
     </div>

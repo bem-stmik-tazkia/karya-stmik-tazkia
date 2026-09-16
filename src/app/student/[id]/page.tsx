@@ -33,6 +33,7 @@ import { motion } from "framer-motion";
 import { BouncyButton } from "@/components/ui/BouncyButton";
 import { StickerBadge } from "@/components/ui/StickerBadge";
 import { getSkillColor } from "@/utils/skillColor";
+import { PREDEFINED_SKILLS } from "@/utils/skillOptions";
 import ShareProfileModal from "@/components/mahasiswa/ShareProfileModal";
 import TechStackTags from "@/components/ui/TechStackTags";
 import FollowersListModal from "@/components/mahasiswa/FollowersListModal";
@@ -269,9 +270,9 @@ export default function StudentProfilePage({
             </p>
 
             {/* Skills */}
-            {(mahasiswa.skills ?? []).filter(Boolean).length > 0 && (
+            {(mahasiswa.skills ?? []).filter((s) => Boolean(s) && PREDEFINED_SKILLS.includes(s)).length > 0 && (
               <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-8">
-                {(mahasiswa.skills ?? []).filter(Boolean).map((skill, i) => (
+                {(mahasiswa.skills ?? []).filter((s) => Boolean(s) && PREDEFINED_SKILLS.includes(s)).map((skill, i) => (
                   <span
                     key={`${skill}-${i}`}
                     className={`px-3 py-1 rounded-xl border-2 text-xs font-black ${getSkillColor(skill)}`}

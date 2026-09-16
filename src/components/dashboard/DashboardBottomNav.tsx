@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Folder, User, Home, LogOut, MessageSquare } from "lucide-react";
+import { Folder, User, Home, LogOut, MessageSquare, Users } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
@@ -37,6 +37,7 @@ export function DashboardBottomNav() {
   const navItems = [
     { label: "Projek", href: "/dashboard/projects", icon: Folder, exact: true },
     { label: "Pesan", href: "/inbox", icon: MessageSquare, exact: false, badge: unreadCount },
+    { label: "Mahasiswa", href: "/mahasiswa", icon: Users, exact: false },
     { label: "Profile", href: "/dashboard", icon: User, exact: true },
     { label: "Beranda", href: "/", icon: Home, exact: true },
   ];

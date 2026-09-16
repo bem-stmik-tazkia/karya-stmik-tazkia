@@ -13,17 +13,19 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (user) {
-    // Jika user ini terdaftar sebagai Admin, tendang keluar dari dashboard mahasiswa!
-    const { data: adminRecord } = await supabase
-      .from("admin_users")
-      .select("role")
-      .eq("user_id", user.id)
-      .single();
+  if (!user) {
+    redirect("/login");
+  }
 
-    if (adminRecord) {
-      redirect("/admin/karya");
-    }
+  // Jika user ini terdaftar sebagai Admin, tendang keluar dari dashboard mahasiswa!
+  const { data: adminRecord } = await supabase
+    .from("admin_users")
+    .select("role")
+    .eq("user_id", user.id)
+    .single();
+
+  if (adminRecord) {
+    redirect("/admin/karya");
   }
 
   return (

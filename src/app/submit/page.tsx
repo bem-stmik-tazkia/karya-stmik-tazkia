@@ -193,6 +193,17 @@ export default function SubmitPage() {
               // hover kecil aja, jangan kegedean
               whileHover={isActive ? { scale: 1.015 } : { scale: 0.895 }}
               whileTap={{ scale: 0.97 }}
+              drag={isActive ? "x" : false}
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.1}
+              onDragEnd={(e, info) => {
+                if (!isActive) return;
+                if (info.offset.x < -50 && activeIndex < KATEGORI_KARYA.length - 1) {
+                  setActiveIndex(activeIndex + 1);
+                } else if (info.offset.x > 50 && activeIndex > 0) {
+                  setActiveIndex(activeIndex - 1);
+                }
+              }}
               transition={{ type: "spring", stiffness: 350, damping: 30 }}
               className={`absolute top-1/2 left-1/2 w-[280px] sm:w-[320px] md:w-[340px] h-[410px] md:h-[430px] bg-card rounded-3xl cursor-pointer select-none flex flex-col overflow-hidden`}
               style={{
