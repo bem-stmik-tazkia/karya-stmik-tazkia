@@ -14,8 +14,30 @@ const lexend = Lexend({
 });
 
 export const metadata: Metadata = {
-  title: "Karya Tazkia - Galeri Portofolio Mahasiswa STMIK Tazkia",
+  metadataBase: new URL("https://karya.stmik.tazkia.ac.id"),
+  title: {
+    default: "Karya Tazkia - Galeri Portofolio Mahasiswa STMIK Tazkia",
+    template: "%s | Karya Tazkia"
+  },
   description: "Galeri digital karya mahasiswa STMIK Tazkia. Temukan inovasi, kreativitas, dan portofolio terbaik mahasiswa.",
+  keywords: ["Portofolio Mahasiswa", "STMIK Tazkia", "Karya Mahasiswa", "Tugas Akhir", "Inovasi Digital", "Kampus Bisnis Digital"],
+  authors: [{ name: "STMIK Tazkia" }],
+  openGraph: {
+    title: "Karya Tazkia - Galeri Portofolio Mahasiswa",
+    description: "Galeri digital karya mahasiswa STMIK Tazkia. Temukan inovasi, kreativitas, dan portofolio terbaik mahasiswa.",
+    url: "https://karya.stmik.tazkia.ac.id",
+    siteName: "Karya STMIK Tazkia",
+    locale: "id_ID",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Karya Tazkia - Galeri Portofolio Mahasiswa",
+    description: "Galeri digital karya mahasiswa STMIK Tazkia. Temukan inovasi, kreativitas, dan portofolio terbaik mahasiswa.",
+  },
+  verification: {
+    google: "google88a80d49b5d89521",
+  }
 };
 
 export const viewport: Viewport = {
