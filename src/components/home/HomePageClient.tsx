@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { LazyMotion, domAnimation, m } from "framer-motion";
 import type { Karya } from "@/types/karya";
 import { KARYA_CATEGORIES } from "@/types/karya";
 import { ArrowRight, Flame, Users, Eye, Heart } from "lucide-react";
@@ -22,10 +22,11 @@ interface HomePageClientProps {
 
 export default function HomePageClient({ featuredKarya, totalKarya, totalMahasiswa }: HomePageClientProps) {
   return (
-    <div className="flex flex-col min-h-screen">
+    <LazyMotion features={domAnimation}>
+      <div className="flex flex-col min-h-screen">
       {/* Playful Stats Bar */}
       <div className="w-full bg-accent text-accent-foreground py-3 overflow-hidden border-b-4 border-accent-shadow relative">
-        <motion.div
+        <m.div
           initial={{ x: "100vw" }}
           animate={{ x: ["100vw", "-100%"] }}
           transition={{ repeat: Infinity, duration: 15, ease: "linear" }}
@@ -39,7 +40,7 @@ export default function HomePageClient({ featuredKarya, totalKarya, totalMahasis
             <Users className="w-5 h-5 sm:w-6 sm:h-6 mr-2 fill-current" />
             {totalMahasiswa > 0 ? `${totalMahasiswa}+ Mahasiswa Bergabung` : "Mahasiswa Aktif Berjejaring"}
           </span>
-        </motion.div>
+        </m.div>
       </div>
 
       {/* Hero Section */}
@@ -61,40 +62,26 @@ export default function HomePageClient({ featuredKarya, totalKarya, totalMahasis
 
         <div className="container mx-auto px-4 md:px-6 relative z-10 flex flex-col items-center">
           {/* Top Lottie - MOBILE ONLY */}
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.5 }}
-            className="block lg:hidden w-[180px] sm:w-[220px] mb-6 -mt-10 pointer-events-none"
-          >
+          <div className="block lg:hidden w-[180px] sm:w-[220px] mb-6 -mt-10 pointer-events-none animate-in fade-in slide-in-from-top-4 duration-500">
             <DotLottieReact src="/animations/Businessman%20flies%20up%20with%20rocket.lottie" loop autoplay />
-          </motion.div>
+          </div>
 
-          <motion.h1
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: "spring", bounce: 0.5, delay: 0.1 }}
-            className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-foreground max-w-4xl mx-auto uppercase"
+          <h1
+            className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-foreground max-w-4xl mx-auto uppercase animate-in fade-in slide-in-from-bottom-8 duration-700"
             style={{ textShadow: "3px 3px 0px var(--color-border)" }}
           >
             Showcase <br />
             <span className="text-primary inline-block">STMIK Tazkia</span>
-          </motion.h1>
+          </h1>
 
-          <motion.p
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: "spring", bounce: 0.5, delay: 0.2 }}
-            className="mt-6 text-lg sm:text-xl md:text-2xl font-bold text-muted-foreground max-w-2xl mx-auto px-2"
+          <p
+            className="mt-6 text-lg sm:text-xl md:text-2xl font-bold text-muted-foreground max-w-2xl mx-auto px-2 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150"
           >
             Jejaring Sosial Eksklusif Mahasiswa STMIK Tazkia. Pamerkan karyamu, temukan tim, dan bangun koneksi.
-          </motion.p>
+          </p>
 
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", bounce: 0.5, delay: 0.3 }}
-            className="mt-10 flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4 w-full"
+          <div
+            className="mt-10 flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4 w-full animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300"
           >
             <Link href="/feed" className="w-full sm:w-auto flex">
               <BouncyButton as="div" className="w-full sm:w-auto text-lg sm:text-xl px-6 sm:px-8 py-3.5 sm:py-4">
@@ -106,7 +93,7 @@ export default function HomePageClient({ featuredKarya, totalKarya, totalMahasis
                 LIHAT GALERI KARYA
               </BouncyButton>
             </Link>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -138,7 +125,7 @@ export default function HomePageClient({ featuredKarya, totalKarya, totalMahasis
                   KARYA_CATEGORIES.find((c) => c.value === item.category)?.label ?? item.category;
 
                 return (
-                  <motion.div
+                  <m.div
                     key={item.id}
                     initial={{ opacity: 0, y: 50 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -218,7 +205,7 @@ export default function HomePageClient({ featuredKarya, totalKarya, totalMahasis
                         </div>
                       </div>
                     </Link>
-                  </motion.div>
+                  </m.div>
                 );
               })}
           </div>
@@ -232,6 +219,6 @@ export default function HomePageClient({ featuredKarya, totalKarya, totalMahasis
           </div>
         </div>
       </section>
-    </div>
+    </LazyMotion>
   );
 }
