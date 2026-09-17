@@ -1,3 +1,1 @@
-import ProjectDetailPage from "@/app/project/[id]/page";
-
-export default ProjectDetailPage;
+export { default, generateMetadata } from "@/app/project/[id]/page";

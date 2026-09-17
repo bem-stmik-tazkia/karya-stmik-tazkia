@@ -1,3 +1,1 @@
-import StudentProfilePage from "@/app/student/[id]/page";
-
-export default StudentProfilePage;
+export { default, generateMetadata } from "@/app/student/[id]/page";
