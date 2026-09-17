@@ -216,11 +216,39 @@ export default function MahasiswaProfileDrawer({
                       </div>
                     )}
                   </div>
-                  <Link href={`/student/${student.id}`} onClick={onClose} className="w-full sm:w-auto">
-                    <BouncyButton variant="secondary" className="w-full text-xs px-4 py-2">
-                      LIHAT PROFIL LENGKAP <ArrowRight className="w-4 h-4 ml-1" />
-                    </BouncyButton>
-                  </Link>
+                  <div className="w-full sm:w-auto flex flex-col gap-2">
+                    <Link href={`/student/${student.id}`} onClick={onClose} className="w-full">
+                      <BouncyButton variant="secondary" className="w-full text-xs px-4 py-2">
+                        LIHAT PROFIL LENGKAP <ArrowRight className="w-4 h-4 ml-1" />
+                      </BouncyButton>
+                    </Link>
+                    
+                    <div className="flex gap-2 w-full">
+                      {!isOwnProfile && student.userId && (
+                        <button
+                          onClick={handleFollowToggle}
+                          disabled={followLoading}
+                          className={`flex-1 flex justify-center items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black uppercase transition-all shadow-[2px_2px_0px_var(--color-border)] ${
+                            isFollowing
+                              ? "bg-muted border-2 border-border text-foreground hover:bg-rose-500 hover:text-white hover:border-rose-500"
+                              : "bg-primary border-2 border-primary text-white hover:bg-primary/80"
+                          } ${followLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                        >
+                          <Users className="w-4 h-4" />
+                          {isFollowing ? "Unfollow" : "Ikuti"}
+                        </button>
+                      )}
+                      {!isOwnProfile && student.userId && (
+                        <button
+                          onClick={handleMessage}
+                          disabled={isMessaging}
+                          className={`flex-1 flex justify-center items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black uppercase transition-all shadow-[2px_2px_0px_var(--color-border)] bg-card border-2 border-border text-foreground hover:bg-muted ${isMessaging ? "opacity-50 cursor-not-allowed" : ""}`}
+                        >
+                          <MessageSquare className="w-4 h-4" /> Pesan
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <div>
@@ -258,29 +286,6 @@ export default function MahasiswaProfileDrawer({
                   >
                     <Share2 className="w-4 h-4" /> Bagikan
                   </button>
-                  {!isOwnProfile && student.userId && (
-                    <button
-                      onClick={handleFollowToggle}
-                      disabled={followLoading}
-                      className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-black uppercase transition-all shadow-[2px_2px_0px_var(--color-border)] ${
-                        isFollowing
-                          ? "bg-muted border-2 border-border text-foreground hover:bg-rose-500 hover:text-white hover:border-rose-500"
-                          : "bg-primary border-2 border-primary text-white hover:bg-primary/80"
-                      } ${followLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-                    >
-                      <Users className="w-4 h-4" />
-                      {isFollowing ? "Unfollow" : "Ikuti"}
-                    </button>
-                  )}
-                  {!isOwnProfile && student.userId && (
-                    <button
-                      onClick={handleMessage}
-                      disabled={isMessaging}
-                      className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-black uppercase transition-all shadow-[2px_2px_0px_var(--color-border)] bg-secondary border-2 border-border text-secondary-foreground hover:bg-secondary/80 ${isMessaging ? "opacity-50 cursor-not-allowed" : ""}`}
-                    >
-                      <MessageSquare className="w-4 h-4" /> Pesan
-                    </button>
-                  )}
                   <a
                     href={`mailto:${student.contactEmail}`}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-muted border-2 border-border hover:bg-primary hover:text-primary-foreground transition-all shadow-[2px_2px_0px_var(--color-border)]"
