@@ -129,4 +129,17 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  @keyframes ticker {
+    0% {
+      transform: translateX(100vw);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+
+  .animate-ticker {
+    animation: ticker 15s linear infinite;
+  }
 }

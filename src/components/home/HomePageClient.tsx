@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { LazyMotion, domAnimation, m } from "framer-motion";
 import type { Karya } from "@/types/karya";
 import { KARYA_CATEGORIES } from "@/types/karya";
 import { ArrowRight, Flame, Users, Eye, Heart } from "lucide-react";
@@ -22,16 +21,10 @@ interface HomePageClientProps {
 
 export default function HomePageClient({ featuredKarya, totalKarya, totalMahasiswa }: HomePageClientProps) {
   return (
-    <LazyMotion features={domAnimation}>
-      <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen">
       {/* Playful Stats Bar */}
       <div className="w-full bg-accent text-accent-foreground py-3 overflow-hidden border-b-4 border-accent-shadow relative">
-        <m.div
-          initial={{ x: "100vw" }}
-          animate={{ x: ["100vw", "-100%"] }}
-          transition={{ repeat: Infinity, duration: 15, ease: "linear" }}
-          className="flex gap-8 items-center font-bold text-sm sm:text-lg whitespace-nowrap w-max px-4"
-        >
+        <div className="flex gap-8 items-center font-bold text-sm sm:text-lg whitespace-nowrap w-max px-4 animate-ticker">
           <span className="flex items-center">
             <Flame className="w-5 h-5 sm:w-6 sm:h-6 mr-2 fill-current" />
             {totalKarya > 0 ? `${totalKarya}+ Karya Dipublikasikan!` : "Karya Mahasiswa Terbaik!"}
@@ -40,7 +33,7 @@ export default function HomePageClient({ featuredKarya, totalKarya, totalMahasis
             <Users className="w-5 h-5 sm:w-6 sm:h-6 mr-2 fill-current" />
             {totalMahasiswa > 0 ? `${totalMahasiswa}+ Mahasiswa Bergabung` : "Mahasiswa Aktif Berjejaring"}
           </span>
-        </m.div>
+        </div>
       </div>
 
       {/* Hero Section */}
@@ -62,12 +55,12 @@ export default function HomePageClient({ featuredKarya, totalKarya, totalMahasis
 
         <div className="container mx-auto px-4 md:px-6 relative z-10 flex flex-col items-center">
           {/* Top Lottie - MOBILE ONLY */}
-          <div className="block lg:hidden w-[180px] sm:w-[220px] mb-6 -mt-10 pointer-events-none animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="block lg:hidden w-[180px] sm:w-[220px] mb-6 -mt-10 pointer-events-none">
             <DotLottieReact src="/animations/Businessman%20flies%20up%20with%20rocket.lottie" loop autoplay />
           </div>
 
           <h1
-            className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-foreground max-w-4xl mx-auto uppercase animate-in fade-in slide-in-from-bottom-8 duration-700"
+            className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-foreground max-w-4xl mx-auto uppercase"
             style={{ textShadow: "3px 3px 0px var(--color-border)" }}
           >
             Showcase <br />
@@ -75,13 +68,13 @@ export default function HomePageClient({ featuredKarya, totalKarya, totalMahasis
           </h1>
 
           <p
-            className="mt-6 text-lg sm:text-xl md:text-2xl font-bold text-muted-foreground max-w-2xl mx-auto px-2 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150"
+            className="mt-6 text-lg sm:text-xl md:text-2xl font-bold text-muted-foreground max-w-2xl mx-auto px-2"
           >
             Jejaring Sosial Eksklusif Mahasiswa STMIK Tazkia. Pamerkan karyamu, temukan tim, dan bangun koneksi.
           </p>
 
           <div
-            className="mt-10 flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4 w-full animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300"
+            className="mt-10 flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4 w-full"
           >
             <Link href="/feed" className="w-full sm:w-auto flex">
               <BouncyButton as="div" className="w-full sm:w-auto text-lg sm:text-xl px-6 sm:px-8 py-3.5 sm:py-4">
@@ -125,14 +118,7 @@ export default function HomePageClient({ featuredKarya, totalKarya, totalMahasis
                   KARYA_CATEGORIES.find((c) => c.value === item.category)?.label ?? item.category;
 
                 return (
-                  <m.div
-                    key={item.id}
-                    initial={{ opacity: 0, y: 50 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ type: "spring", bounce: 0.4, delay: index * 0.1 }}
-                    className="h-full relative"
-                  >
+                  <div key={item.id} className="h-full relative">
                     <RankBadge rank={index + 1} />
                     <Link href={`/project/${item.id}`} className="block h-full">
                       <div className="card-3d overflow-hidden flex flex-col h-full bg-card group">
@@ -205,7 +191,7 @@ export default function HomePageClient({ featuredKarya, totalKarya, totalMahasis
                         </div>
                       </div>
                     </Link>
-                  </m.div>
+                  </div>
                 );
               })}
           </div>
@@ -219,7 +205,6 @@ export default function HomePageClient({ featuredKarya, totalKarya, totalMahasis
           </div>
         </div>
       </section>
-      </div>
-    </LazyMotion>
+    </div>
   );
 }
