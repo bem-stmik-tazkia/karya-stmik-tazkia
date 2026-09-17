@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Bell, CheckCheck, X, Clock, CheckCircle, XCircle, RefreshCw } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 
@@ -131,27 +130,20 @@ export function NotificationBell() {
       >
         <Bell className="w-5 h-5 text-foreground" />
         {unreadCount > 0 && (
-          <motion.span
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center px-1 border-2 border-card"
+          <span
+            className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center px-1 border-2 border-card animate-in zoom-in duration-200"
           >
             {unreadCount > 9 ? "9+" : unreadCount}
-          </motion.span>
+          </span>
         )}
       </button>
 
       {/* Notification Panel */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -8, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.97 }}
-            transition={{ type: "spring", bounce: 0.3, duration: 0.2 }}
-            className="fixed left-4 right-4 sm:absolute sm:left-auto sm:right-0 top-20 sm:top-[calc(100%+10px)] w-auto sm:w-96 bg-card border-4 border-border rounded-2xl shadow-[8px_8px_0px_var(--color-border)] overflow-hidden z-[100]"
-          >
-            {/* Header */}
+      {open && (
+        <div
+          className="fixed left-4 right-4 sm:absolute sm:left-auto sm:right-0 top-20 sm:top-[calc(100%+10px)] w-auto sm:w-96 bg-card border-4 border-border rounded-2xl shadow-[8px_8px_0px_var(--color-border)] overflow-hidden z-[100] animate-in fade-in slide-in-from-top-4 zoom-in-95 duration-200"
+        >
+          {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b-4 border-border bg-muted/50">
               <div className="flex items-center gap-2">
                 <Bell className="w-4 h-4 text-primary" />
@@ -260,9 +252,9 @@ export function NotificationBell() {
                 </div>
               )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
 import { LogOut, X } from "lucide-react";
 
 interface LogoutConfirmModalProps {
@@ -11,27 +10,20 @@ interface LogoutConfirmModalProps {
 }
 
 export function LogoutConfirmModal({ open, loading, onConfirm, onCancel }: LogoutConfirmModalProps) {
+  if (!open) return null;
+
   return (
-    <AnimatePresence>
-      {open && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onCancel}
-            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
-          />
-          {/* Modal */}
-          <motion.div
-            initial={{ scale: 0.9, y: 20, opacity: 0 }}
-            animate={{ scale: 1, y: 0, opacity: 1 }}
-            exit={{ scale: 0.9, y: 20, opacity: 0 }}
-            transition={{ type: "spring", bounce: 0.4 }}
-            className="relative bg-card border-4 border-border rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-[8px_8px_0px_0px_var(--color-border)] z-10 flex flex-col items-center text-center"
-          >
-            {/* Close button */}
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div
+        onClick={onCancel}
+        className="absolute inset-0 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200"
+      />
+      {/* Modal */}
+      <div
+        className="relative bg-card border-4 border-border rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-[8px_8px_0px_0px_var(--color-border)] z-10 flex flex-col items-center text-center animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300"
+      >
+        {/* Close button */}
             <button
               onClick={onCancel}
               className="absolute top-4 right-4 p-1.5 rounded-xl bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
