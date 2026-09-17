@@ -198,14 +198,14 @@ export default function FeedPage() {
         <div className="flex flex-col lg:flex-row gap-8">
 
           {/* ── Main Feed Column ── */}
-          <div className="flex-1 w-full lg:max-w-[calc(100%-22rem)]">
+          <div className="flex-1 min-w-0 w-full lg:max-w-[calc(100%-22rem)]">
             {/* Header */}
             <div className="mb-6">
               <h1
-                className="text-3xl font-black text-foreground uppercase flex items-center gap-3"
+                className="text-2xl sm:text-3xl font-black text-foreground uppercase flex items-center gap-1 sm:gap-3"
                 style={{ textShadow: "3px 3px 0px var(--color-border)" }}
               >
-                <div className="w-24 h-24 sm:w-32 sm:h-32 -ml-6 sm:-ml-8 -mr-2 sm:-mr-4 -my-8 shrink-0 flex items-center justify-center relative z-10 pointer-events-none">
+                <div className="w-20 h-20 sm:w-32 sm:h-32 -ml-4 sm:-ml-8 -mr-1 sm:-mr-4 -my-8 shrink-0 flex items-center justify-center relative z-10 pointer-events-none">
                   <DotLottieReact 
                     src="/animations/bubble-chat.lottie" 
                     loop 
@@ -214,7 +214,7 @@ export default function FeedPage() {
                     style={{ width: '100%', height: '100%' }}
                   />
                 </div>
-                Medsos Kampus
+                <span className="truncate">Medsos Kampus</span>
               </h1>
               <p className="text-sm font-bold text-muted-foreground mt-2">
                 Tempatnya mahasiswa STMIK Tazkia berbagi ide, karya, dan kolaborasi.

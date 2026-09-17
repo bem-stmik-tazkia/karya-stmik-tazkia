@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { motion, AnimatePresence } from "framer-motion";
@@ -274,28 +275,28 @@ export default function FeedPostCard({ post, author, isCommentsOpen = false, onT
       </AnimatePresence>
       {/* ── Header: Profil Penulis ── */}
       <div className="p-4 sm:p-5 flex items-start justify-between border-b-2 border-border">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-secondary border-2 border-border overflow-hidden shrink-0">
+        <Link href={`/student/${author.id}`} className="flex items-center gap-3 group">
+          <div className="w-12 h-12 rounded-xl bg-secondary border-2 border-border overflow-hidden shrink-0 group-hover:border-primary transition-colors">
             {author.avatarUrl ? (
               <img src={author.avatarUrl} alt={author.name} className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full bg-secondary flex items-center justify-center font-black text-white text-xl">
+              <div className="w-full h-full bg-secondary flex items-center justify-center font-black text-white text-xl group-hover:text-primary-foreground transition-colors">
                 {author.name.charAt(0)}
               </div>
             )}
           </div>
-          <div>
-            <h3 className="font-black text-foreground text-sm sm:text-base leading-tight hover:text-primary cursor-pointer transition-colors">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-black text-foreground text-sm sm:text-base leading-tight group-hover:text-primary cursor-pointer transition-colors truncate">
               {author.name}
             </h3>
-            <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-muted-foreground mt-0.5">
-              <GraduationCap className="w-3.5 h-3.5 text-secondary" />
-              <span>{author.prodi}</span>
+            <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-muted-foreground mt-0.5 truncate">
+              <GraduationCap className="w-3.5 h-3.5 text-secondary shrink-0" />
+              <span className="truncate">{author.prodi}</span>
               <span>•</span>
-              <span>{formatTimeAgo(post.created_at)}</span>
+              <span className="shrink-0">{formatTimeAgo(post.created_at)}</span>
             </div>
           </div>
-        </div>
+        </Link>
         {/* Menu Titik Tiga */}
         <div ref={menuRef} className="relative">
           <motion.button
@@ -343,7 +344,7 @@ export default function FeedPostCard({ post, author, isCommentsOpen = false, onT
         </div>
 
         {/* Teks Konten */}
-        <p className="text-sm font-medium text-foreground leading-relaxed whitespace-pre-wrap mb-4">
+        <p className="text-sm font-medium text-foreground leading-relaxed whitespace-pre-wrap mb-4 break-words">
           {post.content}
         </p>
 

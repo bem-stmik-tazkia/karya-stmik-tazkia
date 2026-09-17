@@ -243,8 +243,8 @@ export default function CreatePost({ onPostSubmit }: CreatePostProps) {
             avatarLetter
           )}
         </div>
-        <div className="flex-1 h-12 bg-muted border-2 border-border rounded-xl px-4 flex items-center text-muted-foreground font-bold hover:bg-muted/80 transition-colors shadow-[2px_2px_0px_var(--color-border)] truncate">
-          Bagikan karya atau idemu hari ini...
+        <div className="flex-1 min-w-0 h-12 bg-muted border-2 border-border rounded-xl px-3 sm:px-4 flex items-center text-muted-foreground font-bold hover:bg-muted/80 transition-colors shadow-[2px_2px_0px_var(--color-border)]">
+          <span className="truncate min-w-0 w-full text-xs sm:text-sm">Bagikan karya atau idemu hari ini...</span>
         </div>
         <button className="hidden sm:flex items-center gap-2 p-3 bg-secondary text-white border-2 border-border rounded-xl font-black text-sm shadow-[2px_2px_0px_var(--color-border)] hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_var(--color-border)] transition-all">
           <ImageIcon className="w-5 h-5" />

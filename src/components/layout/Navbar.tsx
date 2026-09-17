@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ThemeToggle } from "../ui/ThemeToggle";
-import { Menu, X, Sparkles, Compass, Users, Info, LogOut, UploadCloud, ChevronDown, User, Shield } from "lucide-react";
+import { Menu, X, Sparkles, Compass, Users, Info, LogOut, UploadCloud, ChevronDown, User, Shield, Home } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { BouncyButton } from "../ui/BouncyButton";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -72,9 +72,11 @@ export function Navbar() {
       <header className="fixed top-0 left-0 right-0 z-50 w-full border-b-4 border-border bg-background shadow-[0_4px_0_0_var(--color-border)]">
         <div className="container mx-auto px-4 flex h-16 items-center justify-between bg-background">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0" onClick={() => setIsOpen(false)}>
-            <span className="font-black text-lg sm:text-xl tracking-tight">
-              Karya<span className="text-primary">Tazkia</span>
+          <Link href="/" className="flex items-center gap-2 sm:gap-2.5 shrink-0 group" onClick={() => setIsOpen(false)}>
+            <div className="w-1.5 sm:w-2 h-7 sm:h-8 bg-primary rounded-full group-hover:scale-y-110 transition-all duration-300 shadow-[2px_2px_0px_var(--color-primary-shadow)]" />
+            <span className="font-black text-xl sm:text-2xl tracking-tight drop-shadow-sm">
+              <span className="text-secondary">Karya</span>
+              <span className="text-primary"> Tazkia</span>
             </span>
           </Link>
 
@@ -186,8 +188,12 @@ export function Navbar() {
       {isOpen && (
         <div className="fixed inset-0 z-50 md:hidden bg-background flex flex-col p-6 animate-in fade-in zoom-in-95 duration-200">
           <div className="flex items-center justify-between pb-6 border-b-4 border-border">
-            <Link href="/" className="flex items-center gap-2" onClick={() => setIsOpen(false)}>
-              <span className="font-black text-xl">Karya<span className="text-primary">Tazkia</span></span>
+            <Link href="/" className="flex items-center gap-2 sm:gap-2.5 group" onClick={() => setIsOpen(false)}>
+              <div className="w-1.5 sm:w-2 h-7 sm:h-8 bg-primary rounded-full group-hover:scale-y-110 transition-all duration-300 shadow-[2px_2px_0px_var(--color-primary-shadow)]" />
+              <span className="font-black text-xl sm:text-2xl tracking-tight drop-shadow-sm">
+                <span className="text-secondary">Karya</span>
+                <span className="text-primary"> Tazkia</span>
+              </span>
             </Link>
             <button
               onClick={() => setIsOpen(false)}
@@ -203,8 +209,8 @@ export function Navbar() {
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-4 p-4 rounded-2xl border-4 border-border bg-card font-black text-xl shadow-[0_4px_0_0_var(--color-border)] active:translate-y-1"
             >
-              <div className="w-10 h-10 rounded-xl bg-accent text-accent-foreground flex items-center justify-center border-2 border-accent-shadow">
-                <Sparkles className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center border-2 border-primary/20">
+                <Home className="w-5 h-5" />
               </div>
               Beranda
             </Link>

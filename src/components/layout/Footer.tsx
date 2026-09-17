@@ -23,8 +23,12 @@ export function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2">
-              <span className="font-black text-xl tracking-tight">
-                Karya<span className="text-primary">Tazkia</span>
+              <span className="font-black text-xl tracking-tight flex items-center gap-2">
+                <div className="w-1.5 h-6 bg-primary rounded-full shadow-[2px_2px_0px_var(--color-primary-shadow)]" />
+                <span>
+                  <span className="text-secondary">Karya</span>
+                  <span className="text-primary"> Tazkia</span>
+                </span>
               </span>
             </Link>
             <p className="text-sm font-bold text-muted-foreground leading-relaxed">

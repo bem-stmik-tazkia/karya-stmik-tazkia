@@ -56,7 +56,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-20 pb-28 flex justify-center text-center bg-background min-h-[600px] items-center">
-        {/* Hero Side Animations Container */}
+        {/* Hero Side Animations Container - DESKTOP ONLY */}
         <div className="absolute inset-0 hidden lg:flex justify-between items-center px-4 xl:px-12 2xl:px-24 pointer-events-none z-0">
           {/* Businessman (Left) - opacity penuh agar tidak buram */}
           <div className="w-[260px] xl:w-[340px] 2xl:w-[400px] -translate-y-6">
@@ -74,7 +74,17 @@ export default function Home() {
         
         <div className="absolute inset-0 opacity-10 dark:opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)', backgroundSize: '32px 32px' }} />
 
-        <div className="container mx-auto px-4 md:px-6 relative z-10">
+        <div className="container mx-auto px-4 md:px-6 relative z-10 flex flex-col items-center">
+          {/* Top Lottie - MOBILE ONLY */}
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.5 }}
+            className="block lg:hidden w-[180px] sm:w-[220px] mb-6 -mt-10 pointer-events-none"
+          >
+            <DotLottieReact src="/animations/Businessman%20flies%20up%20with%20rocket.lottie" loop autoplay />
+          </motion.div>
+
           <motion.h1
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -99,7 +109,7 @@ export default function Home() {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", bounce: 0.5, delay: 0.3 }}
-            className="mt-10 flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4"
+            className="mt-10 flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4 w-full"
           >
             <Link href="/feed" className="w-full sm:w-auto flex">
               <BouncyButton className="w-full sm:w-auto text-lg sm:text-xl px-6 sm:px-8 py-3.5 sm:py-4">
