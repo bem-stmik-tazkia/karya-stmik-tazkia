@@ -219,6 +219,7 @@ export default function HomePageClient({ featuredKarya, totalKarya, totalMahasis
           </div>
         </div>
       </section>
+      </div>
     </LazyMotion>
   );
 }
