@@ -5,9 +5,9 @@
 :root {
   --background: #ffffff;
   --foreground: #334155;
-  --primary: #ea580c;
+  --primary: #c2410c;
   /* Flat Orange */
-  --primary-shadow: #c2410c;
+  --primary-shadow: #9a3412;
   /* Darker orange for 3D shadow */
   --primary-foreground: #ffffff;
   --secondary: #1e3a8a;
@@ -17,7 +17,7 @@
   --secondary-foreground: #ffffff;
   --accent: #f59e0b;
   --accent-shadow: #d97706;
-  --accent-foreground: #ffffff;
+  --accent-foreground: #0f172a;
   --muted: #f8fafc;
   --muted-foreground: #64748b;
   --border: #e2e8f0;

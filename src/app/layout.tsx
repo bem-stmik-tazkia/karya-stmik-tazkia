@@ -54,7 +54,7 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${lexend.variable} font-sans antialiased max-w-full overflow-x-clip`} suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://pmrowiyvuqnxgzmlbfzx.supabase.co" />
+        <link rel="preconnect" href="https://pmrowiyvuqnxgzmlbfzx.supabase.co" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://pmrowiyvuqnxgzmlbfzx.supabase.co" />
       </head>
       <body className="min-h-screen bg-background text-foreground flex flex-col max-w-full overflow-x-clip relative" suppressHydrationWarning>
