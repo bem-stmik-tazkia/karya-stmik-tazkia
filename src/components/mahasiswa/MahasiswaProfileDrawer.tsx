@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Mail, Code, Globe, ExternalLink, Folder, GraduationCap, Eye, Heart, ArrowRight, Users, MessageSquare } from "lucide-react";
+import { X, Mail, Code, Globe, ExternalLink, Folder, GraduationCap, Eye, Heart, ArrowRight, Users, MessageSquare, Share2 } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { Student } from "@/lib/feedData";
@@ -138,6 +138,24 @@ export default function MahasiswaProfileDrawer({
     }
   };
 
+  const handleShare = async () => {
+    try {
+      const shareUrl = `${window.location.origin}/student/${student?.id}`;
+      if (navigator.share) {
+        await navigator.share({
+          title: `Profil ${student?.name} - Karya STMIK Tazkia`,
+          text: `Lihat profil mahasiswa dan portofolio karya dari ${student?.name} di STMIK Tazkia!`,
+          url: shareUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success("Link profil berhasil disalin ke clipboard!");
+      }
+    } catch (err) {
+      console.error("Failed to share", err);
+    }
+  };
+
   return (
     <>
       <AnimatePresence>
@@ -234,6 +252,12 @@ export default function MahasiswaProfileDrawer({
 
                 {/* Social Links Bar */}
                 <div className="flex flex-wrap gap-2 pt-2">
+                  <button
+                    onClick={handleShare}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black uppercase transition-all shadow-[2px_2px_0px_var(--color-border)] bg-muted border-2 border-border text-foreground hover:bg-foreground hover:text-background"
+                  >
+                    <Share2 className="w-4 h-4" /> Bagikan
+                  </button>
                   {!isOwnProfile && student.userId && (
                     <button
                       onClick={handleFollowToggle}

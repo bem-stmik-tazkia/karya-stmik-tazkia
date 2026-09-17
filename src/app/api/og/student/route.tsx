@@ -3,13 +3,43 @@ import { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
+function arrayBufferToBase64(buffer: ArrayBuffer) {
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const name = searchParams.get("name") || "Mahasiswa";
     const prodi = searchParams.get("prodi") || "STMIK Tazkia";
     const angkatan = searchParams.get("angkatan") || "";
-    const avatar = searchParams.get("avatar");
+    let avatarUrl = searchParams.get("avatar");
+    
+    // Prevent ImageResponse from crashing on external SVGs or unsupported formats
+    // by falling back to text initial if it's an unsupported type or error.
+    let avatarData: ArrayBuffer | null = null;
+    let avatarContentType = "";
+    
+    if (avatarUrl) {
+      try {
+        const res = await fetch(avatarUrl);
+        if (res.ok) {
+          avatarContentType = res.headers.get("content-type") || "";
+          // next/og supports png and jpeg easily
+          if (avatarContentType.includes("image/jpeg") || avatarContentType.includes("image/png") || avatarContentType.includes("image/webp")) {
+            avatarData = await res.arrayBuffer();
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch avatar for OG:", e);
+      }
+    }
 
     const subtitle = angkatan ? `${prodi} • Angkatan ${angkatan}` : prodi;
 
@@ -70,8 +100,9 @@ export async function GET(request: NextRequest) {
                 color: "#ffffff",
               }}
             >
-              {avatar ? (
-                <img src={avatar} alt={name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              {avatarData ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={`data:${avatarContentType};base64,${arrayBufferToBase64(avatarData)}`} alt={name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               ) : (
                 name.charAt(0).toUpperCase()
               )}
