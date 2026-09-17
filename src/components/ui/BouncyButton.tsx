@@ -1,10 +1,9 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-export interface BouncyButtonProps extends React.HTMLAttributes<HTMLElement> {
+export interface BouncyButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "muted";
   as?: React.ElementType;
-  disabled?: boolean;
 }
 
 export const BouncyButton = React.forwardRef<HTMLElement, BouncyButtonProps>(
