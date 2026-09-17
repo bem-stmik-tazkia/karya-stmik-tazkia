@@ -166,7 +166,7 @@ export function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="hidden md:inline-flex btn-3d btn-3d-primary rounded-xl px-5 py-2 text-sm font-black"
+                className="hidden md:inline-flex btn-3d btn-3d-primary rounded-xl px-5 py-2 text-sm font-black min-h-[48px] items-center"
               >
                 GABUNG / MASUK
               </Link>
@@ -247,13 +247,13 @@ export function Navbar() {
                 </div>
                 {isAdmin ? (
                   <Link href="/admin/karya" onClick={() => setIsOpen(false)} className="block w-full">
-                    <BouncyButton className="w-full text-lg py-4">
+                    <BouncyButton as="div" className="w-full text-lg py-4">
                       <Shield className="w-5 h-5 mr-2 inline" /> KELOLA KARYA
                     </BouncyButton>
                   </Link>
                 ) : (
                   <Link href="/submit" onClick={() => setIsOpen(false)} className="block w-full">
-                    <BouncyButton className="w-full text-lg py-4">
+                    <BouncyButton as="div" className="w-full text-lg py-4">
                       <UploadCloud className="w-5 h-5 mr-2 inline" /> UPLOAD KARYA
                     </BouncyButton>
                   </Link>
@@ -267,7 +267,7 @@ export function Navbar() {
               </div>
             ) : (
               <Link href="/login" onClick={() => setIsOpen(false)} className="block w-full">
-                <BouncyButton className="w-full text-lg py-4">
+                <BouncyButton as="div" className="w-full text-lg py-4">
                   GABUNG SEKARANG
                 </BouncyButton>
               </Link>

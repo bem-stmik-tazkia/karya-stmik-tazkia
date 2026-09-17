@@ -13,7 +13,8 @@ import { StickerBadge } from "@/components/ui/StickerBadge";
 import TechStackTags from "@/components/ui/TechStackTags";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { supabase } from "@/lib/supabase";
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import dynamic from 'next/dynamic';
+const DotLottieReact = dynamic(() => import('@lottiefiles/dotlottie-react').then(mod => mod.DotLottieReact), { ssr: false });
 
 export default function Home() {
   const [featuredKarya, setFeaturedKarya] = useState<Karya[]>([]);
@@ -112,12 +113,12 @@ export default function Home() {
             className="mt-10 flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4 w-full"
           >
             <Link href="/feed" className="w-full sm:w-auto flex">
-              <BouncyButton className="w-full sm:w-auto text-lg sm:text-xl px-6 sm:px-8 py-3.5 sm:py-4">
+              <BouncyButton as="div" className="w-full sm:w-auto text-lg sm:text-xl px-6 sm:px-8 py-3.5 sm:py-4">
                 BUKA FEED SEKARANG <ArrowRight className="ml-2 h-5 w-5 sm:h-6 sm:w-6" />
               </BouncyButton>
             </Link>
             <Link href="/explore" className="w-full sm:w-auto flex">
-              <BouncyButton variant="muted" className="w-full sm:w-auto text-lg sm:text-xl px-6 sm:px-8 py-3.5 sm:py-4">
+              <BouncyButton as="div" variant="muted" className="w-full sm:w-auto text-lg sm:text-xl px-6 sm:px-8 py-3.5 sm:py-4">
                 LIHAT GALERI KARYA
               </BouncyButton>
             </Link>
@@ -246,7 +247,7 @@ export default function Home() {
 
           <div className="mt-12 flex justify-center px-4">
             <Link href="/explore" className="w-full sm:w-auto flex">
-              <BouncyButton variant="secondary" className="w-full sm:w-auto px-8 py-3 text-lg">
+              <BouncyButton as="div" variant="secondary" className="w-full sm:w-auto px-8 py-3 text-lg">
                 LIHAT SEMUA KARYA
               </BouncyButton>
             </Link>
