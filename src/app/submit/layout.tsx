@@ -20,7 +20,7 @@ export default async function SubmitLayout({ children }: { children: React.React
     .from("admin_users")
     .select("role")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
   if (adminRecord) {
     redirect("/admin/karya");

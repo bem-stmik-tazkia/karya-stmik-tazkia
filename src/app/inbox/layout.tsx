@@ -22,7 +22,7 @@ export default async function InboxLayout({ children }: { children: React.ReactN
     .from("admin_users")
     .select("role")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
   if (adminRecord) {
     redirect("/admin/karya");

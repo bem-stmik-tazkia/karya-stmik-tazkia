@@ -33,7 +33,7 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
     .from("admin_users")
     .select("role")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
   if (!adminRecord) redirect("/dashboard");
 

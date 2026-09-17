@@ -17,7 +17,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     .from("admin_users")
     .select("role")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
   if (!adminRecord) {
     redirect("/dashboard");

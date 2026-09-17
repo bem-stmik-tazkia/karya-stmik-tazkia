@@ -36,7 +36,7 @@ export function DashboardTopbar() {
         .from("admin_users")
         .select("role")
         .eq("user_id", user.id)
-        .single()
+    .maybeSingle()
         .then(({ data }) => {
           if (data) setIsAdmin(true);
         });

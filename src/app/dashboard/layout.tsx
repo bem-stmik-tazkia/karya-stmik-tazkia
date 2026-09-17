@@ -22,7 +22,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .from("admin_users")
     .select("role")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
   if (adminRecord) {
     redirect("/admin/karya");

@@ -44,7 +44,7 @@ export function Navbar() {
         .from("admin_users")
         .select("role")
         .eq("user_id", user.id)
-        .single()
+    .maybeSingle()
         .then(({ data }) => {
           setIsAdmin(!!data);
         });
