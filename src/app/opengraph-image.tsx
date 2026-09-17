@@ -38,21 +38,39 @@ export default async function Image() {
             marginBottom: "20px",
           }}
         >
+          {/* Authentic Web Logo */}
           <div
             style={{
-              backgroundColor: "#f97316", // primary
-              color: "#ffffff",
-              padding: "16px 40px",
-              borderRadius: "100px",
-              fontSize: 32,
-              fontWeight: 900,
-              textTransform: "uppercase",
-              letterSpacing: "4px",
-              marginBottom: "30px",
-              boxShadow: "10px 10px 0px #c2410c",
+              display: "flex",
+              alignItems: "center",
+              gap: "20px",
+              marginBottom: "40px",
             }}
           >
-            Karya STMIK Tazkia
+            {/* The vertical pill */}
+            <div
+              style={{
+                width: "24px",
+                height: "80px",
+                backgroundColor: "#f97316",
+                borderRadius: "999px",
+                boxShadow: "6px 6px 0px #c2410c",
+              }}
+            />
+            {/* Text Logo */}
+            <div
+              style={{
+                fontSize: 80,
+                fontWeight: 900,
+                letterSpacing: "-2px",
+                display: "flex",
+                gap: "20px",
+                textShadow: "4px 4px 0px rgba(0,0,0,0.3)",
+              }}
+            >
+              <span style={{ color: "#3b82f6" }}>Karya</span>
+              <span style={{ color: "#f97316" }}>Tazkia</span>
+            </div>
           </div>
           
           <div
@@ -84,6 +102,26 @@ export default async function Image() {
           }}
         >
           Temukan karya digital, aplikasi, dan riset terbaik karya mahasiswa STMIK Tazkia.
+        </div>
+
+        {/* URL Banner */}
+        <div
+          style={{
+            marginTop: "50px",
+            display: "flex",
+            alignItems: "center",
+            backgroundColor: "rgba(30, 64, 175, 0.2)",
+            border: "4px solid #1e40af",
+            padding: "16px 48px",
+            borderRadius: "100px",
+            fontSize: 28,
+            fontWeight: 800,
+            color: "#93c5fd",
+            letterSpacing: "2px",
+            boxShadow: "8px 8px 0px #1e3a8a",
+          }}
+        >
+          karya.stmik.tazkia.ac.id
         </div>
 
         {/* Decorative elements */}
