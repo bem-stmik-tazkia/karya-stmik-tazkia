@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import { AdminReviewActions } from "@/components/admin/AdminReviewActions";
+import AiStatusWidget from "@/components/admin/AiStatusWidget";
 import { FiCpu, FiCheckCircle, FiXCircle, FiList } from "react-icons/fi";
 import Link from "next/link";
 
@@ -87,6 +88,9 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
+      {/* AI Status Widget */}
+      <AiStatusWidget />
+
       {/* Stat Cards (Clickable Filter) */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
         {statCards.map((stat, i) => {
