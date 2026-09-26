@@ -35,6 +35,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import { StickerBadge } from "@/components/ui/StickerBadge";
 import { BouncyButton } from "@/components/ui/BouncyButton";
+import { ProjectCoverPlaceholder } from "@/components/ui/ProjectCoverPlaceholder";
 import toast from "react-hot-toast";
 
 // Mapping tech/tools ke ikon CDN
@@ -425,9 +426,7 @@ export default function ProjectDetailPage({
                   className="object-cover w-full h-full"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-6xl">📁</span>
-                </div>
+                <ProjectCoverPlaceholder id={karya.id} title={karya.title} />
               )}
               {/* Badge kategori di kanan atas thumbnail */}
               <div className="absolute top-4 right-4">

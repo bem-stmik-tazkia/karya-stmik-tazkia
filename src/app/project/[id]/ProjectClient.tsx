@@ -32,6 +32,7 @@ import confetti from "canvas-confetti";
 import { StickerBadge } from "@/components/ui/StickerBadge";
 import { BouncyButton } from "@/components/ui/BouncyButton";
 import { SkeletonBlock } from "@/components/ui/Skeleton";
+import { ProjectCoverPlaceholder } from "@/components/ui/ProjectCoverPlaceholder";
 
 // Mapping tech/tools ke ikon CDN
 // Returns: { src, type } where type = 'devicon' | 'simple'
@@ -359,9 +360,7 @@ export default function ProjectClientPage({
                   className="object-cover w-full h-full"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-6xl">📁</span>
-                </div>
+                <ProjectCoverPlaceholder id={karya.id} title={karya.title} />
               )}
               {/* Badge kategori di kanan atas thumbnail */}
               <div className="absolute top-4 right-4">
@@ -657,9 +656,7 @@ export default function ProjectClientPage({
                           className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-3xl">📁</span>
-                        </div>
+                        <ProjectCoverPlaceholder id={k.id} title={k.title} />
                       )}
                       <div className="absolute top-3 right-3">
                         <StickerBadge variant="default" className="text-[10px]">
