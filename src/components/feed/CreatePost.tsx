@@ -69,8 +69,13 @@ export default function CreatePost({ onPostSubmit }: CreatePostProps) {
   }, [cooldownUntil]);
 
   // Auto-grow textarea
+  const MAX_CONTENT_LENGTH = 500;
+  const MIN_CONTENT_LENGTH = 20;
+
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setContent(e.target.value);
+    const val = e.target.value;
+    if (val.length > MAX_CONTENT_LENGTH) return; // hard cap
+    setContent(val);
     const ta = e.target;
     ta.style.height = "auto";
     ta.style.height = `${Math.min(ta.scrollHeight, 300)}px`;
@@ -374,16 +379,32 @@ export default function CreatePost({ onPostSubmit }: CreatePostProps) {
                     </div>
 
                     {/* Textarea (auto-grow) */}
-                    <textarea
-                      ref={textareaRef}
-                      value={content}
-                      onChange={handleContentChange}
-                      disabled={isSubmitting || reviewState === "checking"}
-                      placeholder="Apa yang sedang kamu kerjakan? Butuh tim atau masukan?"
-                      className="w-full min-h-[100px] bg-muted/50 border-2 border-border rounded-2xl p-4 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all resize-none mb-5 disabled:opacity-70"
-                      autoFocus
-                      style={{ height: "100px", overflowY: "hidden" }}
-                    />
+                    <div className="relative mb-5">
+                      <textarea
+                        ref={textareaRef}
+                        value={content}
+                        onChange={handleContentChange}
+                        disabled={isSubmitting || reviewState === "checking"}
+                        placeholder={`Apa yang sedang kamu kerjakan? Butuh tim atau masukan? (min. ${MIN_CONTENT_LENGTH} karakter)`}
+                        className="w-full min-h-[100px] bg-muted/50 border-2 border-border rounded-2xl p-4 pb-8 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all resize-none disabled:opacity-70"
+                        autoFocus
+                        style={{ height: "100px", overflowY: "hidden" }}
+                      />
+                      {/* Character counter */}
+                      <div className={`absolute bottom-2 right-3 text-[11px] font-bold tabular-nums transition-colors ${
+                        content.length >= MAX_CONTENT_LENGTH
+                          ? "text-red-500"
+                          : content.length >= MAX_CONTENT_LENGTH - 50
+                          ? "text-amber-500"
+                          : content.length > 0 && content.length < MIN_CONTENT_LENGTH
+                          ? "text-blue-400"
+                          : "text-muted-foreground/60"
+                      }`}>
+                        {content.length < MIN_CONTENT_LENGTH && content.length > 0
+                          ? `${MIN_CONTENT_LENGTH - content.length} karakter lagi`
+                          : `${content.length}/${MAX_CONTENT_LENGTH}`}
+                      </div>
+                    </div>
 
                     {/* Image Preview */}
                     {previewImage && (
@@ -487,7 +508,7 @@ export default function CreatePost({ onPostSubmit }: CreatePostProps) {
                           </div>
                         </div>
                       ) : (
-                        <BouncyButton type="submit" disabled={!content.trim() || isSubmitting} className="px-6 py-2.5 text-sm">
+                        <BouncyButton type="submit" disabled={!content.trim() || content.trim().length < MIN_CONTENT_LENGTH || isSubmitting} className="px-6 py-2.5 text-sm">
                           <span className="flex items-center gap-2">
                             {isSubmitting ? (
                               <>POSTING... <Loader2 className="w-4 h-4 animate-spin" /></>

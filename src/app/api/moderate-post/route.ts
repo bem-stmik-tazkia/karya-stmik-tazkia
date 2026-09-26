@@ -34,48 +34,65 @@ const MODERATION_MODELS = [
 // Prompt Moderasi — Multi-bahasa & Anti-Leet Speak
 // ============================================================
 function buildModerationPrompt(content: string, type: string, tags: string[]): string {
-  return `Kamu adalah sistem moderasi konten otomatis untuk media sosial kampus STMIK Tazkia (Indonesia).
+  return `Kamu adalah sistem moderasi konten otomatis untuk media sosial kampus STMIK Tazkia (Indonesia). Platform ini KHUSUS untuk berbagi wawasan akademik dan karya mahasiswa di bidang teknologi informasi.
 
-Tugasmu: Periksa apakah postingan berikut LAYAK dipublikasikan di lingkungan kampus. Fokus pada pelanggaran etika.
+Tugasmu: Periksa apakah postingan berikut LAYAK dipublikasikan. Terapkan DUA lapisan pemeriksaan: Etika dan Relevansi.
 
-═══ DAFTAR BAHASA YANG HARUS DICEK (WAJIB, JANGAN LEWATKAN) ═══
-Periksa kata-kata kasar dalam **SEMUA BAHASA DI DUNIA (GLOBAL)**, termasuk namun tidak terbatas pada:
-• Jepang: kuso, shine, baka (dalam konteks sangat kasar), dsb.
-• Arab: kalb, sharmouta, himar, dsb.
-• Rusia: cyka blyat, pizdec, dsb.
-• Indonesia (formal & gaul): bangsat, anjing, babi, kontol, memek, tolol, goblok, brengsek, kampret, taik, pepek, sial, keparat, dsb.
-• Inggris: fuck, shit, bitch, ass, bastard, dick, cunt, nigger, faggot, asshole, bullshit, damn (jika konteks menghina), dsb.
-• Jawa: jancok, jancuk, asu, matamu, matane, jangkrik (konteks marah/mengumpat), keparat, dsb.
-• Sunda: sia (menghina), belegug, balingbing (konteks kasar), dsb.
-• Melayu/Betawi: celaka, setan (konteks umpatan), bajingan, dsb.
-• Slang internet: wtf, stfu, gtfo (konteks agresif/menghina), dsb.
-• Leet speak & disamarkan: f*ck, sh1t, b4ngs4t, @nj1ng, k*nt0l, m3m3k, a55, d1ck, dsb.
-• Singkatan kasar: wtf, omfg, stfu dalam konteks marah atau menghina orang lain
+════════════════════════════════════════════════
+ LAPIS 1 — ETIKA (tolak jika ada SALAH SATU)
+════════════════════════════════════════════════
+Periksa kata-kata kasar dalam SEMUA BAHASA DI DUNIA, termasuk:
+• Indonesia & gaul: bangsat, anjing, babi, kontol, memek, tolol, goblok, brengsek, kampret, taik, keparat, dsb.
+• Inggris: fuck, shit, bitch, ass, bastard, dick, cunt, nigger, faggot, asshole, dsb.
+• Jawa: jancok, jancuk, asu, matamu, matane, jangkrik (konteks marah), dsb.
+• Jepang, Arab, Rusia, Melayu/Betawi, Sunda, dan bahasa lainnya.
+• Leet speak & disamarkan: f*ck, sh1t, b4ngs4t, @nj1ng, k*nt0l, a55, d1ck, dsb.
+• Ujaran kebencian, konten seksual/pornografi, unsur SARA yang menyinggung, ancaman/bullying.
+• Spam jelas: "aaaaaa", "test123", teks acak tanpa makna.
 
-═══ KRITERIA TIDAK LAYAK (tolak jika ADA SALAH SATU) ═══
-1. Kata kasar, makian, umpatan dalam bahasa APAPUN (termasuk yang disamarkan/disingkat)
-2. Ujaran kebencian terhadap individu, kelompok, atau institusi
-3. Konten seksual, pornografi, atau tidak senonoh
-4. Unsur SARA yang menyinggung (Suku, Agama, Ras, Antar-golongan)
-5. Ancaman, intimidasi, atau bullying eksplisit
-6. Spam jelas (contoh: "aaaaaa", "test123 test123", "hehehehe" berulang tanpa konteks)
+════════════════════════════════════════════════
+ LAPIS 2 — RELEVANSI (tolak jika konten TIDAK RELEVAN dengan kampus teknologi)
+════════════════════════════════════════════════
+Tolak jika postingan berisi:
+1. Konten game/gaming yang tidak berkaitan akademik:
+   - Tips strategi game ("min 2 jungler", "push rank", "hero META", dsb.)
+   - Pembahasan karakter/item/update game online (Mobile Legends, PUBG, Free Fire, dll.)
+   - Ajakan bermain game bersama tanpa konteks akademik
+2. Meme, humor, atau candaan yang tidak relevan dengan kehidupan kampus atau akademik:
+   - "kapan libur broo", konten receh tanpa nilai informasi
+   - Humor murni yang tidak ada kaitannya dengan pendidikan atau teknologi
+3. Iklan/promosi komersial yang tidak berkaitan STMIK Tazkia:
+   - Jualan barang/jasa pribadi ("jual pulsa", "buka jasa desain", "beli follower", dsb.)
+   - Promosi platform luar/bisnis MLM
+4. Curhat/ungkapan perasaan pribadi yang tidak akademik:
+   - Keluhan tentang kehidupan pribadi ("patah hati", "males kuliah", "bosen di kos", dsb.)
+   - Postingan galau atau status pribadi non-akademik
+5. Konten di luar 5 topik ini: ide teknis, karya mahasiswa, kolaborasi tim, info kampus/kampus teknologi, atau penelitian/jurnal.
 
-═══ TETAP LAYAK jika ═══
-• Konten singkat tapi bermakna dan relevan (ide, tanya-jawab, proyek, lomba, kolaborasi)
-• Menggunakan istilah teknis wajar (API, Python, JavaScript, Machine Learning, IoT, dsb.)
-• Ekspresi informal ringan umum di kalangan mahasiswa yang tidak menyinggung siapapun
-• "anjir" atau "gila" dalam konteks kagum (bukan menghina) masih bisa diterima — pertimbangkan konteks
+════════════════════════════════════════════════
+ TETAP LAYAK jika
+════════════════════════════════════════════════
+• Ide pengembangan teknologi, proyek, atau startup kampus
+• Pertanyaan atau diskusi teknis (coding, desain, IoT, AI, riset, dsb.)
+• Pencarian anggota tim untuk proyek akademik/lomba
+• Informasi acara kampus, seminar, webinar, atau kompetisi mahasiswa
+• Sharing progress pengerjaan skripsi, tugas akhir, atau proyek kuliah
+• "anjir" atau "gila" dalam konteks kagum (bukan menghina) — pertimbangkan konteks
 
-═══ DATA POSTINGAN ═══
+════════════════════════════════════════════════
+ DATA POSTINGAN
+════════════════════════════════════════════════
 Tipe: ${type}
 Konten: "${content}"
 Hashtag: ${tags.length > 0 ? tags.map((t) => "#" + t).join(", ") : "(tidak ada)"}
 
-═══ FORMAT JAWABAN ═══
+════════════════════════════════════════════════
+ FORMAT JAWABAN
+════════════════════════════════════════════════
 Jawab HANYA dalam JSON berikut (tanpa markdown, tanpa kode blok):
-{"approved": true, "reason": "Konten aman dan relevan untuk komunitas kampus."}
+{"approved": true, "reason": "Konten berupa diskusi teknis yang relevan untuk komunitas kampus."}
 atau
-{"approved": false, "reason": "Konten mengandung kata kasar dalam bahasa Jawa ('jancok') yang tidak pantas untuk komunitas kampus."}`;
+{"approved": false, "reason": "Konten berisi tips gaming (Mobile Legends) yang tidak relevan dengan platform akademik kampus."}`;
 }
 
 // ============================================================
@@ -274,11 +291,24 @@ export async function POST(req: NextRequest) {
   }
 
   const { content, type = "update", tags = [] } = body;
+  const MIN_CONTENT_LENGTH = 20;
 
   if (!content?.trim()) {
     return NextResponse.json(
       { error: "Konten tidak boleh kosong" },
       { status: 400 }
+    );
+  }
+
+  if (content.trim().length < MIN_CONTENT_LENGTH) {
+    return NextResponse.json(
+      {
+        approved: false,
+        reason: `Postingan terlalu singkat. Minimal ${MIN_CONTENT_LENGTH} karakter agar postingan bermakna bagi komunitas.`,
+        fail_count: 0,
+        max_fails: MAX_FAILS,
+      },
+      { status: 200 }
     );
   }
 
