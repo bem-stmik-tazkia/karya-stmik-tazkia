@@ -21,6 +21,8 @@ export async function getKarya(options?: {
     .from("karya")
     .select("*")
     .eq("status", "approved")
+    .order("likes", { ascending: false })
+    .order("views", { ascending: false })
     .order("created_at", { ascending: false });
 
   if (options?.category && options.category !== "All") {
