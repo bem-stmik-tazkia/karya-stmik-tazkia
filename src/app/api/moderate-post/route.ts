@@ -130,7 +130,12 @@ async function callAI(
         const raw = data?.choices?.[0]?.message?.content?.trim();
         if (!raw) continue;
 
-        const cleaned = raw.replace(/```json|```/g, "").trim();
+        let cleaned = raw.replace(/```json|```/gi, "").trim();
+        const startIdx = cleaned.indexOf("{");
+        const endIdx = cleaned.lastIndexOf("}");
+        if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+          cleaned = cleaned.substring(startIdx, endIdx + 1);
+        }
         const parsed = JSON.parse(cleaned);
         if (typeof parsed.approved !== "boolean") continue;
 
@@ -170,7 +175,12 @@ async function callAI(
         data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
       if (!raw) return null;
 
-      const cleaned = raw.replace(/```json|```/g, "").trim();
+      let cleaned = raw.replace(/```json|```/gi, "").trim();
+      const startIdx = cleaned.indexOf("{");
+      const endIdx = cleaned.lastIndexOf("}");
+      if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+        cleaned = cleaned.substring(startIdx, endIdx + 1);
+      }
       const parsed = JSON.parse(cleaned);
       if (typeof parsed.approved !== "boolean") return null;
       return { approved: parsed.approved, reason: parsed.reason || "" };

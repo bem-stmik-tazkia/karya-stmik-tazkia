@@ -210,8 +210,13 @@ async function reviewWithGemini(karya: any): Promise<{
   }
 
   try {
-    // Bersihkan kalau ada markdown code block
-    const cleaned = rawText.replace(/```json|```/g, "").trim();
+    // Ekstrak JSON dari teks (mengabaikan teks basa-basi model)
+    let cleaned = rawText.replace(/```json|```/gi, "").trim();
+    const startIdx = cleaned.indexOf("{");
+    const endIdx = cleaned.lastIndexOf("}");
+    if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+      cleaned = cleaned.substring(startIdx, endIdx + 1);
+    }
     const parsed = JSON.parse(cleaned);
 
     if (typeof parsed.approved !== "boolean" || typeof parsed.score !== "number") {
