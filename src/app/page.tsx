@@ -7,11 +7,13 @@ import type { Karya } from "@/types/karya";
 export const revalidate = 60; // Revalidate every 60 seconds (ISR) for super fast performance!
 
 export default async function Home() {
-  // Fetch featured karya (latest 3 approved) on the server!
+  // Fetch featured karya (Top 3 based on likes and views) on the server!
   const { data: karyaData } = await supabaseServer
     .from("karya")
     .select("*")
     .eq("status", "approved")
+    .order("likes", { ascending: false })
+    .order("views", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(3);
 
