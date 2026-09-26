@@ -221,8 +221,15 @@ export default function ProjectClientPage({
         const isLiked = await checkKaryaLiked(data.id, deviceId, userId);
         setLikedLocal(isLiked);
         
-        // Increment view (this will only increment in DB once per 24 hours per device due to anti-spam in RPC)
-        await incrementKaryaView(data.id, deviceId);
+        // Optimistic view increment for better UX
+        const hasViewed = sessionStorage.getItem(`viewed_${data.id}`);
+        if (!hasViewed) {
+          sessionStorage.setItem(`viewed_${data.id}`, "true");
+          setKarya(prev => prev ? { ...prev, views: (prev.views ?? 0) + 1 } : prev);
+        }
+
+        // Increment view in DB (this will only increment once per 24 hours per device due to anti-spam in RPC)
+        await incrementKaryaView(data.id, deviceId, userId);
       }
       setLoading(false);
     }
