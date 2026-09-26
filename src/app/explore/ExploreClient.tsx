@@ -28,7 +28,7 @@ import { formatNumber } from "@/lib/data";
 import TechStackTags from "@/components/ui/TechStackTags";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { SkeletonProjectCard } from "@/components/ui/Skeleton";
-
+import { ProjectCoverPlaceholder } from "@/components/ui/ProjectCoverPlaceholder";
 function ExploreContent() {
   const { user } = useAuth();
   const router = useRouter();
@@ -328,9 +328,7 @@ function ExploreContent() {
                                 className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-muted">
-                                <span className="text-4xl">📁</span>
-                              </div>
+                              <ProjectCoverPlaceholder id={item.id} title={item.title} />
                             )}
                             <div className="absolute top-3 left-3 flex flex-wrap items-start gap-2">
                               <StickerBadge variant="default" className="text-xs">

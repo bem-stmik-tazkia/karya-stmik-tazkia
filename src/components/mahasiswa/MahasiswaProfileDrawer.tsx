@@ -9,6 +9,7 @@ import { Student } from "@/lib/feedData";
 import type { Karya } from "@/types/karya";
 import { BouncyButton } from "@/components/ui/BouncyButton";
 import { StickerBadge } from "@/components/ui/StickerBadge";
+import { ProjectCoverPlaceholder } from "@/components/ui/ProjectCoverPlaceholder";
 import { getSkillColor } from "@/utils/skillColor";
 import { PREDEFINED_SKILLS } from "@/utils/skillOptions";
 import FollowersListModal from "./FollowersListModal";
@@ -371,8 +372,8 @@ export default function MahasiswaProfileDrawer({
                               className="w-20 h-20 object-cover rounded-xl border-2 border-border shrink-0"
                             />
                           ) : (
-                            <div className="w-20 h-20 rounded-xl border-2 border-border shrink-0 bg-muted flex items-center justify-center text-2xl">
-                              📁
+                            <div className="w-20 h-20 rounded-xl border-2 border-border shrink-0 bg-muted overflow-hidden">
+                              <ProjectCoverPlaceholder id={proj.id} title={proj.title} />
                             </div>
                           )}
                           <div className="flex-1 min-w-0">

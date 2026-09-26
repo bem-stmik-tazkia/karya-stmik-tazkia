@@ -11,6 +11,7 @@ import { StickerBadge } from "@/components/ui/StickerBadge";
 import TechStackTags from "@/components/ui/TechStackTags";
 import { RankBadge } from "@/components/ui/RankBadge";
 import dynamic from 'next/dynamic';
+import { ProjectCoverPlaceholder } from "@/components/ui/ProjectCoverPlaceholder";
 
 const DotLottieReact = dynamic(() => import('@lottiefiles/dotlottie-react').then(mod => mod.DotLottieReact), { ssr: false });
 
@@ -133,9 +134,7 @@ export default function HomePageClient({ featuredKarya, totalKarya, totalMahasis
                               className="object-cover group-hover:scale-105 transition-transform duration-300"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <span className="text-4xl">📁</span>
-                            </div>
+                            <ProjectCoverPlaceholder id={item.id} title={item.title} />
                           )}
                           <div className="absolute top-3 left-3">
                             <StickerBadge variant="accent" className="text-xs">
