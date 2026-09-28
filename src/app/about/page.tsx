@@ -87,7 +87,8 @@ export default function AboutPage() {
               src="/animations/best.lottie"
               loop
               autoplay
-              className="w-full h-full object-cover"
+              renderConfig={{ autoResize: true }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           </div>
 
