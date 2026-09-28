@@ -247,7 +247,7 @@ export default function MaintenancePage() {
             </motion.div>
 
             <h1 className="text-3xl sm:text-4xl font-black text-foreground uppercase tracking-tight mb-3">
-              Sedang Diperbaiki 🔧
+              Sedang Ada Perbaikan 🔧
             </h1>
 
             <p className="text-muted-foreground font-bold mb-2 leading-relaxed max-w-md mx-auto">
@@ -326,15 +326,15 @@ export default function MaintenancePage() {
               </motion.button>
 
               <motion.a
-                href="https://stmik.tazkia.ac.id"
+                href="https://bem.stmik.tazkia.ac.id"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-7 py-3.5 bg-muted text-foreground font-black uppercase text-sm border-4 border-border shadow-[4px_4px_0px_0px_var(--color-border)] hover:shadow-[2px_2px_0px_0px_var(--color-border)] hover:translate-y-0.5 rounded-2xl transition-all"
+                className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-7 py-3.5 bg-muted text-foreground font-black uppercase text-[11px] sm:text-xs border-4 border-border shadow-[4px_4px_0px_0px_var(--color-border)] hover:shadow-[2px_2px_0px_0px_var(--color-border)] hover:translate-y-0.5 rounded-2xl transition-all"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
               >
-                <ArrowRight className="w-4 h-4" />
-                Kunjungi Website STMIK
+                <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                Sambil Nunggu, Cek Web BEM
               </motion.a>
             </div>
           </div>
