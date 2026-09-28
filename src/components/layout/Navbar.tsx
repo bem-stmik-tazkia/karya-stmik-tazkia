@@ -256,11 +256,19 @@ export function Navbar() {
                     </BouncyButton>
                   </Link>
                 ) : (
-                  <Link href="/submit" onClick={() => setIsOpen(false)} className="block w-full">
-                    <BouncyButton as="div" className="w-full text-lg py-4">
-                      <UploadCloud className="w-5 h-5 mr-2 inline" /> UPLOAD KARYA
-                    </BouncyButton>
-                  </Link>
+                  <>
+                    <Link href="/dashboard" onClick={() => setIsOpen(false)} className="block w-full">
+                      <div className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-2xl border-2 border-border bg-card font-black text-foreground shadow-[0_2px_0_0_var(--color-border)] active:translate-y-[2px] active:shadow-none transition-all">
+                        <User className="w-5 h-5 text-primary" />
+                        Dashboard Saya
+                      </div>
+                    </Link>
+                    <Link href="/submit" onClick={() => setIsOpen(false)} className="block w-full">
+                      <BouncyButton as="div" className="w-full text-lg py-4">
+                        <UploadCloud className="w-5 h-5 mr-2 inline" /> UPLOAD KARYA
+                      </BouncyButton>
+                    </Link>
+                  </>
                 )}
                 <button
                   onClick={() => { setIsOpen(false); setShowLogoutConfirm(true); }}
