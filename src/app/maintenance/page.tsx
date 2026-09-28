@@ -126,7 +126,7 @@ export default function MaintenancePage() {
   const handleRefresh = () => window.location.reload();
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-[100dvh] bg-background flex items-center justify-center px-4 py-16 sm:py-20 relative overflow-x-hidden overflow-y-auto">
       {/* Background */}
       <div className="absolute -top-60 -right-60 w-[700px] h-[700px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-60 -left-60 w-[700px] h-[700px] bg-secondary/5 rounded-full blur-3xl pointer-events-none" />
@@ -176,7 +176,7 @@ export default function MaintenancePage() {
       )}
 
       <motion.div
-        className="relative z-10 w-full max-w-xl"
+        className="relative z-10 w-full max-w-xl my-auto"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, type: "spring", stiffness: 200, damping: 25 }}
