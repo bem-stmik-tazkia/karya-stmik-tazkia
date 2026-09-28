@@ -9,6 +9,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { supabase } from "@/lib/supabase";
 import { NotificationBell } from "../dashboard/NotificationBell";
 import { LogoutConfirmModal } from "../ui/LogoutConfirmModal";
+import { AnnouncementBanner } from "../ui/AnnouncementBanner";
 
 const navLinks = [
   { href: "/feed", label: "Feed & Koneksi", icon: Users },
@@ -69,8 +70,10 @@ export function Navbar() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 w-full border-b-4 border-border bg-background shadow-[0_4px_0_0_var(--color-border)]">
-        <div className="container mx-auto px-4 flex h-16 items-center justify-between bg-background">
+      <header className="sticky top-0 z-50 w-full bg-background flex flex-col">
+        <AnnouncementBanner />
+        <div className="w-full border-b-4 border-border shadow-[0_4px_0_0_var(--color-border)]">
+          <div className="container mx-auto px-4 flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 sm:gap-2.5 shrink-0 group" onClick={() => setIsOpen(false)}>
             <div className="w-1.5 sm:w-2 h-7 sm:h-8 bg-primary rounded-full group-hover:scale-y-110 transition-all duration-300 shadow-[2px_2px_0px_var(--color-primary-shadow)]" />
@@ -181,6 +184,7 @@ export function Navbar() {
               {isOpen ? <X className="w-6 h-6 text-primary" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
+        </div>
         </div>
       </header>
 

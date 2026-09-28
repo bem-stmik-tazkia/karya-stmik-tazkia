@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
+import { BypassIndicator } from "../ui/BypassIndicator";
 
 export function AppLayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -11,15 +12,17 @@ export function AppLayoutWrapper({ children }: { children: React.ReactNode }) {
   const isSubmit = pathname?.startsWith("/submit");
   const isAdmin = pathname?.startsWith("/admin");
   const isInbox = pathname?.startsWith("/inbox");
-  const hidePublicLayout = isDashboard || isLogin || isSubmit || isAdmin || isInbox;
+  const isMaintenance = pathname?.startsWith("/maintenance");
+  const hidePublicLayout = isDashboard || isLogin || isSubmit || isAdmin || isInbox || isMaintenance;
 
   return (
     <>
       {!hidePublicLayout && <Navbar />}
-      <main className={hidePublicLayout ? "flex-1 w-full max-w-full" : "flex-1 w-full max-w-full overflow-x-clip pt-16"}>
+      <main className="flex-1 w-full max-w-full overflow-x-clip">
         {children}
       </main>
       {!hidePublicLayout && <Footer />}
+      <BypassIndicator />
     </>
   );
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Shield, FolderKanban, Database } from "lucide-react";
+import { FolderKanban, Database, Wrench } from "lucide-react";
 
 export function AdminNav() {
   const pathname = usePathname();
@@ -17,6 +17,11 @@ export function AdminNav() {
       label: "Data Master",
       href: "/admin/master",
       icon: Database,
+    },
+    {
+      label: "Maintenance",
+      href: "/admin/maintenance",
+      icon: Wrench,
     },
   ];
 
