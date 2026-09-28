@@ -8,6 +8,7 @@ import { BouncyButton } from "@/components/ui/BouncyButton";
 import Link from "next/link";
 import { StickerBadge } from "@/components/ui/StickerBadge";
 import { supabase } from "@/lib/supabase";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 export default function AboutPage() {
   const [totalMahasiswa, setTotalMahasiswa] = useState<number | null>(null);
@@ -82,10 +83,11 @@ export default function AboutPage() {
         >
           {/* Main Image Container */}
           <div className="aspect-[4/3] rounded-3xl sm:rounded-[3rem] overflow-hidden border-4 sm:border-8 border-border shadow-[0_8px_0_0_var(--color-border)] sm:shadow-[0_12px_0_0_var(--color-border)] relative z-10 bg-card">
-            <img
-              src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=1200"
-              alt="Mahasiswa berkolaborasi"
-              className="object-cover w-full h-full"
+            <DotLottieReact
+              src="/animations/best.lottie"
+              loop
+              autoplay
+              className="w-full h-full object-cover"
             />
           </div>
 
