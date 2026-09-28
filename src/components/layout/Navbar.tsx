@@ -190,8 +190,8 @@ export function Navbar() {
 
       {/* Mobile Fullscreen Menu */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 md:hidden bg-background flex flex-col p-6 animate-in fade-in zoom-in-95 duration-200">
-          <div className="flex items-center justify-between pb-6 border-b-4 border-border">
+        <div className="fixed inset-0 z-50 md:hidden bg-background flex flex-col p-6 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+          <div className="flex items-center justify-between pb-6 border-b-4 border-border shrink-0">
             <Link href="/" className="flex items-center gap-2 sm:gap-2.5 group" onClick={() => setIsOpen(false)}>
               <div className="w-1.5 sm:w-2 h-7 sm:h-8 bg-primary rounded-full group-hover:scale-y-110 transition-all duration-300 shadow-[2px_2px_0px_var(--color-primary-shadow)]" />
               <span className="font-black text-xl sm:text-2xl tracking-tight drop-shadow-sm">
@@ -207,7 +207,7 @@ export function Navbar() {
             </button>
           </div>
 
-          <div className="flex-1 flex flex-col justify-center gap-4 py-8">
+          <div className="flex-1 flex flex-col gap-4 py-8">
             <Link
               href="/"
               onClick={() => setIsOpen(false)}
@@ -237,7 +237,7 @@ export function Navbar() {
             })}
           </div>
 
-          <div className="pt-4 border-t-4 border-border border-dashed">
+          <div className="pt-4 border-t-4 border-border border-dashed shrink-0">
             {user ? (
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-3 p-4 bg-muted rounded-2xl border-2 border-border">
