@@ -246,8 +246,8 @@ export default function MaintenancePage() {
               </span>
             </motion.div>
 
-            <h1 className="text-3xl sm:text-4xl font-black text-foreground uppercase tracking-tight mb-3">
-              Sedang Ada Perbaikan 🔧
+            <h1 className="text-2xl sm:text-4xl font-black text-foreground uppercase tracking-tight mb-3">
+              Sedang Ada <span className="whitespace-nowrap">Perbaikan 🔧</span>
             </h1>
 
             <p className="text-muted-foreground font-bold mb-2 leading-relaxed max-w-md mx-auto">
@@ -314,28 +314,33 @@ export default function MaintenancePage() {
             </div>
 
             {/* Actions */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <motion.button
-                onClick={handleRefresh}
-                className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-7 py-3.5 bg-primary text-primary-foreground font-black uppercase text-sm border-4 border-border shadow-[4px_4px_0px_0px_var(--color-border)] hover:shadow-[2px_2px_0px_0px_var(--color-border)] hover:translate-y-0.5 rounded-2xl transition-all"
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                <RefreshCw className="w-4 h-4" />
-                Refresh Halaman
-              </motion.button>
+            <div className="mt-8 border-t-2 border-border/20 pt-8">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-4">
+                Sambil menunggu, mending lihat ini:
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <motion.button
+                  onClick={handleRefresh}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-7 py-3.5 bg-primary text-primary-foreground font-black uppercase text-sm border-4 border-border shadow-[4px_4px_0px_0px_var(--color-border)] hover:shadow-[2px_2px_0px_0px_var(--color-border)] hover:translate-y-0.5 rounded-2xl transition-all"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Refresh
+                </motion.button>
 
-              <motion.a
-                href="https://bem.stmik.tazkia.ac.id"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-7 py-3.5 bg-muted text-foreground font-black uppercase text-[11px] sm:text-xs border-4 border-border shadow-[4px_4px_0px_0px_var(--color-border)] hover:shadow-[2px_2px_0px_0px_var(--color-border)] hover:translate-y-0.5 rounded-2xl transition-all"
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                Sambil Nunggu, Cek Web BEM
-              </motion.a>
+                <motion.a
+                  href="https://bem.stmik.tazkia.ac.id"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-7 py-3.5 bg-muted text-foreground font-black uppercase text-sm border-4 border-border shadow-[4px_4px_0px_0px_var(--color-border)] hover:shadow-[2px_2px_0px_0px_var(--color-border)] hover:translate-y-0.5 rounded-2xl transition-all"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                  Website BEM Tazkia
+                </motion.a>
+              </div>
             </div>
           </div>
 
