@@ -8,7 +8,9 @@ import { BouncyButton } from "@/components/ui/BouncyButton";
 import Link from "next/link";
 import { StickerBadge } from "@/components/ui/StickerBadge";
 import { supabase } from "@/lib/supabase";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import dynamic from "next/dynamic";
+
+const DotLottieReact = dynamic(() => import("@lottiefiles/dotlottie-react").then(mod => mod.DotLottieReact), { ssr: false });
 
 export default function AboutPage() {
   const [totalMahasiswa, setTotalMahasiswa] = useState<number | null>(null);
