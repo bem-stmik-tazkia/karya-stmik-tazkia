@@ -126,7 +126,7 @@ export default function MaintenancePage() {
   const handleRefresh = () => window.location.reload();
 
   return (
-    <div className="min-h-[100dvh] bg-background px-4 pt-16 pb-8 sm:flex sm:items-center sm:justify-center overflow-x-hidden overflow-y-auto relative">
+    <div className="min-h-[100dvh] bg-background px-4 pt-16 pb-8 sm:flex sm:items-center sm:justify-center relative">
       {/* Background */}
       <div className="absolute -top-60 -right-60 w-[700px] h-[700px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-60 -left-60 w-[700px] h-[700px] bg-secondary/5 rounded-full blur-3xl pointer-events-none" />
