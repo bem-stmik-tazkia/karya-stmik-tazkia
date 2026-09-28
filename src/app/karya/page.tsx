@@ -1,3 +1,1 @@
-import ExplorePage from "@/app/explore/page";
-
-export default ExplorePage;
+export { default, generateMetadata } from "@/app/explore/page";

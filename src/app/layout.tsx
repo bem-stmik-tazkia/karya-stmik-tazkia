@@ -22,6 +22,20 @@ export const metadata: Metadata = {
   description: "Galeri digital karya mahasiswa STMIK Tazkia. Temukan inovasi, kreativitas, dan portofolio terbaik mahasiswa.",
   keywords: ["Portofolio Mahasiswa", "STMIK Tazkia", "Karya Mahasiswa", "Tugas Akhir", "Inovasi Digital", "Kampus Bisnis Digital"],
   authors: [{ name: "STMIK Tazkia" }],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  alternates: {
+    canonical: "https://karya.stmik.tazkia.ac.id",
+  },
   openGraph: {
     title: "Karya Tazkia - Galeri Portofolio Mahasiswa",
     description: "Galeri digital karya mahasiswa STMIK Tazkia. Temukan inovasi, kreativitas, dan portofolio terbaik mahasiswa.",

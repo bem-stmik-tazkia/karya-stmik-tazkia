@@ -56,7 +56,7 @@ export default function AboutPage() {
                 <Users className="h-6 w-6 sm:h-7 sm:w-7" />
               </div>
               <h3 className="font-black text-xl sm:text-2xl uppercase mt-1">Komunitas</h3>
-              <p className="text-sm sm:text-base text-muted-foreground font-medium">Mempererat kolaborasi antar mahasiswa dan kreator.</p>
+              <p className="text-sm sm:text-base text-muted-foreground font-medium">Mempererat kolaborasi antar mahasiswa.</p>
             </div>
             <div className="flex flex-col gap-2">
               <div className="w-12 h-12 sm:w-14 sm:h-14 bg-primary text-primary-foreground rounded-2xl border-4 border-primary-shadow shadow-[0_4px_0_0_var(--color-primary-shadow)] flex items-center justify-center -rotate-3">

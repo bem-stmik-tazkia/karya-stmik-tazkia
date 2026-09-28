@@ -1,3 +1,1 @@
-import StudentPage from "@/app/student/page";
-
-export default StudentPage;
+export { default } from "@/app/student/page";
