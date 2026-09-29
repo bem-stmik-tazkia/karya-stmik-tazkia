@@ -123,7 +123,8 @@ async function reviewWithGemini(karya: any): Promise<{
             model: model,
             messages: [{ role: "user", content: prompt }],
             temperature: 0.1,
-            max_tokens: 500,
+            max_tokens: 1000,
+            response_format: { type: "json_object" },
           }),
         });
 
@@ -167,7 +168,8 @@ async function reviewWithGemini(karya: any): Promise<{
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.1,
-            maxOutputTokens: 500,
+            maxOutputTokens: 1000,
+            responseMimeType: "application/json",
           },
           safetySettings: [
             { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
