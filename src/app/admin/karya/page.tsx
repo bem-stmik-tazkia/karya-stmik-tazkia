@@ -20,7 +20,7 @@ const AI_STATUS_CONFIG = {
 };
 
 interface PageProps {
-  searchParams: Promise<{ status?: string; category?: string; page?: string }>;
+  searchParams: Promise<{ status?: string; category?: string; page?: string; q?: string }>;
 }
 
 export default async function AdminKaryaPage({ searchParams }: PageProps) {
@@ -58,6 +58,7 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
   // Terapkan filter berdasarkan searchParams
   const activeStatus = params.status || "all";
   const activeCategory = params.category || "all";
+  const searchQuery = params.q || "";
 
   let filteredKarya = allKarya || [];
   if (activeStatus === "pending") filteredKarya = filteredKarya.filter(k => k.status === "pending");
@@ -67,14 +68,24 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
 
   if (activeCategory !== "all") filteredKarya = filteredKarya.filter(k => k.category === activeCategory);
 
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    filteredKarya = filteredKarya.filter(k => 
+      k.title.toLowerCase().includes(q) || 
+      (k.description || "").toLowerCase().includes(q)
+    );
+  }
+
   // Helper untuk membangun URL filter & paginasi
-  const buildUrl = (status?: string, category?: string, page?: number) => {
+  const buildUrl = (status?: string, category?: string, page?: number, q?: string) => {
     const p = new URLSearchParams();
     const s = status ?? activeStatus;
     const c = category ?? activeCategory;
+    const sq = q !== undefined ? q : searchQuery;
     
     if (s && s !== "all") p.set("status", s);
     if (c && c !== "all") p.set("category", c);
+    if (sq) p.set("q", sq);
     if (page && page > 1) p.set("page", page.toString());
     
     const qs = p.toString();
@@ -126,8 +137,8 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
 
       <div className="bg-card border-4 border-border rounded-3xl shadow-[8px_8px_0px_var(--color-border)] overflow-hidden">
         {/* Header + Filter Kategori */}
-        <div className="p-4 border-b-4 border-border flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-          <div>
+        <div className="p-4 border-b-4 border-border flex flex-col xl:flex-row xl:items-center gap-4 justify-between bg-muted/10">
+          <div className="flex-shrink-0">
             <h2 className="text-lg font-black uppercase">
               Daftar Karya
               {activeStatus !== "all" && (
@@ -139,11 +150,32 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
             </p>
           </div>
 
-          {/* Filter Kategori */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-black text-muted-foreground uppercase">Kategori:</span>
-            <Link
-              href={buildUrl(activeStatus, "all")}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full xl:w-auto">
+            {/* Search Bar */}
+            <form method="GET" className="flex items-center gap-2 w-full sm:w-auto">
+              {activeStatus !== "all" && <input type="hidden" name="status" value={activeStatus} />}
+              {activeCategory !== "all" && <input type="hidden" name="category" value={activeCategory} />}
+              <input 
+                type="text" 
+                name="q" 
+                defaultValue={searchQuery} 
+                placeholder="Cari judul atau deskripsi..." 
+                className="px-3 py-1.5 rounded-xl border-2 border-border bg-background text-xs font-bold w-full sm:w-64 focus:outline-none focus:border-primary shadow-[2px_2px_0px_var(--color-border)]"
+              />
+              <button type="submit" className="px-3 py-1.5 rounded-xl bg-primary text-primary-foreground border-2 border-primary text-xs font-black hover:opacity-90 shadow-[2px_2px_0px_var(--color-primary-shadow)]">
+                Cari
+              </button>
+              {searchQuery && (
+                <Link href={buildUrl(activeStatus, activeCategory, 1, "")} className="px-3 py-1.5 rounded-xl bg-card text-muted-foreground border-2 border-border text-xs font-black hover:text-foreground hover:bg-muted shadow-[2px_2px_0px_var(--color-border)]">
+                  Reset
+                </Link>
+              )}
+            </form>
+
+            {/* Filter Kategori */}
+            <div className="flex items-center gap-1.5 flex-wrap flex-1 justify-start xl:justify-end">
+              <Link
+                href={buildUrl(activeStatus, "all", 1, searchQuery)}
               className={`px-3 py-1.5 rounded-xl border-2 text-xs font-black transition-all ${
                 activeCategory === "all"
                   ? "bg-primary text-primary-foreground border-primary"
@@ -155,7 +187,7 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
             {categories.map((cat) => (
               <Link
                 key={cat}
-                href={buildUrl(activeStatus, cat)}
+                href={buildUrl(activeStatus, cat, 1, searchQuery)}
                 className={`px-3 py-1.5 rounded-xl border-2 text-xs font-black transition-all uppercase ${
                   activeCategory === cat
                     ? "bg-secondary text-secondary-foreground border-secondary"
@@ -266,7 +298,7 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
             </p>
             <div className="flex gap-2 w-full sm:w-auto justify-between sm:justify-end">
               <Link
-                href={currentPage > 1 ? buildUrl(activeStatus, activeCategory, currentPage - 1) : "#"}
+                href={currentPage > 1 ? buildUrl(activeStatus, activeCategory, currentPage - 1, searchQuery) : "#"}
                 className={`px-4 py-2 rounded-xl border-2 text-xs font-black uppercase transition-all ${
                   currentPage > 1
                     ? "bg-card border-border hover:bg-muted text-foreground"
@@ -276,7 +308,7 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
                 Sebelumnya
               </Link>
               <Link
-                href={currentPage < totalPages ? buildUrl(activeStatus, activeCategory, currentPage + 1) : "#"}
+                href={currentPage < totalPages ? buildUrl(activeStatus, activeCategory, currentPage + 1, searchQuery) : "#"}
                 className={`px-4 py-2 rounded-xl border-2 text-xs font-black uppercase transition-all ${
                   currentPage < totalPages
                     ? "bg-card border-border hover:bg-muted text-foreground"
