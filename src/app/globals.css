@@ -40,8 +40,9 @@
   --primary: #f97316;
   --primary-shadow: #c2410c;
   --primary-foreground: #ffffff;
-  --secondary: #1e40af;
-  --secondary-shadow: #1e3a8a;
+  --secondary: #3b82f6;
+  /* Lebih cerah di dark mode agar terbaca di atas background navy */
+  --secondary-shadow: #1e40af;
   --secondary-foreground: #ffffff;
   --accent: #fbbf24;
   --accent-shadow: #d97706;

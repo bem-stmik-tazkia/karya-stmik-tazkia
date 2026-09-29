@@ -352,7 +352,7 @@ export default function MahasiswaProfileDrawer({
                 <div className="space-y-4 pt-4 border-t-2 border-border">
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-black text-foreground flex items-center gap-2 uppercase">
-                      <Folder className="w-5 h-5 text-secondary" /> Projek Karya ({projects.length})
+                      <Folder className="w-5 h-5 text-secondary" /> Karya ({projects.length})
                     </h3>
                   </div>
 
@@ -373,7 +373,7 @@ export default function MahasiswaProfileDrawer({
                             />
                           ) : (
                             <div className="w-20 h-20 rounded-xl border-2 border-border shrink-0 bg-muted overflow-hidden">
-                              <ProjectCoverPlaceholder id={proj.id} title={proj.title} />
+                              <ProjectCoverPlaceholder id={proj.id} title={proj.title} category={proj.category} />
                             </div>
                           )}
                           <div className="flex-1 min-w-0">

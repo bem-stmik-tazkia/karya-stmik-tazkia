@@ -1,68 +1,66 @@
 "use client";
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import dynamic from "next/dynamic";
-import { FiMonitor, FiSmartphone, FiBookOpen, FiCpu, FiGrid, FiArrowRight, FiChevronLeft, FiChevronRight, FiX } from "react-icons/fi";
+import { FiMonitor, FiSmartphone, FiBookOpen, FiCpu, FiGrid, FiArrowRight, FiX } from "react-icons/fi";
 import { useAuth } from "@/components/providers/AuthProvider";
-
-const DotLottieReact = dynamic(
-  () => import("@lottiefiles/dotlottie-react").then((mod) => mod.DotLottieReact),
-  { ssr: false, loading: () => <div className="w-full h-full" /> }
-);
 
 const KATEGORI_KARYA = [
   {
     id: "Technology",
     title: "Aplikasi Web & Sistem",
     desc: "Website, sistem informasi, dan aplikasi berbasis web.",
-    icon: <FiMonitor size={24} />,
-    gradient: "from-blue-500/15 to-blue-600/5",
-    borderColor: "#3b82f6",      // blue-500
-    dotColor: "bg-blue-500",
-    lottie: "/animations/Developer.lottie",
+    icon: FiMonitor,
+    gradient: "from-blue-500/20 via-blue-400/10 to-transparent",
+    borderColor: "#3b82f6",
+    bgAccent: "bg-blue-500/10",
+    iconColor: "text-blue-500",
+    badge: "🌐 Web",
   },
   {
     id: "Programming",
     title: "Aplikasi Mobile",
     desc: "Aplikasi Android, iOS, atau cross-platform.",
-    icon: <FiSmartphone size={24} />,
-    gradient: "from-green-500/15 to-green-600/5",
-    borderColor: "#22c55e",      // green-500
-    dotColor: "bg-green-500",
-    lottie: "/animations/mobile.lottie",
+    icon: FiSmartphone,
+    gradient: "from-green-500/20 via-green-400/10 to-transparent",
+    borderColor: "#22c55e",
+    bgAccent: "bg-green-500/10",
+    iconColor: "text-green-500",
+    badge: "📱 Mobile",
   },
   {
     id: "Research",
     title: "Karya Tulis & Jurnal",
     desc: "Penelitian ilmiah, jurnal, skripsi, dan karya tulis.",
-    icon: <FiBookOpen size={24} />,
-    gradient: "from-orange-500/15 to-orange-600/5",
-    borderColor: "#f97316",      // orange-500
-    dotColor: "bg-orange-500",
-    lottie: "/animations/Learning.lottie",
+    icon: FiBookOpen,
+    gradient: "from-orange-500/20 via-orange-400/10 to-transparent",
+    borderColor: "#f97316",
+    bgAccent: "bg-orange-500/10",
+    iconColor: "text-orange-500",
+    badge: "📄 Riset",
   },
   {
     id: "IoT",
-    title: "Proyek IoT",
-    desc: "Proyek Internet of Things, hardware, dan embedded system.",
-    icon: <FiCpu size={24} />,
-    gradient: "from-purple-500/15 to-purple-600/5",
-    borderColor: "#a855f7",      // purple-500
-    dotColor: "bg-purple-500",
-    lottie: "/animations/robot.lottie",
+    title: "Proyek IoT & Hardware",
+    desc: "Internet of Things, hardware, dan embedded system.",
+    icon: FiCpu,
+    gradient: "from-purple-500/20 via-purple-400/10 to-transparent",
+    borderColor: "#a855f7",
+    bgAccent: "bg-purple-500/10",
+    iconColor: "text-purple-500",
+    badge: "⚡ IoT",
   },
   {
     id: "Multimedia",
-    title: "Desain & Lainnya",
-    desc: "Desain grafis, video, animasi, dan karya multimedia.",
-    icon: <FiGrid size={24} />,
-    gradient: "from-pink-500/15 to-pink-600/5",
-    borderColor: "#ec4899",      // pink-500
-    dotColor: "bg-pink-500",
-    lottie: "/animations/kalkun.lottie",
-    lottieScale: 1.1,
+    title: "Desain & Multimedia",
+    desc: "Desain grafis, video, animasi, dan karya kreatif.",
+    icon: FiGrid,
+    gradient: "from-pink-500/20 via-pink-400/10 to-transparent",
+    borderColor: "#ec4899",
+    bgAccent: "bg-pink-500/10",
+    iconColor: "text-pink-500",
+    badge: "🎨 Kreatif",
   },
 ];
 
@@ -70,14 +68,13 @@ export default function SubmitPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isLoading } = useAuth();
-  const [activeIndex, setActiveIndex] = useState(2);
-  const [isMobile, setIsMobile] = useState(false);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [clickedId, setClickedId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoading && !user) {
       router.replace("/login");
     } else if (user) {
-      // If there is an ID, it means we are editing. Go straight to the form.
       const id = searchParams.get("id");
       if (id) {
         router.replace(`/submit/form?id=${id}`);
@@ -85,39 +82,11 @@ export default function SubmitPage() {
     }
   }, [user, isLoading, router, searchParams]);
 
-  useEffect(() => {
-    setIsMobile(window.innerWidth < 768);
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  const lottieRefs = useRef<Record<string, any>>({});
-
-  const handleDotLottieRef = useCallback((id: string) => (dotLottie: any) => {
-    lottieRefs.current[id] = dotLottie;
-  }, []);
-
-  useEffect(() => {
-    const activeId = KATEGORI_KARYA[activeIndex].id;
-    Object.keys(lottieRefs.current).forEach((id) => {
-      const dl = lottieRefs.current[id];
-      if (!dl) return;
-      if (id === activeId) { dl.play(); } else { dl.stop(); }
-    });
-  }, [activeIndex]);
-
-  const handleCardClick = (index: number, id: string) => {
-    if (index === activeIndex) {
-      // Pass the selected category as type
-      router.push(`/submit/form?type=${encodeURIComponent(id)}`);
-    } else {
-      setActiveIndex(index);
-    }
+  const handleSelect = (id: string) => {
+    if (clickedId) return; // prevent double click
+    setClickedId(id);
+    router.push(`/submit/form?type=${encodeURIComponent(id)}`);
   };
-
-  const nextCard = () => { if (activeIndex < KATEGORI_KARYA.length - 1) setActiveIndex(activeIndex + 1); };
-  const prevCard = () => { if (activeIndex > 0) setActiveIndex(activeIndex - 1); };
 
   if (isLoading || !user) return null;
 
@@ -126,168 +95,139 @@ export default function SubmitPage() {
       {/* Close Button */}
       <button
         onClick={() => router.push("/")}
-        className="fixed top-6 right-6 md:top-10 md:right-10 p-3 rounded-full bg-card shadow-[4px_4px_0px_var(--color-border)] border-2 border-border text-foreground hover:text-red-500 hover:border-red-500 transition-all hover:scale-110 z-[100]"
+        className="fixed top-5 right-5 md:top-8 md:right-8 p-2.5 rounded-full bg-card shadow-[3px_3px_0px_var(--color-border)] border-2 border-border text-foreground hover:text-red-500 hover:border-red-500 transition-all hover:scale-110 z-[100]"
+        title="Tutup"
       >
-        <FiX size={24} />
+        <FiX size={20} />
       </button>
 
-      <div className="max-w-5xl mx-auto flex flex-col justify-start pt-16 md:pt-12 pb-24 md:pb-12 relative z-10 overflow-x-clip overflow-y-visible w-full px-4">
-        <div className="text-center mb-2 mt-4 md:mt-0">
-          <motion.h1
-            initial={{ opacity: 0, y: -20 }}
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 py-16 md:py-12 relative">
+        {/* Background decoration */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-primary/5 blur-3xl" />
+          <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-secondary/5 blur-3xl" />
+        </div>
+
+        <div className="w-full max-w-3xl relative z-10">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-2xl md:text-3xl font-black text-primary mb-2 uppercase"
+            className="text-center mb-10"
           >
-          Upload Karya Baru
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="text-sm text-muted-foreground max-w-xl mx-auto font-bold"
-        >
-          Pilih kategori karya yang ingin kamu unggah, lalu klik lagi untuk mulai mengisi formulir.
-        </motion.p>
-      </div>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-black uppercase mb-4">
+              <FiArrowRight size={12} /> Upload Karya Baru
+            </div>
+            <h1 className="text-3xl md:text-4xl font-black text-foreground mb-3">
+              Pilih Kategori Karya
+            </h1>
+            <p className="text-muted-foreground font-medium text-sm max-w-md mx-auto">
+              Klik satu kali untuk langsung mulai mengisi formulir upload.
+            </p>
+          </motion.div>
 
-      <div className="relative h-[430px] md:h-[470px] w-full flex items-center justify-center mt-2 md:mt-4">
+          {/* Category Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {KATEGORI_KARYA.map((item, i) => {
+              const Icon = item.icon;
+              const isHovered = hoveredId === item.id;
+              const isClicked = clickedId === item.id;
+              const isLoading = isClicked;
 
-        {/* Navigation Arrows */}
-        <button
-          onClick={prevCard}
-          disabled={activeIndex === 0}
-          className="absolute left-1 sm:left-4 md:left-8 z-50 p-2.5 md:p-4 rounded-full bg-card shadow-xl border-2 border-border text-foreground hover:text-primary disabled:opacity-0 transition-all hover:scale-110"
-        >
-          <FiChevronLeft size={24} />
-        </button>
-        <button
-          onClick={nextCard}
-          disabled={activeIndex === KATEGORI_KARYA.length - 1}
-          className="absolute right-1 sm:right-4 md:right-8 z-50 p-2.5 md:p-4 rounded-full bg-card shadow-xl border-2 border-border text-foreground hover:text-primary disabled:opacity-0 transition-all hover:scale-110"
-        >
-          <FiChevronRight size={24} />
-        </button>
-
-        {KATEGORI_KARYA.map((item, index) => {
-          const offset = index - activeIndex;
-          const absOffset = Math.abs(offset);
-          const isActive = offset === 0;
-          const isVisible = absOffset <= 1;
-          const xOffsetBase = isMobile ? 120 : 220;
-          const cardOpacity = isActive ? 1 : absOffset === 1 ? 0.75 : 0;
-          const cardY = isActive ? 0 : 18;
-          const cardScale = isActive ? 1 : 0.87;
-
-          return (
-            <motion.div
-              key={item.id}
-              onClick={() => handleCardClick(index, item.id)}
-              initial={false}
-              animate={{
-                x: `calc(-50% + ${offset * xOffsetBase}px)`,
-                y: `calc(-50% + ${cardY}px)`,
-                opacity: cardOpacity,
-                scale: cardScale,
-                zIndex: 20 - absOffset,
-              }}
-              // hover kecil aja, jangan kegedean
-              whileHover={isActive ? { scale: 1.015 } : { scale: 0.895 }}
-              whileTap={{ scale: 0.97 }}
-              drag={isActive ? "x" : false}
-              dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0.1}
-              onDragEnd={(e, info) => {
-                if (!isActive) return;
-                if (info.offset.x < -50 && activeIndex < KATEGORI_KARYA.length - 1) {
-                  setActiveIndex(activeIndex + 1);
-                } else if (info.offset.x > 50 && activeIndex > 0) {
-                  setActiveIndex(activeIndex - 1);
-                }
-              }}
-              transition={{ type: "spring", stiffness: 350, damping: 30 }}
-              className={`absolute top-1/2 left-1/2 w-[280px] sm:w-[320px] md:w-[340px] h-[410px] md:h-[430px] bg-card rounded-3xl cursor-pointer select-none flex flex-col overflow-hidden`}
-              style={{
-                pointerEvents: absOffset > 1 ? "none" : "auto",
-                // Border warna sesuai kategori, lebih tebal untuk yang aktif
-                border: isActive
-                  ? `4px solid ${item.borderColor}`
-                  : `3px solid ${item.borderColor}60`,
-                boxShadow: isActive
-                  ? `0 20px 60px ${item.borderColor}40, 0 0 0 1px ${item.borderColor}20`
-                  : "0 4px 16px rgba(0,0,0,0.2)",
-              }}
-            >
-              {/* Gradient background */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} rounded-3xl pointer-events-none`} />
-
-              {/* Lottie area — tidak ada overflow hidden agar tidak terpotong */}
-              <div className="relative w-full h-[180px] md:h-[200px] flex-shrink-0 flex items-center justify-center">
-                {item.lottie && isVisible && (
+              return (
+                <motion.button
+                  key={item.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.07, type: "spring", stiffness: 300, damping: 24 }}
+                  onClick={() => handleSelect(item.id)}
+                  onMouseEnter={() => setHoveredId(item.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                  disabled={!!clickedId}
+                  className={`
+                    relative w-full text-left rounded-2xl border-2 p-5 transition-all duration-200 cursor-pointer group
+                    bg-card overflow-hidden
+                    ${isLoading
+                      ? "scale-[0.97] opacity-80"
+                      : "hover:-translate-y-1 hover:shadow-[0_8px_0_0_var(--color-border)] active:translate-y-0.5 active:shadow-none"
+                    }
+                    ${isHovered ? "shadow-[0_8px_0_0_var(--color-border)]" : "shadow-[0_4px_0_0_var(--color-border)]"}
+                  `}
+                  style={{
+                    borderColor: isHovered || isLoading ? item.borderColor : "var(--border)",
+                  }}
+                >
+                  {/* Background gradient overlay */}
                   <div
-                    className="w-[155px] h-[155px] md:w-[175px] md:h-[175px]"
-                    style={item.lottieScale ? { transform: `scale(${item.lottieScale})` } : undefined}
-                  >
-                    <DotLottieReact
-                      key={item.id}
-                      src={item.lottie}
-                      loop
-                      autoplay={isActive}
-                      dotLottieRefCallback={handleDotLottieRef(item.id)}
-                      renderConfig={{ devicePixelRatio: 3 }}
-                    />
-                  </div>
-                )}
-              </div>
+                    className={`absolute inset-0 bg-gradient-to-br ${item.gradient} transition-opacity duration-200 ${isHovered ? "opacity-100" : "opacity-0"}`}
+                  />
 
-              {/* Text content — tampil di semua card (aktif & non-aktif) */}
-              <div className="relative z-10 flex flex-col flex-grow px-5 pb-5 pt-3 md:px-6">
-                <div className="flex-grow flex flex-col justify-center">
-                  <h3
-                    className="text-lg sm:text-xl font-black mb-1.5 transition-colors"
-                    style={{ color: item.borderColor }}
-                  >
-                    {item.title}
-                  </h3>
-                  <p className={`text-xs sm:text-sm leading-relaxed font-bold transition-opacity ${isActive ? "text-muted-foreground opacity-100" : "text-muted-foreground opacity-70"}`}>
-                    {item.desc}
-                  </p>
-                </div>
-
-                <div className="mt-3 pt-3 border-t-2 border-border/20">
-                  {isActive ? (
-                    <button
-                      className="w-full py-3 rounded-xl font-black text-sm text-white flex items-center justify-center gap-2 transition-all duration-300 shadow-lg hover:-translate-y-0.5 active:scale-95"
-                      style={{ backgroundColor: item.borderColor }}
-                    >
-                      Mulai Upload <FiArrowRight size={16} />
-                    </button>
-                  ) : (
-                    <div
-                      className="w-full py-3 rounded-xl font-black text-xs flex items-center justify-center gap-2 opacity-50"
-                      style={{ border: `2px dashed ${item.borderColor}80`, color: item.borderColor }}
-                    >
-                      Klik untuk pilih
+                  {/* Content */}
+                  <div className="relative z-10">
+                    {/* Badge top right */}
+                    <div className="flex items-start justify-between mb-4">
+                      {/* Icon */}
+                      <div
+                        className={`w-12 h-12 rounded-xl flex items-center justify-center border-2 transition-colors duration-200 ${item.bgAccent}`}
+                        style={{ borderColor: `${item.borderColor}40` }}
+                      >
+                        <Icon size={22} style={{ color: item.borderColor }} />
+                      </div>
+                      {/* Category badge */}
+                      <span
+                        className="text-[10px] font-black px-2 py-0.5 rounded-full border"
+                        style={{ color: item.borderColor, borderColor: `${item.borderColor}50`, backgroundColor: `${item.borderColor}15` }}
+                      >
+                        {item.badge}
+                      </span>
                     </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
 
-      {/* Dots indicator */}
-      <div className="flex justify-center gap-2 mt-6">
-        {KATEGORI_KARYA.map((item, i) => (
-          <button
-            key={i}
-            onClick={() => setActiveIndex(i)}
-            className={`h-2 rounded-full transition-all ${i === activeIndex ? "w-6" : "w-2 bg-border"}`}
-            style={i === activeIndex ? { backgroundColor: item.borderColor, width: "1.5rem" } : {}}
-          />
-        ))}
+                    <h3 className="font-black text-foreground text-base mb-1.5 leading-snug">
+                      {item.title}
+                    </h3>
+                    <p className="text-muted-foreground text-xs font-medium leading-relaxed">
+                      {item.desc}
+                    </p>
+
+                    {/* CTA */}
+                    <div
+                      className={`mt-4 flex items-center gap-1.5 text-xs font-black transition-all duration-200 ${
+                        isLoading ? "opacity-60" : ""
+                      }`}
+                      style={{ color: item.borderColor }}
+                    >
+                      {isLoading ? (
+                        <>
+                          <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                          Membuka form...
+                        </>
+                      ) : (
+                        <>
+                          Pilih kategori ini
+                          <FiArrowRight
+                            size={12}
+                            className={`transition-transform duration-200 ${isHovered ? "translate-x-1" : ""}`}
+                          />
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
+
+          {/* Footer hint */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-center text-xs text-muted-foreground font-medium mt-8"
+          >
+            Tidak yakin? Pilih yang paling mendekati, kamu bisa mengubah kategori di formulir.
+          </motion.p>
+        </div>
       </div>
-    </div>
     </>
   );
 }

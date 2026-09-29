@@ -163,7 +163,7 @@ export default function InboxPage() {
           <h1 className="text-xl font-black uppercase text-foreground">Pesan</h1>
           <div className="ml-auto flex items-center gap-1 px-2 py-1 rounded-lg bg-green-500/10 border border-green-500/30">
             <Lock className="w-3 h-3 text-green-500" />
-            <span className="text-[10px] font-black text-green-500">E2EE</span>
+            <span className="text-[10px] font-black text-green-500">Terenkripsi</span>
           </div>
         </div>
       </div>

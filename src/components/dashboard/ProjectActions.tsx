@@ -49,7 +49,7 @@ export function ProjectActions({ projectId, isApproved, karyaObj }: ProjectActio
 
   const handleDelete = async () => {
     setIsDeleting(true);
-    const toastId = toast.loading("Menghapus projek...");
+    const toastId = toast.loading("Menghapus karya...");
     
     // Hard delete from database
     const { error } = await supabase
@@ -61,10 +61,10 @@ export function ProjectActions({ projectId, isApproved, karyaObj }: ProjectActio
     closeConfirm();
 
     if (!error) {
-      toast.success("Projek berhasil dihapus secara permanen.", { id: toastId });
+      toast.success("Karya berhasil dihapus secara permanen.", { id: toastId });
       router.refresh();
     } else {
-      toast.error("Gagal menghapus projek. Silakan coba lagi.", { id: toastId });
+      toast.error("Gagal menghapus karya. Silakan coba lagi.", { id: toastId });
     }
   };
 
@@ -84,7 +84,7 @@ export function ProjectActions({ projectId, isApproved, karyaObj }: ProjectActio
         <Link
           href={`/dashboard/projects/${projectId}`}
           className="p-2.5 rounded-xl bg-card border-2 border-border shadow-[2px_2px_0px_var(--color-border)] hover:-translate-y-0.5 hover:bg-muted active:translate-y-0 transition-all text-foreground"
-          title="Preview Projek"
+          title="Preview Karya"
         >
           <Eye className="w-4 h-4" />
         </Link>
@@ -92,7 +92,7 @@ export function ProjectActions({ projectId, isApproved, karyaObj }: ProjectActio
         <Link
           href={`/submit/form?id=${projectId}`}
           className="p-2.5 rounded-xl bg-orange-100 border-2 border-orange-500 shadow-[2px_2px_0px_#f97316] hover:-translate-y-0.5 active:translate-y-0 transition-all text-orange-600"
-          title="Edit Projek"
+          title="Edit Karya"
         >
           <Edit className="w-4 h-4" />
         </Link>
@@ -100,7 +100,7 @@ export function ProjectActions({ projectId, isApproved, karyaObj }: ProjectActio
         <button
           onClick={openConfirm}
           className="p-2.5 rounded-xl bg-red-100 border-2 border-red-600 shadow-[2px_2px_0px_#dc2626] hover:-translate-y-0.5 active:translate-y-0 transition-all text-red-700"
-          title="Hapus Projek"
+          title="Hapus Karya"
         >
           <Trash2 className="w-4 h-4" />
         </button>
@@ -126,9 +126,9 @@ export function ProjectActions({ projectId, isApproved, karyaObj }: ProjectActio
               <div className="w-14 h-14 rounded-2xl bg-red-100 border-4 border-red-600 text-red-600 flex items-center justify-center mb-4">
                 <Trash2 className="w-7 h-7" />
               </div>
-              <h3 className="text-xl font-black text-foreground mb-2 uppercase">Hapus Projek?</h3>
+              <h3 className="text-xl font-black text-foreground mb-2 uppercase">Hapus Karya?</h3>
               <p className="text-muted-foreground font-bold text-xs sm:text-sm mb-2 leading-relaxed">
-                Tindakan ini <span className="text-red-600 font-black">tidak bisa dibatalkan</span>. Projek akan dihapus secara permanen dari sistem.
+                Tindakan ini <span className="text-red-600 font-black">tidak bisa dibatalkan</span>. Karya akan dihapus secara permanen dari sistem.
               </p>
               {/* Countdown warning */}
               {countdown > 0 ? (

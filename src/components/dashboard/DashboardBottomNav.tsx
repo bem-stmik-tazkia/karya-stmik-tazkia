@@ -35,10 +35,10 @@ export function DashboardBottomNav() {
   const unreadCount = useUnreadMessages(userId);
 
   const navItems = [
-    { label: "Projek", href: "/dashboard/projects", icon: Folder, exact: true },
+    { label: "Karya", href: "/dashboard/projects", icon: Folder, exact: true },
     { label: "Pesan", href: "/inbox", icon: MessageSquare, exact: false, badge: unreadCount },
     { label: "Mahasiswa", href: "/mahasiswa", icon: Users, exact: false },
-    { label: "Profile", href: "/dashboard", icon: User, exact: true },
+    { label: "Profil", href: "/dashboard", icon: User, exact: true },
     { label: "Beranda", href: "/", icon: Home, exact: true },
   ];
 

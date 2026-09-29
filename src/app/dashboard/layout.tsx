@@ -29,7 +29,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col relative pb-28">
+    <div className="min-h-screen bg-background flex flex-col relative" style={{ paddingBottom: 'max(9rem, calc(7rem + env(safe-area-inset-bottom)))' }}>
       {/* Dedicated Dashboard Topbar */}
       <DashboardTopbar />
 

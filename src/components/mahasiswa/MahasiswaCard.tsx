@@ -189,7 +189,7 @@ export default function MahasiswaCard({
         <div className="pt-3 border-t-2 border-border flex items-center justify-between mt-0 gap-1">
           <div className="flex items-center gap-1 text-xs font-bold text-muted-foreground shrink-0">
             <Folder className="w-[13px] h-[13px] text-secondary shrink-0" />
-            <span>{projectCount} Projek</span>
+            <span>{projectCount} Karya</span>
           </div>
           <span className="flex items-center gap-0.5 text-xs font-black text-primary group-hover:translate-x-1 transition-transform uppercase shrink-0">
             <span>Lihat</span> Portofolio

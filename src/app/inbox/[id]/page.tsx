@@ -382,7 +382,7 @@ export default function ChatRoomPage({ params }: { params: Promise<{ id: string 
           <div className="flex items-center gap-2 shrink-0">
             <div className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-green-500/10 border border-green-500/30">
               <Lock className="w-3 h-3 text-green-500" />
-              <span className="text-[10px] font-black text-green-500 hidden sm:inline">E2EE</span>
+              <span className="text-[10px] font-black text-green-500 hidden sm:inline">Terenkripsi</span>
             </div>
             
             <button 
@@ -413,7 +413,7 @@ export default function ChatRoomPage({ params }: { params: Promise<{ id: string 
               </div>
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-500/10 border border-green-500/30">
                 <Lock className="w-3 h-3 text-green-500" />
-                <span className="text-[11px] font-bold text-green-600 dark:text-green-400">Pesan dienkripsi end-to-end</span>
+                <span className="text-[11px] font-bold text-green-600 dark:text-green-400">Pesan dienkripsi dengan aman</span>
               </div>
             </div>
           ) : (
@@ -532,7 +532,7 @@ export default function ChatRoomPage({ params }: { params: Promise<{ id: string 
           </button>
         </form>
         <p className="text-center text-[10px] text-muted-foreground/50 font-bold mt-1.5 flex items-center justify-center gap-1">
-          <Lock className="w-2.5 h-2.5" /> Dienkripsi end-to-end
+          <Lock className="w-2.5 h-2.5" /> Pesan dienkripsi dengan aman
         </p>
       </div>
 

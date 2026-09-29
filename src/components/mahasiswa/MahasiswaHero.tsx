@@ -89,7 +89,7 @@ export default function MahasiswaHero({
               <DotLottieReact src="/animations/search-projek.lottie" loop autoplay renderConfig={{ autoResize: true }} style={{ width: '100%', height: '100%' }} />
             </div>
             <span className="text-base sm:text-3xl font-black text-foreground">{totalProjects}</span>
-            <span className="text-[9px] sm:text-xs font-bold text-muted-foreground uppercase">Projek Karya</span>
+            <span className="text-[9px] sm:text-xs font-bold text-muted-foreground uppercase">Total Karya</span>
           </div>
 
           <div className="card-3d bg-card p-2 sm:p-4 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center text-center">
@@ -114,7 +114,7 @@ export default function MahasiswaHero({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari nama mahasiswa, keahlian, atau projek..."
+              placeholder="Cari nama mahasiswa, keahlian, atau karya..."
               className="w-full pl-10 sm:pl-12 pr-9 sm:pr-10 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl bg-card border-3 sm:border-4 border-border text-foreground placeholder:text-muted-foreground font-bold shadow-[3px_3px_0px_var(--color-border)] sm:shadow-[4px_4px_0px_var(--color-border)] focus:outline-none focus:translate-x-[2px] focus:translate-y-[2px] transition-all text-xs sm:text-base"
             />
             {searchQuery && (
