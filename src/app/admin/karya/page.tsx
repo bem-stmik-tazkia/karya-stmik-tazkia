@@ -159,9 +159,9 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-auto max-h-[65vh]">
           <table className="w-full text-left border-collapse min-w-[900px]">
-            <thead>
+            <thead className="sticky top-0 z-10">
               <tr className="bg-muted border-b-4 border-border text-foreground text-xs font-black uppercase">
                 <th className="p-3">Judul</th>
                 <th className="p-3">Kategori</th>
