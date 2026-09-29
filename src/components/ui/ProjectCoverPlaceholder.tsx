@@ -53,8 +53,9 @@ const FALLBACK_GRADIENTS = [
 const FALLBACK_ICONS = [Code2, Monitor, Cpu, Fingerprint, Rocket, Layers];
 
 export function ProjectCoverPlaceholder({ id, title, category }: ProjectCoverPlaceholderProps) {
-  // Use ID hash for consistent icon selection within same category
-  const hash = id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  // Use title + id for better hash variation
+  const hashString = title + id;
+  const hash = hashString.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
 
   // Normalize category key (strip spaces, case-insensitive)
   const normalizedCategory = Object.keys(CATEGORY_CONFIG).find(
@@ -70,14 +71,11 @@ export function ProjectCoverPlaceholder({ id, title, category }: ProjectCoverPla
   const MainIcon = iconPool[hash % iconPool.length];
   const SecondIcon = iconPool[(hash + 1) % iconPool.length];
 
-  // Get initials (up to 2 letters)
-  const initials = title
-    .split(" ")
-    .map((word) => word[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+  // Get initials: first character of first word, first character of last word
+  const words = title.split(" ").filter(Boolean);
+  const initials = words.length === 1 
+    ? words[0].slice(0, 2).toUpperCase() 
+    : (words[0][0] + words[words.length - 1][0]).toUpperCase();
 
   return (
     <div

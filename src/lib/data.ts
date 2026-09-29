@@ -19,7 +19,7 @@ export async function getKarya(options?: {
 }): Promise<Karya[]> {
   let query = supabase
     .from("karya")
-    .select("*")
+    .select("id, user_id, title, slug, category, description, image_url, tech_stack, views, likes, created_at, team")
     .eq("status", "approved")
     .order("likes", { ascending: false })
     .order("views", { ascending: false })
@@ -49,7 +49,7 @@ export async function getKarya(options?: {
 export async function getKaryaById(id: string): Promise<Karya | null> {
   const { data, error } = await supabase
     .from("karya")
-    .select("*")
+    .select("id, user_id, title, slug, category, description, image_url, tech_stack, views, likes, created_at, team, github_url, demo_url, drive_url, figma_url, youtube_url")
     .eq("id", id)
     .eq("status", "approved")
     .single();
@@ -123,7 +123,7 @@ export async function getMahasiswaProfiles(options?: {
 }): Promise<MahasiswaProfile[]> {
   let query = supabase
     .from("mahasiswa_profiles")
-    .select("*")
+    .select("id, user_id, full_name, email, contact_email, prodi, angkatan, avatar_url, bio, skills, status_badge, github_url, linkedin_url, instagram_url, website_url, followers_count, following_count, is_featured")
     .order("created_at", { ascending: false });
 
   if (options?.featured) {
@@ -155,7 +155,7 @@ export async function getMahasiswaById(id: string): Promise<MahasiswaProfile | n
   // Try matching by primary key `id` first
   const { data: byId, error: err1 } = await supabase
     .from("mahasiswa_profiles")
-    .select("*")
+    .select("id, user_id, full_name, email, contact_email, prodi, angkatan, avatar_url, bio, skills, status_badge, github_url, linkedin_url, instagram_url, website_url, followers_count, following_count")
     .eq("id", id)
     .maybeSingle();
 
@@ -167,7 +167,7 @@ export async function getMahasiswaById(id: string): Promise<MahasiswaProfile | n
   // Fallback: try matching by `user_id` column (for auth users)
   const { data: byUserId, error: err2 } = await supabase
     .from("mahasiswa_profiles")
-    .select("*")
+    .select("id, user_id, full_name, email, contact_email, prodi, angkatan, avatar_url, bio, skills, status_badge, github_url, linkedin_url, instagram_url, website_url, followers_count, following_count")
     .eq("user_id", id)
     .maybeSingle();
 
@@ -183,7 +183,7 @@ export async function getMahasiswaById(id: string): Promise<MahasiswaProfile | n
 export async function getMahasiswaProjects(mahasiswaId: string): Promise<Karya[]> {
   const { data, error } = await supabase
     .from("karya")
-    .select("*")
+    .select("id, user_id, title, slug, category, description, image_url, tech_stack, views, likes, created_at, team")
     .eq("status", "approved")
     .order("created_at", { ascending: false });
 

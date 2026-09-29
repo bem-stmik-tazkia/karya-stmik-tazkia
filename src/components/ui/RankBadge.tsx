@@ -40,7 +40,7 @@ export function RankBadge({ rank }: RankBadgeProps) {
       initial={{ scale: 0, rotate: -180 }}
       animate={{ scale: 1, rotate: 0 }}
       transition={{ type: "spring", stiffness: 200, damping: 12, delay: 0.5 + (rank * 0.1) }}
-      className={`absolute -top-3 -right-3 sm:-top-5 sm:-right-5 w-10 h-10 sm:w-14 sm:h-14 rounded-full flex items-center justify-center border-4 z-20 font-black bg-gradient-to-br ${config.gradient} ${config.text} ${config.border} ${config.shadow}`}
+      className={`absolute -top-3 -right-3 sm:-top-5 sm:-right-5 w-10 h-10 sm:w-14 sm:h-14 rounded-full flex items-center justify-center border-4 z-20 font-black bg-gradient-to-br ${config.gradient} ${config.text} ${config.border} ${config.shadow} rank-float-anim`}
       style={{
         animation: "rankFloat 3s ease-in-out infinite",
         animationDelay: `${rank * 0.2}s`,
@@ -57,12 +57,21 @@ export function RankBadge({ rank }: RankBadgeProps) {
           20% { left: 100%; opacity: 0; }
           100% { left: 100%; opacity: 0; }
         }
+        @media (prefers-reduced-motion: reduce) {
+          .rank-float-anim {
+            animation: none !important;
+          }
+          .rank-shine-anim {
+            animation: none !important;
+            display: none;
+          }
+        }
       `}</style>
       
       {/* Shine effect */}
       <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
         <div 
-          className="absolute top-0 bottom-0 w-1/2 bg-white/60 blur-[2px] skew-x-[-20deg]"
+          className="absolute top-0 bottom-0 w-1/2 bg-white/60 blur-[2px] skew-x-[-20deg] rank-shine-anim"
           style={{
             animation: "rankShine 4s infinite",
             animationDelay: `${rank * 0.5}s`

@@ -131,10 +131,10 @@ export default function HomePageClient({ featuredKarya, totalKarya, totalMahasis
                               alt={item.title}
                               fill
                               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                              className="object-cover group-hover:scale-105 transition-transform duration-300"
+                              className="object-contain bg-muted dark:bg-card p-2 group-hover:scale-105 transition-transform duration-300"
                             />
                           ) : (
-                            <ProjectCoverPlaceholder id={item.id} title={item.title} />
+                            <ProjectCoverPlaceholder id={item.id} title={item.title} category={item.category} />
                           )}
                           <div className="absolute top-3 left-3">
                             <StickerBadge variant="accent" className="text-xs">
@@ -145,7 +145,7 @@ export default function HomePageClient({ featuredKarya, totalKarya, totalMahasis
 
                         <div className="p-5 flex flex-col flex-grow justify-between">
                           <div>
-                            <h3 className="text-lg font-black text-foreground group-hover:text-primary transition-colors line-clamp-1 mb-2">
+                            <h3 className="text-lg font-black text-foreground group-hover:text-primary transition-colors line-clamp-2 mb-2">
                               {item.title}
                             </h3>
                             <p className="text-sm font-medium text-muted-foreground line-clamp-2 leading-relaxed mb-4">

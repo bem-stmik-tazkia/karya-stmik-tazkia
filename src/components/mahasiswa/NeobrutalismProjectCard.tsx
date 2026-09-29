@@ -60,7 +60,7 @@ export function NeobrutalismProjectCard({ project }: { project: ProjectData }) {
           <img
             src={project.cover_image}
             alt={project.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-contain bg-muted dark:bg-card p-2 group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
           <ProjectCoverPlaceholder

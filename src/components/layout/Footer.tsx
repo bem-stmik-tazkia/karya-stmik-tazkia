@@ -12,10 +12,16 @@ export function Footer() {
           0%   { transform: translateX(-320px); }
           100% { transform: translateX(calc(100vw + 320px)); }
         }
+        @media (prefers-reduced-motion: reduce) {
+          .car-anim {
+            animation: none !important;
+            transform: translateX(10vw) !important;
+          }
+        }
       `}</style>
       <div className="absolute left-0 right-0 bottom-full pointer-events-none z-10" style={{ height: "160px", overflow: "hidden" }}>
         <div
-          className="absolute bottom-[-4px] w-[240px] sm:w-[280px]"
+          className="absolute bottom-[-4px] w-[240px] sm:w-[280px] car-anim"
           style={{ animation: "driveCar 14s linear infinite" }}
         >
           <DotLottieReact src="/animations/Tourists%20by%20car.lottie" loop autoplay />
