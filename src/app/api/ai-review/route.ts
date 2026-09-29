@@ -210,8 +210,11 @@ async function reviewWithGemini(karya: any): Promise<{
   }
 
   try {
+    // Bersihkan teks pemikiran (CoT) dari model seperti Minimax
+    let cleaned = rawText.replace(/<think>[\s\S]*?<\/think>/gi, "");
+    
     // Bersihkan karakter aneh di luar kurung kurawal
-    let cleaned = rawText.replace(/```json|```/gi, "").trim();
+    cleaned = cleaned.replace(/```json|```/gi, "").trim();
     const startIdx = cleaned.indexOf("{");
     const endIdx = cleaned.lastIndexOf("}");
     if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
@@ -348,7 +351,7 @@ export async function POST(req: NextRequest) {
         if (errorMsg === "API_KEY_ERROR") {
           adminReason = "Perlu Review Manual: Kunci API (API Key) AI hangus atau tidak diizinkan. Harap perbarui di pengaturan (.env).";
         } else if (errorMsg.includes("Gagal parse respons Gemini") || errorMsg.includes("Format JSON tidak valid")) {
-          adminReason = "Perlu Review Manual: AI memberikan jawaban dengan format yang rusak (bukan JSON).";
+          adminReason = `Perlu Review Manual: Format AI rusak. Detail: ${errorMsg}`;
         } else if (errorMsg.includes("Gemini API error 5")) {
           adminReason = "Perlu Review Manual: Server Google Gemini sedang mengalami gangguan/down.";
         } else if (errorMsg.includes("tidak mengembalikan teks")) {
