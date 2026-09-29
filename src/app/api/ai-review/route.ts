@@ -78,7 +78,7 @@ Data Karya:
 - Fitur: 
 ${featuresText}
 
-Jawab HANYA dalam format JSON berikut (tanpa markdown, tanpa kode blok):
+Jawab HANYA dalam format JSON berikut. JANGAN TULIS PROSES BERPIKIRMU (NO CHAIN OF THOUGHT). JANGAN TULIS APAPUN SELAIN JSON MURNI:
 {"approved": true, "score": 85, "reason": "Karya berisi deskripsi yang jelas dan tidak melanggar etika, relevan sebagai proyek web."}
 
 atau
@@ -123,7 +123,7 @@ async function reviewWithGemini(karya: any): Promise<{
             model: model,
             messages: [{ role: "user", content: prompt }],
             temperature: 0.1,
-            max_tokens: 300,
+            max_tokens: 1500,
           }),
         });
 
@@ -167,7 +167,7 @@ async function reviewWithGemini(karya: any): Promise<{
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.1,
-            maxOutputTokens: 300,
+            maxOutputTokens: 1500,
           },
           safetySettings: [
             { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
