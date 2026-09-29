@@ -20,7 +20,7 @@ const AI_STATUS_CONFIG = {
 };
 
 interface PageProps {
-  searchParams: Promise<{ status?: string; category?: string }>;
+  searchParams: Promise<{ status?: string; category?: string; page?: string }>;
 }
 
 export default async function AdminKaryaPage({ searchParams }: PageProps) {
@@ -67,16 +67,25 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
 
   if (activeCategory !== "all") filteredKarya = filteredKarya.filter(k => k.category === activeCategory);
 
-  // Helper untuk membangun URL filter
-  const buildUrl = (status?: string, category?: string) => {
+  // Helper untuk membangun URL filter & paginasi
+  const buildUrl = (status?: string, category?: string, page?: number) => {
     const p = new URLSearchParams();
     const s = status ?? activeStatus;
     const c = category ?? activeCategory;
+    
     if (s && s !== "all") p.set("status", s);
     if (c && c !== "all") p.set("category", c);
+    if (page && page > 1) p.set("page", page.toString());
+    
     const qs = p.toString();
     return `/admin/karya${qs ? `?${qs}` : ""}`;
   };
+
+  // Logic Paginasi
+  const ITEMS_PER_PAGE = 10;
+  const currentPage = Math.max(1, parseInt(params.page || "1", 10));
+  const totalPages = Math.ceil(filteredKarya.length / ITEMS_PER_PAGE) || 1;
+  const paginatedKarya = filteredKarya.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const statCards = [
     { label: "Semua", value: totalAll, color: "text-foreground bg-card border-border", statusKey: "all" },
@@ -159,10 +168,10 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
           </div>
         </div>
 
-        <div className="overflow-x-auto overflow-y-auto max-h-[65vh]">
+        <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[900px]">
-            <thead className="sticky top-0 z-10">
-              <tr className="bg-muted border-b-4 border-border text-foreground text-xs font-black uppercase">
+            <thead className="bg-muted">
+              <tr className="border-b-4 border-border text-foreground text-xs font-black uppercase">
                 <th className="p-3">Judul</th>
                 <th className="p-3">Kategori</th>
                 <th className="p-3 text-center">Status Karya</th>
@@ -173,14 +182,14 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
               </tr>
             </thead>
             <tbody className="divide-y-2 divide-border/30">
-              {filteredKarya.length === 0 ? (
+              {paginatedKarya.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="p-12 text-center text-muted-foreground font-bold">
                     Tidak ada karya yang cocok dengan filter ini.
                   </td>
                 </tr>
               ) : (
-                filteredKarya.map((karya) => {
+                paginatedKarya.map((karya) => {
                   const statusCfg = STATUS_CONFIG[karya.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
 
                   const isAlreadyFinal = (karya.status === "approved" || karya.status === "rejected") && karya.ai_review_status !== "reviewed";
@@ -248,6 +257,37 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
             </tbody>
           </table>
         </div>
+
+        {/* Paginasi Controls */}
+        {totalPages > 1 && (
+          <div className="p-4 border-t-4 border-border flex items-center justify-between gap-4 bg-muted/30">
+            <p className="text-xs font-bold text-muted-foreground hidden sm:block">
+              Halaman <span className="text-foreground font-black">{currentPage}</span> dari <span className="text-foreground font-black">{totalPages}</span>
+            </p>
+            <div className="flex gap-2 w-full sm:w-auto justify-between sm:justify-end">
+              <Link
+                href={currentPage > 1 ? buildUrl(activeStatus, activeCategory, currentPage - 1) : "#"}
+                className={`px-4 py-2 rounded-xl border-2 text-xs font-black uppercase transition-all ${
+                  currentPage > 1
+                    ? "bg-card border-border hover:bg-muted text-foreground"
+                    : "bg-muted border-border/50 text-muted-foreground opacity-50 cursor-not-allowed pointer-events-none"
+                }`}
+              >
+                Sebelumnya
+              </Link>
+              <Link
+                href={currentPage < totalPages ? buildUrl(activeStatus, activeCategory, currentPage + 1) : "#"}
+                className={`px-4 py-2 rounded-xl border-2 text-xs font-black uppercase transition-all ${
+                  currentPage < totalPages
+                    ? "bg-card border-border hover:bg-muted text-foreground"
+                    : "bg-muted border-border/50 text-muted-foreground opacity-50 cursor-not-allowed pointer-events-none"
+                }`}
+              >
+                Selanjutnya
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
