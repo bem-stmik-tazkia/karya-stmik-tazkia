@@ -13,6 +13,7 @@ import {
   GraduationCap,
   Pencil,
   Check,
+  Send,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -42,13 +43,17 @@ function parseAngkatan(raw: string): AngkatanItem[] {
 }
 
 export default function AdminMasterPage() {
-  const [activeTab, setActiveTab] = useState<"prodi" | "angkatan">("prodi");
+  const [activeTab, setActiveTab] = useState<"prodi" | "angkatan" | "telegram">("prodi");
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const [prodiList, setProdiList] = useState<string[]>(DEFAULT_PRODI);
   const [angkatanList, setAngkatanList] = useState<AngkatanItem[]>(DEFAULT_ANGKATAN);
+  
+  // Telegram Settings
+  const [telegramToken, setTelegramToken] = useState("");
+  const [telegramChatId, setTelegramChatId] = useState("");
 
   // Add form: Prodi
   const [newProdi, setNewProdi] = useState("");
@@ -78,7 +83,7 @@ export default function AdminMasterPage() {
     const { data, error } = await supabase
       .from("system_settings")
       .select("key, value")
-      .in("key", ["master_prodi", "master_angkatan"]);
+      .in("key", ["master_prodi", "master_angkatan", "telegram_bot_token", "telegram_chat_id"]);
 
     if (!error && data) {
       const prodiRow = data.find((d) => d.key === "master_prodi");
@@ -89,6 +94,12 @@ export default function AdminMasterPage() {
       if (angkatanRow?.value) {
         setAngkatanList(parseAngkatan(angkatanRow.value));
       }
+      
+      const tokenRow = data.find((d) => d.key === "telegram_bot_token");
+      const chatRow = data.find((d) => d.key === "telegram_chat_id");
+      if (tokenRow?.value && tokenRow.value !== "null") setTelegramToken(tokenRow.value);
+      if (chatRow?.value && chatRow.value !== "null") setTelegramChatId(chatRow.value);
+      
     } else if (error) {
       toast.error("Gagal memuat data master.");
     }
@@ -105,6 +116,26 @@ export default function AdminMasterPage() {
     const { error } = await supabase.from("system_settings")
       .upsert({ key: "master_angkatan", value: JSON.stringify(updated) }, { onConflict: "key" });
     return error;
+  };
+  
+  const saveTelegramSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    const toastId = toast.loading("Menyimpan pengaturan Telegram...");
+    
+    const { error: err1 } = await supabase.from("system_settings").upsert(
+      { key: "telegram_bot_token", value: telegramToken.trim() || null }, { onConflict: "key" }
+    );
+    const { error: err2 } = await supabase.from("system_settings").upsert(
+      { key: "telegram_chat_id", value: telegramChatId.trim() || null }, { onConflict: "key" }
+    );
+    
+    if (err1 || err2) {
+      toast.error("Gagal menyimpan pengaturan Telegram.", { id: toastId });
+    } else {
+      toast.success("Pengaturan Telegram tersimpan! 🚀", { id: toastId });
+    }
+    setIsSubmitting(false);
   };
 
   // ---- ADD PRODI ----
@@ -254,8 +285,16 @@ export default function AdminMasterPage() {
             >
               <Calendar className="w-4 h-4" /> Angkatan ({angkatanList.length})
             </button>
+            <button
+              onClick={() => { setActiveTab("telegram"); setSearchQuery(""); setEditingProdi(null); setEditingAngkatan(null); }}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm uppercase transition-all ${activeTab === "telegram"
+                  ? "bg-blue-600 text-white border-2 border-border shadow-[3px_3px_0px_0px_var(--color-border)]"
+                  : "text-muted-foreground hover:text-foreground border-2 border-transparent"}`}
+            >
+              <Send className="w-4 h-4" /> Telegram
+            </button>
           </div>
-          <div className="relative flex-1 sm:max-w-xs">
+          <div className={`relative flex-1 sm:max-w-xs ${activeTab === "telegram" ? "hidden" : ""}`}>
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={`Cari ${activeTab === "prodi" ? "jurusan..." : "angkatan..."}`}
@@ -450,6 +489,45 @@ export default function AdminMasterPage() {
                   </motion.div>
                 ))}
               </div>
+            </div>
+          )}
+          
+          {/* ---- TELEGRAM TAB ---- */}
+          {activeTab === "telegram" && (
+            <div className="card-3d bg-card border-4 border-border rounded-3xl p-6 sm:p-8">
+              <div className="mb-6 pb-6 border-b-2 border-border flex flex-col gap-2">
+                <h2 className="text-xl font-black uppercase text-foreground">Integrasi Bot Telegram</h2>
+                <p className="text-sm font-bold text-muted-foreground">
+                  Dapatkan notifikasi otomatis saat ada mahasiswa yang mengunggah karya atau saat AI selesai melakukan review. 
+                  Pastikan Anda sudah mengklik tombol <strong>START</strong> di dalam obrolan bot Telegram Anda.
+                </p>
+              </div>
+              
+              <form onSubmit={saveTelegramSettings} className="space-y-5 max-w-xl">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black uppercase text-muted-foreground">Telegram Bot Token</label>
+                  <input type="text" value={telegramToken} onChange={(e) => setTelegramToken(e.target.value)}
+                    placeholder="mis: 123456789:ABCdefGHIjkl..." disabled={isSubmitting}
+                    className="w-full px-4 py-3 rounded-xl border-3 border-border bg-background font-bold text-sm outline-none focus:border-blue-500 transition-all disabled:opacity-50"
+                  />
+                  <p className="text-[10px] font-bold text-muted-foreground">Dapatkan dari @BotFather di Telegram.</p>
+                </div>
+                
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black uppercase text-muted-foreground">Telegram Chat ID Admin</label>
+                  <input type="text" value={telegramChatId} onChange={(e) => setTelegramChatId(e.target.value)}
+                    placeholder="mis: 987654321" disabled={isSubmitting}
+                    className="w-full px-4 py-3 rounded-xl border-3 border-border bg-background font-bold text-sm outline-none focus:border-blue-500 transition-all disabled:opacity-50"
+                  />
+                  <p className="text-[10px] font-bold text-muted-foreground">Dapatkan ID pribadi Anda dari @userinfobot.</p>
+                </div>
+                
+                <button type="submit" disabled={isSubmitting}
+                  className="w-full mt-4 flex justify-center items-center gap-2 px-5 py-3.5 rounded-xl bg-blue-600 text-white font-black text-sm border-3 border-border shadow-[3px_3px_0px_0px_var(--color-border)] hover:-translate-y-1 hover:shadow-[5px_5px_0px_0px_var(--color-border)] active:translate-y-0 active:shadow-[1px_1px_0px_0px_var(--color-border)] transition-all disabled:opacity-50">
+                  <Send className="w-4 h-4" />
+                  {isSubmitting ? "Menyimpan..." : "Simpan Pengaturan Telegram"}
+                </button>
+              </form>
             </div>
           )}
         </>

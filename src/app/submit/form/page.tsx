@@ -321,6 +321,7 @@ export default function UploadKaryaFormPage() {
           user_id: authUser.id,
           slug: dataToSubmit.title.toLowerCase().replace(/[^a-z0-9]+/g, "-") + "-" + Math.random().toString(36).substring(2, 6),
           ...dataToSave
+        });
         if (error) throw error;
         
         // Kirim Notifikasi ke Telegram Admin
