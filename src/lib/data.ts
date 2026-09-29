@@ -123,7 +123,7 @@ export async function getMahasiswaProfiles(options?: {
 }): Promise<MahasiswaProfile[]> {
   let query = supabase
     .from("mahasiswa_profiles")
-    .select("id, user_id, nim, full_name, email, prodi, angkatan, avatar_url, cover_url, bio, skills, status_badge, github_url, linkedin_url, instagram_url, website_url, is_featured, created_at, updated_at")
+    .select("id, user_id, full_name, email, contact_email, prodi, angkatan, avatar_url, cover_url, bio, skills, status_badge, github_url, linkedin_url, instagram_url, website_url, followers_count, following_count, is_featured, created_at, updated_at")
     .order("created_at", { ascending: false });
 
   if (options?.featured) {
@@ -155,7 +155,7 @@ export async function getMahasiswaById(id: string): Promise<MahasiswaProfile | n
   // Try matching by primary key `id` first
   const { data: byId, error: err1 } = await supabase
     .from("mahasiswa_profiles")
-    .select("id, user_id, nim, full_name, email, prodi, angkatan, avatar_url, cover_url, bio, skills, status_badge, github_url, linkedin_url, instagram_url, website_url, is_featured, created_at, updated_at")
+    .select("id, user_id, full_name, email, contact_email, prodi, angkatan, avatar_url, cover_url, bio, skills, status_badge, github_url, linkedin_url, instagram_url, website_url, followers_count, following_count, is_featured, created_at, updated_at")
     .eq("id", id)
     .maybeSingle();
 
@@ -167,7 +167,7 @@ export async function getMahasiswaById(id: string): Promise<MahasiswaProfile | n
   // Fallback: try matching by `user_id` column (for auth users)
   const { data: byUserId, error: err2 } = await supabase
     .from("mahasiswa_profiles")
-    .select("id, user_id, nim, full_name, email, prodi, angkatan, avatar_url, cover_url, bio, skills, status_badge, github_url, linkedin_url, instagram_url, website_url, is_featured, created_at, updated_at")
+    .select("id, user_id, full_name, email, contact_email, prodi, angkatan, avatar_url, cover_url, bio, skills, status_badge, github_url, linkedin_url, instagram_url, website_url, followers_count, following_count, is_featured, created_at, updated_at")
     .eq("user_id", id)
     .maybeSingle();
 
