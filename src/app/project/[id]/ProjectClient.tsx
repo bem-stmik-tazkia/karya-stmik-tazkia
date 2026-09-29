@@ -317,7 +317,7 @@ export default function ProjectClientPage({
     );
   }
 
-  if (!karya) return null;
+  if (!karya) notFound();
 
   const categoryLabel =
     KARYA_CATEGORIES.find((c) => c.value === karya.category)?.label ?? karya.category;
