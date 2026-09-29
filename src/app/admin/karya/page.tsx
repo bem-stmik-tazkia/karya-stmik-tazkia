@@ -202,7 +202,7 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[900px]">
+          <table className="w-full text-left border-collapse min-w-[1100px]">
             <thead className="bg-muted">
               <tr className="border-b-4 border-border text-foreground text-xs font-black uppercase">
                 <th className="p-3">Judul</th>
@@ -240,21 +240,21 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
                         <div className="font-black text-sm text-foreground line-clamp-2 leading-snug">{karya.title}</div>
                         <div className="text-[10px] text-muted-foreground font-bold line-clamp-2 mt-1">{karya.description}</div>
                       </td>
-                      <td className="p-3">
-                        <span className="bg-secondary/10 text-secondary border-2 border-secondary/30 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase">
+                      <td className="p-3 whitespace-nowrap">
+                        <span className="bg-secondary/10 text-secondary border-2 border-secondary/30 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase inline-block whitespace-nowrap">
                           {karya.category}
                         </span>
                       </td>
-                      <td className="p-3 text-center">
-                        <span className={`border-2 px-2 py-1 rounded-lg text-[10px] font-black uppercase ${statusCfg.className}`}>
+                      <td className="p-3 text-center whitespace-nowrap">
+                        <span className={`border-2 px-2 py-1 rounded-lg text-[10px] font-black uppercase inline-flex items-center gap-1 whitespace-nowrap ${statusCfg.className}`}>
                           {statusCfg.label}
                         </span>
                         {karya.status === "rejected" && karya.reject_reason && (
                           <div className="text-[9px] text-red-500 mt-1 max-w-[100px] mx-auto line-clamp-2">{karya.reject_reason}</div>
                         )}
                       </td>
-                      <td className="p-4 text-center">
-                        <span className={`border-2 px-2 py-1 rounded-lg text-[10px] font-black uppercase ${aiCfg.className}`}>
+                      <td className="p-4 text-center whitespace-nowrap">
+                        <span className={`border-2 px-2 py-1 rounded-lg text-[10px] font-black uppercase inline-flex items-center gap-1 whitespace-nowrap ${aiCfg.className}`}>
                           {aiCfg.label}
                         </span>
                       </td>
@@ -275,7 +275,7 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
                           {karya.ai_review_reason || "-"}
                         </p>
                       </td>
-                      <td className="p-3">
+                      <td className="p-3 min-w-[180px]">
                         <AdminReviewActions
                           karyaId={karya.id}
                           currentStatus={karya.status}

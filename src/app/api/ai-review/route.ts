@@ -123,7 +123,7 @@ async function reviewWithGemini(karya: any): Promise<{
             model: model,
             messages: [{ role: "user", content: prompt }],
             temperature: 0.1,
-            max_tokens: 200,
+            max_tokens: 500,
           }),
         });
 
@@ -167,7 +167,7 @@ async function reviewWithGemini(karya: any): Promise<{
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.1,
-            maxOutputTokens: 200,
+            maxOutputTokens: 500,
           },
           safetySettings: [
             { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
@@ -210,7 +210,7 @@ async function reviewWithGemini(karya: any): Promise<{
   }
 
   try {
-    // Ekstrak JSON dari teks (mengabaikan teks basa-basi model)
+    // Bersihkan karakter aneh di luar kurung kurawal
     let cleaned = rawText.replace(/```json|```/gi, "").trim();
     const startIdx = cleaned.indexOf("{");
     const endIdx = cleaned.lastIndexOf("}");
@@ -219,17 +219,22 @@ async function reviewWithGemini(karya: any): Promise<{
     }
     const parsed = JSON.parse(cleaned);
 
-    if (typeof parsed.approved !== "boolean" || typeof parsed.score !== "number") {
-      throw new Error("Format JSON tidak valid dari Gemini");
+    const isApproved = typeof parsed.approved === "boolean" 
+      ? parsed.approved 
+      : String(parsed.approved).toLowerCase() === "true";
+      
+    const parsedScore = Number(parsed.score);
+    if (isNaN(parsedScore)) {
+      throw new Error(`Skor bukan angka: ${parsed.score}`);
     }
 
     return {
-      approved: parsed.approved,
-      score: Math.min(100, Math.max(0, parsed.score)),
-      reason: parsed.reason || "",
+      approved: isApproved,
+      score: Math.min(100, Math.max(0, parsedScore)),
+      reason: parsed.reason || "Review otomatis oleh AI",
     };
-  } catch {
-    throw new Error(`Gagal parse respons Gemini: ${rawText}`);
+  } catch (e: any) {
+    throw new Error(`Gagal parse respons Gemini: ${rawText} | Error: ${e.message}`);
   }
 }
 
