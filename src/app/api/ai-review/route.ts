@@ -247,11 +247,51 @@ async function reviewWithGemini(karya: any): Promise<{
 // Main Worker Handler
 // ============================================================
 export async function POST(req: NextRequest) {
-  // Validasi secret token (keamanan: hanya Cron atau admin yang bisa panggil)
+  let isCron = false;
+  let currentUserId: string | null = null;
+
+  // Cek apakah dipanggil via Cron/Server dengan secret
   const authHeader = req.headers.get("authorization");
   const token = authHeader?.replace("Bearer ", "");
-  if (token !== CRON_SECRET) {
+  if (CRON_SECRET && token === CRON_SECRET) {
+    isCron = true;
+  } else {
+    // Cek session user (dari browser)
+    const { createClient } = await import("@/lib/supabase-server");
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      currentUserId = user.id;
+      // Cek apakah admin
+      const { data: adminRecord } = await supabaseAdmin
+        .from("admin_users")
+        .select("role")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (adminRecord) {
+        isCron = true; // Admin punya hak setara Cron untuk memproses semua
+      }
+    }
+  }
+
+  // Jika bukan cron dan bukan user valid, tolak.
+  if (!isCron && !currentUserId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Rate Limiting untuk pengguna biasa agar tidak spam worker
+  if (!isCron) {
+    const { checkRateLimit } = await import("@/utils/rateLimit");
+    const ip = req.headers.get("x-forwarded-for") || "unknown";
+    const clientId = currentUserId || ip;
+    const { success, reset } = await checkRateLimit(`ai-review-${clientId}`, 5, 60000);
+    if (!success) {
+      const retryAfter = Math.max(1, Math.ceil((reset - Date.now()) / 1000));
+      return NextResponse.json({ error: "Too many requests" }, { 
+        status: 429,
+        headers: { "Retry-After": retryAfter.toString() }
+      });
+    }
   }
 
   const results = {
@@ -265,22 +305,44 @@ export async function POST(req: NextRequest) {
   try {
     // ======================================================
     // AUTO-RECOVERY: Reset karya yang nyangkut/stuck di "processing"
-    // (misal karena server mati tiba-tiba saat mereview)
     // ======================================================
-    await supabaseAdmin.rpc("reset_stuck_processing_karya");
+    if (isCron) {
+      await supabaseAdmin.rpc("reset_stuck_processing_karya");
+    }
 
     // ======================================================
-    // MUTEX: Ambil karya pending dan kunci sekaligus
-    // Pakai RPC (stored function) supaya bisa pakai FOR UPDATE SKIP LOCKED
+    // Ambil karya pending
     // ======================================================
-    const { data: pendingKarya, error: fetchError } = await supabaseAdmin.rpc(
-      "claim_pending_karya_for_review",
-      { batch_size: BATCH_SIZE }
-    );
+    let pendingKarya: any[] = [];
+    if (isCron) {
+      // Cron mengambil semua dari antrean dengan Mutex/RPC
+      const { data, error: fetchError } = await supabaseAdmin.rpc(
+        "claim_pending_karya_for_review",
+        { batch_size: BATCH_SIZE }
+      );
+      if (fetchError) {
+        console.error("[AI Worker] Fetch error:", fetchError);
+        return NextResponse.json({ error: fetchError.message }, { status: 500 });
+      }
+      pendingKarya = data || [];
+    } else {
+      // User hanya memproses antreannya sendiri (dan kita set ke processing langsung via Update)
+      const { data, error: fetchError } = await supabaseAdmin
+        .from("karya")
+        .update({
+          ai_review_status: "processing",
+          ai_processing_started_at: new Date().toISOString()
+        })
+        .eq("ai_review_status", "pending_review")
+        .eq("user_id", currentUserId)
+        .limit(BATCH_SIZE)
+        .select();
 
-    if (fetchError) {
-      console.error("[AI Worker] Fetch error:", fetchError);
-      return NextResponse.json({ error: fetchError.message }, { status: 500 });
+      if (fetchError) {
+        console.error("[AI Worker] Fetch error:", fetchError);
+        return NextResponse.json({ error: fetchError.message }, { status: 500 });
+      }
+      pendingKarya = data || [];
     }
 
     if (!pendingKarya || pendingKarya.length === 0) {

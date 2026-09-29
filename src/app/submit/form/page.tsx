@@ -336,11 +336,9 @@ export default function UploadKaryaFormPage() {
       }
 
       // Trigger AI Worker secara asinkron (background) agar karya langsung direview
+      // Karena endpoint ini sekarang mendukung user authentication, cookie user akan dikirim otomatis
       fetch("/api/ai-review", {
         method: "POST",
-        headers: {
-          Authorization: "Bearer karya-tazkia-cron-2025"
-        }
       }).catch(err => console.error("Gagal trigger AI worker:", err));
 
       localStorage.removeItem("karya_upload_draft");

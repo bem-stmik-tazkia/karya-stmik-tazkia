@@ -30,9 +30,12 @@ export async function getKarya(options?: {
   }
 
   if (options?.search) {
-    query = query.or(
-      `title.ilike.%${options.search}%,description.ilike.%${options.search}%`
-    );
+    const safeSearch = options.search.replace(/[^\p{L}\p{N} \-]/gu, "").substring(0, 100);
+    if (safeSearch.trim()) {
+      query = query.or(
+        `title.ilike.%${safeSearch}%,description.ilike.%${safeSearch}%`
+      );
+    }
   }
 
   const { data, error } = await query;

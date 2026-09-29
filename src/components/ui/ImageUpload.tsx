@@ -6,6 +6,8 @@ import { createBrowserClient } from "@supabase/ssr";
 import { compressImage } from "@/lib/imageCompression";
 import toast from "react-hot-toast";
 
+import { useAuth } from "@/components/providers/AuthProvider";
+
 interface ImageUploadProps {
   value?: string;
   onChange: (url: string) => void;
@@ -13,6 +15,7 @@ interface ImageUploadProps {
 }
 
 export default function ImageUpload({ value, onChange, className = "" }: ImageUploadProps) {
+  const { user } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,9 +48,9 @@ export default function ImageUpload({ value, onChange, className = "" }: ImageUp
       const toastId = toast.loading("Mengunggah foto...");
 
       const compressedFile = await compressImage(file, 1, 1920);
-      const fileExt = compressedFile.name.split(".").pop();
-      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
-      const filePath = `karya/${fileName}`;
+      const fileExt = file.name.split(".").pop() || "jpg";
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `${user?.id || "guest"}/${fileName}`;
 
       const { data, error: uploadError } = await supabase.storage
         .from("public_images")

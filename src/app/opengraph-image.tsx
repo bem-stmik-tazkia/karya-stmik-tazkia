@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 export const alt = "Karya STMIK Tazkia - Galeri Inovasi Mahasiswa";
 export const size = {

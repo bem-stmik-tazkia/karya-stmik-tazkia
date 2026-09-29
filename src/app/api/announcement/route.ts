@@ -41,8 +41,35 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const body = await request.json();
-  const { active, message, version } = body;
+  const { checkRateLimit } = await import("@/utils/rateLimit");
+  const { success, reset } = await checkRateLimit(`announcement-${user.id}`, 10, 60000);
+  if (!success) {
+    const retryAfter = Math.max(1, Math.ceil((reset - Date.now()) / 1000));
+    return NextResponse.json({ error: "Too many requests" }, { 
+      status: 429,
+      headers: { "Retry-After": retryAfter.toString() }
+    });
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const { z } = await import("zod");
+  const schema = z.object({
+    active: z.boolean().optional(),
+    message: z.string().max(500).optional(),
+    version: z.string().max(50).optional(),
+  });
+
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid payload", details: parsed.error.issues }, { status: 400 });
+  }
+  const { active, message, version } = parsed.data;
 
   const updates = [];
   if (active !== undefined) {

@@ -2,7 +2,18 @@ import { NextResponse } from "next/server";
 
 // POST /api/maintenance/bypass
 // Dipanggil setelah Konami code diinput di halaman maintenance.
-export async function POST() {
+export async function POST(req: Request) {
+  const ip = req.headers.get("x-forwarded-for") || "unknown";
+  const { checkRateLimit } = await import("@/utils/rateLimit");
+  const { success, reset } = await checkRateLimit(`bypass-${ip}`, 5, 60000);
+  if (!success) {
+    const retryAfter = Math.max(1, Math.ceil((reset - Date.now()) / 1000));
+    return NextResponse.json({ error: "Too many requests" }, { 
+      status: 429,
+      headers: { "Retry-After": retryAfter.toString() }
+    });
+  }
+
   const secret = process.env.MAINTENANCE_BYPASS_SECRET;
 
   if (!secret) {

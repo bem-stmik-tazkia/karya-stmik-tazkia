@@ -82,11 +82,17 @@ export default function FeedPage() {
 
     const timeout = setTimeout(async () => {
       setSearchLoading(true);
+      const safeQuery = searchQuery.replace(/[^\p{L}\p{N} \-]/gu, "").substring(0, 100);
+      if (!safeQuery.trim()) {
+        setSearchResults([]);
+        setSearchLoading(false);
+        return;
+      }
       const { data: profiles } = await supabase
         .from("mahasiswa_profiles")
         .select("user_id, full_name, avatar_url, prodi")
         .neq("user_id", user?.id || "00000000-0000-0000-0000-000000000000")
-        .or(`full_name.ilike.%${searchQuery}%,prodi.ilike.%${searchQuery}%`)
+        .or(`full_name.ilike.%${safeQuery}%,prodi.ilike.%${safeQuery}%`)
         .limit(20);
 
       if (profiles && profiles.length > 0) {

@@ -101,10 +101,7 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
 
       // Trigger worker AI secara asinkron di background (fire and forget)
       fetch("/api/ai-review", {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer karya-tazkia-cron-2025" // Sesuaikan dengan CRON_SECRET di env
-        }
+        method: "POST"
       }).catch(err => console.error("Gagal trigger AI worker:", err));
     }
   };

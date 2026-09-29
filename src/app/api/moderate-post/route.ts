@@ -292,15 +292,26 @@ export async function POST(req: NextRequest) {
     windowExpired = true;
   }
 
-  // ── 3. Parse body request ──
-  let body: { content?: string; type?: string; tags?: string[] };
+  let body;
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Body tidak valid" }, { status: 400 });
   }
 
-  const { content, type = "update", tags = [] } = body;
+  const { z } = await import("zod");
+  const schema = z.object({
+    content: z.string().min(20).max(5000),
+    type: z.string().max(50).default("update"),
+    tags: z.array(z.string().max(30)).max(20).default([]),
+  });
+
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid payload", details: parsed.error.issues }, { status: 400 });
+  }
+
+  const { content, type, tags } = parsed.data;
   const MIN_CONTENT_LENGTH = 20;
 
   if (!content?.trim()) {

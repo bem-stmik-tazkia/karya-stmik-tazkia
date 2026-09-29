@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
   const token = authHeader?.replace("Bearer ", "");
 
   // Cek apakah pakai CRON_SECRET (server-to-server)
-  const isCronCall = token === CRON_SECRET;
+  const isCronCall = !!CRON_SECRET && token === CRON_SECRET;
 
   if (!isCronCall) {
     // Cek via Supabase user auth
