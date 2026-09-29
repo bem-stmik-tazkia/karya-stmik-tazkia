@@ -52,7 +52,7 @@ export async function getKarya(options?: {
 export async function getKaryaById(id: string): Promise<Karya | null> {
   const { data, error } = await supabase
     .from("karya")
-    .select("id, user_id, title, slug, category, description, image_url, tech_stack, views, likes, created_at, team, github_url, demo_url, drive_url, figma_url, youtube_url")
+    .select("id, user_id, title, slug, category, description, image_url, tech_stack, views, likes, created_at, team, github_url, live_url, video_url, gallery, features")
     .eq("id", id)
     .eq("status", "approved")
     .single();
