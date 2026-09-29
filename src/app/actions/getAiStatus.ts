@@ -131,15 +131,18 @@ export async function getAiStatus(): Promise<AiStatusResult> {
     supabaseAdmin
       .from("karya")
       .select("id", { count: "exact", head: true })
-      .eq("ai_review_status", "pending_review"),
-    supabaseAdmin
-      .from("karya")
-      .select("id", { count: "exact", head: true })
-      .eq("ai_review_status", "processing"),
+      .eq("ai_review_status", "pending_review")
+      .eq("status", "pending"),
     supabaseAdmin
       .from("karya")
       .select("id", { count: "exact", head: true })
       .eq("ai_review_status", "processing")
+      .eq("status", "pending"),
+    supabaseAdmin
+      .from("karya")
+      .select("id", { count: "exact", head: true })
+      .eq("ai_review_status", "processing")
+      .eq("status", "pending")
       .lt("ai_processing_started_at", tenMinutesAgo),
   ]);
 
