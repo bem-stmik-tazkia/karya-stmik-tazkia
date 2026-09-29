@@ -321,8 +321,17 @@ export default function UploadKaryaFormPage() {
           user_id: authUser.id,
           slug: dataToSubmit.title.toLowerCase().replace(/[^a-z0-9]+/g, "-") + "-" + Math.random().toString(36).substring(2, 6),
           ...dataToSave
-        });
         if (error) throw error;
+        
+        // Kirim Notifikasi ke Telegram Admin
+        fetch("/api/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "submission",
+            message: `Mahasiswa baru saja mengunggah karya baru!\n\n📌 <b>Judul:</b> ${dataToSubmit.title}\n📁 <b>Kategori:</b> ${dataToSubmit.category}\n\nKarya ini sedang masuk ke antrean AI untuk di-review otomatis.`
+          })
+        }).catch(() => {});
       }
 
       // Trigger AI Worker secara asinkron (background) agar karya langsung direview

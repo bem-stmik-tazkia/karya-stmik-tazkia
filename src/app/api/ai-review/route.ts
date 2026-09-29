@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { sendTelegramNotification } from "@/lib/telegram";
 
 // ============================================================
 // Gunakan Service Role Key biar bisa update tanpa RLS
@@ -323,8 +324,11 @@ export async function POST(req: NextRequest) {
           if (review.approved) results.approved++;
           else results.rejected++;
 
-          console.log(
-            `[AI Worker] ✅ Karya "${karya.title}" → ${newStatus} (score: ${review.score})`
+          const consoleMsg = `[AI Worker] ✅ Karya "${karya.title}" → ${newStatus} (score: ${review.score})`;
+          console.log(consoleMsg);
+          
+          await sendTelegramNotification(
+            `🤖 <b>Review AI Selesai</b>\n\n📌 <b>Judul:</b> ${karya.title}\n📊 <b>Kategori:</b> ${karya.category}\n\n✅ <b>Keputusan:</b> ${review.approved ? 'DITERIMA (Publik)' : 'DITOLAK'}\n⭐ <b>Skor:</b> ${review.score}/100\n💬 <b>Alasan:</b>\n<i>${review.reason}</i>`
           );
         }
       } catch (err: any) {
@@ -371,6 +375,10 @@ export async function POST(req: NextRequest) {
             ai_processing_started_at: null,
           })
           .eq("id", karya.id);
+          
+        await sendTelegramNotification(
+          `⚠️ <b>Gagal Diperiksa AI</b>\n\n📌 <b>Judul:</b> ${karya.title}\n\n🚨 <b>Penyebab:</b>\n${adminReason}`
+        );
       }
 
       // Jeda antar request ke Gemini (aman dari rate limit)
