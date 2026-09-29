@@ -22,7 +22,6 @@ import { checkIsFollowingBulk, toggleFollow } from "@/lib/followService";
 function toStudent(m: MahasiswaProfile): Student {
   return {
     id: m.id,
-    nim: m.nim ?? "",
     name: m.full_name,
     angkatan: m.angkatan,
     prodi: m.prodi,
@@ -128,7 +127,6 @@ function StudentShowcaseContent() {
       if (searchQuery.trim() !== "") {
         const query = searchQuery.toLowerCase();
         const matchesName = student.name.toLowerCase().includes(query);
-        const matchesNIM = student.nim.toLowerCase().includes(query);
         const matchesBio = student.bio.toLowerCase().includes(query);
         const matchesSkills = student.skills?.some((sk) => sk.toLowerCase().includes(query));
 
@@ -139,7 +137,7 @@ function StudentShowcaseContent() {
             (p.tech_stack ?? []).some((t) => t.toLowerCase().includes(query))
         );
 
-        return matchesName || matchesNIM || matchesBio || matchesSkills || matchesProject;
+        return matchesName || matchesBio || matchesSkills || matchesProject;
       }
 
 

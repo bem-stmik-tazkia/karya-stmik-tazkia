@@ -16,7 +16,6 @@ export type FeedPost = {
 // Local student type (dipakai di Feed, bukan dari Supabase)
 export type Student = {
   id: string;
-  nim: string;
   name: string;
   angkatan: number;
   prodi: "Teknik Informatika" | "Sistem Informasi" | "Bisnis Digital" | string;
@@ -43,7 +42,6 @@ export type Student = {
 export const students: Student[] = [
   {
     id: "stu-1",
-    nim: "2021001",
     name: "Fathan Abdillah",
     angkatan: 2022,
     prodi: "Teknik Informatika",
@@ -57,7 +55,6 @@ export const students: Student[] = [
   },
   {
     id: "stu-2",
-    nim: "2022015",
     name: "Siti Aisha Rahma",
     angkatan: 2023,
     prodi: "Sistem Informasi",
@@ -71,7 +68,6 @@ export const students: Student[] = [
   },
   {
     id: "stu-3",
-    nim: "2023042",
     name: "Muhammad Rizky",
     angkatan: 2023,
     prodi: "Teknik Informatika",
@@ -85,7 +81,6 @@ export const students: Student[] = [
   },
   {
     id: "stu-4",
-    nim: "2024008",
     name: "Nabilah Putri",
     angkatan: 2024,
     prodi: "Bisnis Digital",
