@@ -4,7 +4,13 @@ import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { FiMonitor, FiSmartphone, FiBookOpen, FiCpu, FiGrid, FiArrowRight, FiX } from "react-icons/fi";
+import dynamic from "next/dynamic";
 import { useAuth } from "@/components/providers/AuthProvider";
+
+const DotLottieReact = dynamic(
+  () => import("@lottiefiles/dotlottie-react").then((mod) => mod.DotLottieReact),
+  { ssr: false, loading: () => <div className="w-full h-full opacity-0" /> }
+);
 
 const KATEGORI_KARYA = [
   {
@@ -17,6 +23,7 @@ const KATEGORI_KARYA = [
     bgAccent: "bg-blue-500/10",
     iconColor: "text-blue-500",
     badge: "🌐 Web",
+    lottie: "/animations/Developer.lottie",
   },
   {
     id: "Programming",
@@ -28,6 +35,7 @@ const KATEGORI_KARYA = [
     bgAccent: "bg-green-500/10",
     iconColor: "text-green-500",
     badge: "📱 Mobile",
+    lottie: "/animations/mobile.lottie",
   },
   {
     id: "Research",
@@ -39,6 +47,7 @@ const KATEGORI_KARYA = [
     bgAccent: "bg-orange-500/10",
     iconColor: "text-orange-500",
     badge: "📄 Riset",
+    lottie: "/animations/Learning.lottie",
   },
   {
     id: "IoT",
@@ -50,6 +59,7 @@ const KATEGORI_KARYA = [
     bgAccent: "bg-purple-500/10",
     iconColor: "text-purple-500",
     badge: "⚡ IoT",
+    lottie: "/animations/robot.lottie",
   },
   {
     id: "Multimedia",
@@ -61,6 +71,8 @@ const KATEGORI_KARYA = [
     bgAccent: "bg-pink-500/10",
     iconColor: "text-pink-500",
     badge: "🎨 Kreatif",
+    lottie: "/animations/kalkun.lottie",
+    lottieScale: 1.1,
   },
 ];
 
@@ -161,6 +173,21 @@ export default function SubmitPage() {
                   <div
                     className={`absolute inset-0 bg-gradient-to-br ${item.gradient} transition-opacity duration-200 ${isHovered ? "opacity-100" : "opacity-0"}`}
                   />
+
+                  {/* Lottie Animation (Absolute right edge) */}
+                  <div 
+                    className={`absolute -right-6 -bottom-6 w-32 h-32 opacity-0 transition-all duration-300 transform ${isHovered ? "opacity-30 -translate-y-2 -translate-x-2" : ""}`}
+                    style={item.lottieScale ? { transform: `scale(${item.lottieScale})` } : undefined}
+                  >
+                    {isHovered && (
+                      <DotLottieReact
+                        src={item.lottie}
+                        loop
+                        autoplay
+                        renderConfig={{ devicePixelRatio: 2 }}
+                      />
+                    )}
+                  </div>
 
                   {/* Content */}
                   <div className="relative z-10">
