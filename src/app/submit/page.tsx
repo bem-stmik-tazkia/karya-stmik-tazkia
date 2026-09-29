@@ -22,7 +22,7 @@ const KATEGORI_KARYA = [
     borderColor: "#3b82f6",
     bgAccent: "bg-blue-500/10",
     iconColor: "text-blue-500",
-    badge: "🌐 Web",
+    badge: "Web",
     lottie: "/animations/Developer.lottie",
   },
   {
@@ -34,7 +34,7 @@ const KATEGORI_KARYA = [
     borderColor: "#22c55e",
     bgAccent: "bg-green-500/10",
     iconColor: "text-green-500",
-    badge: "📱 Mobile",
+    badge: "Mobile",
     lottie: "/animations/mobile.lottie",
   },
   {
@@ -46,7 +46,7 @@ const KATEGORI_KARYA = [
     borderColor: "#f97316",
     bgAccent: "bg-orange-500/10",
     iconColor: "text-orange-500",
-    badge: "📄 Riset",
+    badge: "Riset",
     lottie: "/animations/Learning.lottie",
   },
   {
@@ -58,7 +58,7 @@ const KATEGORI_KARYA = [
     borderColor: "#a855f7",
     bgAccent: "bg-purple-500/10",
     iconColor: "text-purple-500",
-    badge: "⚡ IoT",
+    badge: "IoT",
     lottie: "/animations/robot.lottie",
   },
   {
@@ -70,7 +70,7 @@ const KATEGORI_KARYA = [
     borderColor: "#ec4899",
     bgAccent: "bg-pink-500/10",
     iconColor: "text-pink-500",
-    badge: "🎨 Kreatif",
+    badge: "Kreatif",
     lottie: "/animations/kalkun.lottie",
     lottieScale: 1.1,
   },
