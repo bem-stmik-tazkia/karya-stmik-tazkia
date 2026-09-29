@@ -40,7 +40,6 @@ export type Karya = {
 export type MahasiswaProfile = {
   id: string;
   user_id?: string | null;
-  nim?: string | null;
   full_name: string;
   email: string;
   angkatan: number;
