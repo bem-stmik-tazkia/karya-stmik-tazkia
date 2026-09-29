@@ -8,15 +8,15 @@ import Link from "next/link";
 export const revalidate = 0;
 
 const STATUS_CONFIG = {
-  approved: { label: "✅ Publik", className: "bg-green-100 text-green-700 border-green-700" },
-  rejected: { label: "❌ Ditolak", className: "bg-red-100 text-red-700 border-red-700" },
-  pending: { label: "⏳ Menunggu", className: "bg-yellow-100 text-yellow-800 border-yellow-700" },
+  approved: { label: "✅ Publik", className: "bg-green-100 text-green-800 border-green-800 shadow-[2px_2px_0px_#166534]" },
+  rejected: { label: "❌ Ditolak", className: "bg-red-100 text-red-800 border-red-800 shadow-[2px_2px_0px_#991b1b]" },
+  pending: { label: "⏳ Menunggu", className: "bg-yellow-100 text-yellow-800 border-yellow-800 shadow-[2px_2px_0px_#854d0e]" },
 };
 
 const AI_STATUS_CONFIG = {
-  processing: { label: "🤖 Sedang Diperiksa", className: "bg-blue-100 text-blue-700 border-blue-500 animate-pulse" },
-  pending_review: { label: "🕐 Dalam Antrean", className: "bg-gray-100 text-gray-600 border-gray-400" },
-  reviewed: { label: "✔️ Sudah Diperiksa", className: "bg-green-50 text-green-600 border-green-400" },
+  processing: { label: "🤖 Sedang Diperiksa", className: "bg-blue-100 text-blue-800 border-blue-800 shadow-[2px_2px_0px_#1e40af] animate-pulse" },
+  pending_review: { label: "🕐 Dalam Antrean", className: "bg-gray-100 text-gray-700 border-gray-700 shadow-[2px_2px_0px_#374151]" },
+  reviewed: { label: "✔️ Selesai", className: "bg-green-50 text-green-800 border-green-800 shadow-[2px_2px_0px_#166534]" },
 };
 
 interface PageProps {
@@ -194,9 +194,9 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
 
                   return (
                     <tr key={karya.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="p-3 max-w-[200px]">
-                        <div className="font-black text-sm text-foreground line-clamp-1">{karya.title}</div>
-                        <div className="text-[10px] text-muted-foreground font-bold line-clamp-1">{karya.description}</div>
+                      <td className="p-4 max-w-[250px]">
+                        <div className="font-black text-sm text-foreground line-clamp-2 leading-snug">{karya.title}</div>
+                        <div className="text-[10px] text-muted-foreground font-bold line-clamp-2 mt-1">{karya.description}</div>
                       </td>
                       <td className="p-3">
                         <span className="bg-secondary/10 text-secondary border-2 border-secondary/30 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase">
@@ -211,7 +211,7 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
                           <div className="text-[9px] text-red-500 mt-1 max-w-[100px] mx-auto line-clamp-2">{karya.reject_reason}</div>
                         )}
                       </td>
-                      <td className="p-3 text-center">
+                      <td className="p-4 text-center">
                         <span className={`border-2 px-2 py-1 rounded-lg text-[10px] font-black uppercase ${aiCfg.className}`}>
                           {aiCfg.label}
                         </span>

@@ -132,8 +132,8 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-2 justify-center flex-wrap">
+    <div className="flex flex-col gap-2 min-w-[140px]">
+      <div className="flex items-center gap-1.5 justify-center">
         {/* Tombol Lihat Detail */}
         {karyaObj && (
           <button
