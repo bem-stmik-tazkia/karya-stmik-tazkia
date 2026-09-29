@@ -39,9 +39,17 @@ export function Footer() {
                 </span>
               </span>
             </Link>
-            <p className="text-sm font-bold text-muted-foreground leading-relaxed">
+            <p className="text-sm font-bold text-muted-foreground leading-relaxed mb-4">
               Galeri portofolio digital mahasiswa STMIK Tazkia. Tempat kreativitas, riset, dan inovasi bertemu.
             </p>
+            <a 
+              href="https://bem.stmik.tazkia.ac.id" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-100 text-blue-800 border-2 border-blue-800 text-[11px] font-black shadow-[2px_2px_0px_#1e40af] hover:-translate-y-0.5 active:translate-y-0 transition-all w-fit"
+            >
+              🌐 Kunjungi Web Utama BEM
+            </a>
           </div>
           <div>
             <h3 className="font-black text-lg uppercase mb-4 text-foreground">Jelajahi</h3>
