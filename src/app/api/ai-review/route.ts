@@ -124,7 +124,6 @@ async function reviewWithGemini(karya: any): Promise<{
             messages: [{ role: "user", content: prompt }],
             temperature: 0.1,
             max_tokens: 300,
-            response_format: { type: "json_object" },
           }),
         });
 
@@ -169,7 +168,6 @@ async function reviewWithGemini(karya: any): Promise<{
           generationConfig: {
             temperature: 0.1,
             maxOutputTokens: 300,
-            responseMimeType: "application/json",
           },
           safetySettings: [
             { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
@@ -208,7 +206,7 @@ async function reviewWithGemini(karya: any): Promise<{
   }
 
   if (!rawText) {
-    throw new Error("Gemini tidak mengembalikan teks");
+    throw new Error(`AI tidak mengembalikan teks. Full Response: ${JSON.stringify(data)}`);
   }
 
   try {
@@ -356,8 +354,8 @@ export async function POST(req: NextRequest) {
           adminReason = `Perlu Review Manual: Format AI rusak. Detail: ${errorMsg}`;
         } else if (errorMsg.includes("Gemini API error 5")) {
           adminReason = "Perlu Review Manual: Server Google Gemini sedang mengalami gangguan/down.";
-        } else if (errorMsg.includes("tidak mengembalikan teks")) {
-          adminReason = "Perlu Review Manual: AI menolak menjawab (kemungkinan karya memicu filter keamanan Google).";
+        } else if (errorMsg.includes("AI tidak mengembalikan teks")) {
+          adminReason = `Perlu Review Manual: AI mengembalikan respons kosong. Detail: ${errorMsg}`;
         }
         
         // Error lain (koneksi, format, dll.) — catat tapi lanjut ke karya berikutnya
