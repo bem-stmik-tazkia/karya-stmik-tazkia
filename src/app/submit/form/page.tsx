@@ -325,12 +325,13 @@ export default function UploadKaryaFormPage() {
         if (error) throw error;
         
         // Kirim Notifikasi ke Telegram Admin
+        const escapeHtml = (unsafe: string) => (unsafe || "").toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         fetch("/api/notify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             type: "submission",
-            message: `Mahasiswa baru saja mengunggah karya baru!\n\n📌 <b>Judul:</b> ${dataToSubmit.title}\n📁 <b>Kategori:</b> ${dataToSubmit.category}\n\nKarya ini sedang masuk ke antrean AI untuk di-review otomatis.`
+            message: `Mahasiswa baru saja mengunggah karya baru!\n\n📌 <b>Judul:</b> ${escapeHtml(dataToSubmit.title)}\n📁 <b>Kategori:</b> ${escapeHtml(dataToSubmit.category)}\n\nKarya ini sedang masuk ke antrean AI untuk di-review otomatis.`
           })
         }).catch(() => {});
       }

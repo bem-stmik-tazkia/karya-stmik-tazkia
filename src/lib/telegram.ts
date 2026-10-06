@@ -48,3 +48,12 @@ export const sendTelegramNotification = async (message: string) => {
     console.error("Telegram error:", error);
   }
 };
+
+export const escapeHtml = (unsafe: string) => {
+  return (unsafe || "").toString()
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};

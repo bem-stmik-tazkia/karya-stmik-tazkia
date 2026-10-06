@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { sendTelegramNotification } from "@/lib/telegram";
+import { sendTelegramNotification, escapeHtml } from "@/lib/telegram";
 
 // ============================================================
 // Gunakan Service Role Key biar bisa update tanpa RLS
@@ -198,6 +198,21 @@ async function reviewWithGemini(karya: any): Promise<{
 
   const data = await response.json();
 
+  if (data?.error) {
+    const errMsg = data.error.message || "";
+    if (
+      errMsg.toLowerCase().includes("overloaded") ||
+      errMsg.toLowerCase().includes("rate limit") ||
+      data.error.code === 429 ||
+      data.error.code === 529 ||
+      data.error.code === 503 ||
+      data.error.code === 502
+    ) {
+      throw new Error("RATE_LIMIT");
+    }
+    throw new Error(`AI API error payload: ${JSON.stringify(data.error)}`);
+  }
+
   // Parse response — format berbeda antara OpenRouter & Gemini langsung
   let rawText: string;
   if (OPENROUTER_API_KEY) {
@@ -389,8 +404,9 @@ export async function POST(req: NextRequest) {
           const consoleMsg = `[AI Worker] ✅ Karya "${karya.title}" → ${newStatus} (score: ${review.score})`;
           console.log(consoleMsg);
           
+          const truncatedReason = review.reason.length > 1000 ? review.reason.substring(0, 1000) + "..." : review.reason;
           await sendTelegramNotification(
-            `🤖 <b>Review AI Selesai</b>\n\n📌 <b>Judul:</b> ${karya.title}\n📊 <b>Kategori:</b> ${karya.category}\n\n✅ <b>Keputusan:</b> ${review.approved ? 'DITERIMA (Publik)' : 'DITOLAK'}\n⭐ <b>Skor:</b> ${review.score}/100\n💬 <b>Alasan:</b>\n<i>${review.reason}</i>`
+            `🤖 <b>Review AI Selesai</b>\n\n📌 <b>Judul:</b> ${escapeHtml(karya.title)}\n📊 <b>Kategori:</b> ${escapeHtml(karya.category)}\n\n✅ <b>Keputusan:</b> ${review.approved ? 'DITERIMA (Publik)' : 'DITOLAK'}\n⭐ <b>Skor:</b> ${review.score}/100\n💬 <b>Alasan:</b>\n<i>${escapeHtml(truncatedReason)}</i>`
           );
         }
       } catch (err: any) {
@@ -438,8 +454,9 @@ export async function POST(req: NextRequest) {
           })
           .eq("id", karya.id);
           
+        const truncatedReason = adminReason.length > 1000 ? adminReason.substring(0, 1000) + "..." : adminReason;
         await sendTelegramNotification(
-          `⚠️ <b>Gagal Diperiksa AI</b>\n\n📌 <b>Judul:</b> ${karya.title}\n\n🚨 <b>Penyebab:</b>\n${adminReason}`
+          `⚠️ <b>Gagal Diperiksa AI</b>\n\n📌 <b>Judul:</b> ${escapeHtml(karya.title)}\n\n🚨 <b>Penyebab:</b>\n${escapeHtml(truncatedReason)}`
         );
       }
 
