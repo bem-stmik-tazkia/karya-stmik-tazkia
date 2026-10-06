@@ -9,12 +9,19 @@ import { KARYA_CATEGORIES } from "@/types/karya";
 
 export const revalidate = 0;
 
-function StatusBadge({ status, aiStatus, rejectReason }: { status: string; aiStatus?: string; rejectReason?: string }) {
+function StatusBadge({ status, aiStatus, rejectReason, pendingEdits }: { status: string; aiStatus?: string; rejectReason?: string; pendingEdits?: any }) {
   if (status === "approved") {
     return (
-      <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 border-2 border-green-700 dark:bg-green-900/30 dark:text-green-400 dark:border-green-600 px-2.5 py-1 rounded-xl text-[10px] font-black uppercase shadow-[2px_2px_0px_#15803d] dark:shadow-none">
-        <CheckCircle2 className="w-3 h-3" /> Publik
-      </span>
+      <div className="flex flex-col gap-1 items-start">
+        <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 border-2 border-green-700 dark:bg-green-900/30 dark:text-green-400 dark:border-green-600 px-2.5 py-1 rounded-xl text-[10px] font-black uppercase shadow-[2px_2px_0px_#15803d] dark:shadow-none">
+          <CheckCircle2 className="w-3 h-3" /> Publik
+        </span>
+        {pendingEdits && (
+          <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 border-2 border-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-600 px-2.5 py-0.5 rounded-xl text-[9px] font-black uppercase shadow-[2px_2px_0px_#854d0e] dark:shadow-none">
+            <Clock className="w-2.5 h-2.5" /> Edit Menunggu Review
+          </span>
+        )}
+      </div>
     );
   }
   if (status === "rejected") {
@@ -134,7 +141,7 @@ export default async function ProjectsListPage() {
                         {formatDate(karya.created_at)}
                       </td>
                       <td className="p-4 align-middle text-center">
-                        <StatusBadge status={karya.status} aiStatus={karya.ai_review_status} rejectReason={karya.reject_reason} />
+                        <StatusBadge status={karya.status} aiStatus={karya.ai_review_status} rejectReason={karya.reject_reason} pendingEdits={karya.pending_edits} />
                       </td>
                       <td className="p-4 align-middle">
                         <ProjectActions
@@ -165,7 +172,7 @@ export default async function ProjectsListPage() {
                       <p className="text-xs text-muted-foreground font-medium mt-0.5 line-clamp-2">{karya.description}</p>
                     )}
                   </div>
-                  <StatusBadge status={karya.status} aiStatus={karya.ai_review_status} rejectReason={karya.reject_reason} />
+                  <StatusBadge status={karya.status} aiStatus={karya.ai_review_status} rejectReason={karya.reject_reason} pendingEdits={karya.pending_edits} />
                 </div>
 
                 {/* Meta row */}

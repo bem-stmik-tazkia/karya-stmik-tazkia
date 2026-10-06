@@ -237,7 +237,14 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
                   return (
                     <tr key={karya.id} className="hover:bg-muted/30 transition-colors">
                       <td className="p-4 max-w-[250px]">
-                        <div className="font-black text-sm text-foreground line-clamp-2 leading-snug">{karya.title}</div>
+                        <div className="font-black text-sm text-foreground line-clamp-2 leading-snug">
+                          {karya.title}
+                          {karya.pending_edits ? (
+                            <span className="ml-2 inline-block bg-yellow-100 text-yellow-800 border border-yellow-300 text-[9px] px-1.5 py-0.5 rounded-md uppercase font-black align-middle">EDIT</span>
+                          ) : karya.status === 'pending' ? (
+                            <span className="ml-2 inline-block bg-blue-100 text-blue-800 border border-blue-300 text-[9px] px-1.5 py-0.5 rounded-md uppercase font-black align-middle">BARU</span>
+                          ) : null}
+                        </div>
                         <div className="text-[10px] text-muted-foreground font-bold line-clamp-2 mt-1">{karya.description}</div>
                       </td>
                       <td className="p-3 whitespace-nowrap">
