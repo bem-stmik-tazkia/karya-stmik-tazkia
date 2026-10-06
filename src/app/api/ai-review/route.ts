@@ -422,14 +422,19 @@ export async function POST(req: NextRequest) {
         if (errorMsg === "RATE_LIMIT") {
           // Semua model kena limit! Kembalikan ke pending
           console.warn("[AI Worker] ⚠️ Semua model AI terkena limit, berhenti dan akan coba lagi nanti.");
+          const reasonLimit = "Semua server AI sedang sibuk (akan dicoba lagi otomatis).";
           await supabaseAdmin
             .from("karya")
             .update({
               ai_review_status: "pending_review",
-              ai_review_reason: "Semua server AI sedang sibuk (akan dicoba lagi otomatis).",
+              ai_review_reason: reasonLimit,
               ai_processing_started_at: null,
             })
             .eq("id", karya.id);
+
+          await sendTelegramNotification(
+            `⏳ <b>AI Sedang Sibuk / Limit</b>\n\n📌 <b>Judul:</b> ${escapeHtml(karya.title)}\n\nKarya dikembalikan ke antrean dan akan diperiksa lagi secara otomatis nanti.`
+          );
 
           results.skipped_rate_limit = true;
           break; // Hentikan loop, sisa karya akan diproses di run berikutnya
