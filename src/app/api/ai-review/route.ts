@@ -378,28 +378,48 @@ export async function POST(req: NextRequest) {
     // ======================================================
     for (const karya of pendingKarya) {
       try {
-        const review = await reviewWithGemini(karya);
+        const isEditRevision = karya.status === "approved" && karya.pending_edits !== null && karya.pending_edits !== undefined;
+        const dataToReview = isEditRevision ? { ...karya, ...karya.pending_edits } : karya;
+
+        const review = await reviewWithGemini(dataToReview);
 
         if (!review) continue;
 
         const newStatus = review.approved ? "approved" : "rejected";
 
-        // Update status karya di DB
-        // KUNCI: Kita tambahkan .eq("status", "pending") 
-        // untuk memastikan kita TIDAK MENIMPA keputusan admin jika admin kebetulan 
-        // menyetujui/menolak karya ini secara manual ketika AI sedang berpikir.
-        const { error: updateError } = await supabaseAdmin
-          .from("karya")
-          .update({
-            status: newStatus,
-            reject_reason: review.approved ? null : review.reason,
-            ai_review_status: "reviewed",
-            ai_review_score: review.score,
-            ai_review_reason: review.reason,
-            ai_reviewed_at: new Date().toISOString(),
-          })
-          .eq("id", karya.id)
-          .eq("status", "pending");
+        let updatePayload: any = {
+          ai_review_status: "reviewed",
+          ai_review_score: review.score,
+          ai_review_reason: review.reason,
+          ai_reviewed_at: new Date().toISOString(),
+        };
+
+        if (isEditRevision) {
+          if (review.approved) {
+            // Auto-merge the edit
+            updatePayload = {
+              ...updatePayload,
+              ...karya.pending_edits,
+              pending_edits: null,
+            };
+          } else {
+            // Edit rejected by AI. Keep the post "approved" but discard the edits
+            updatePayload = {
+              ...updatePayload,
+              pending_edits: null,
+            };
+          }
+        } else {
+          updatePayload.status = newStatus;
+          updatePayload.reject_reason = review.approved ? null : review.reason;
+        }
+
+        let query = supabaseAdmin.from("karya").update(updatePayload).eq("id", karya.id);
+        if (!isEditRevision) {
+          query = query.eq("status", "pending");
+        }
+
+        const { error: updateError } = await query;
 
         if (updateError) {
           results.errors.push(`Karya ${karya.id}: ${updateError.message}`);

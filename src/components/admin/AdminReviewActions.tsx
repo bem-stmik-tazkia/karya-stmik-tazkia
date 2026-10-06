@@ -29,21 +29,31 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
 
   const handleApprove = () => {
     startTransition(async () => {
+      let updatePayload: any = {
+        status: "approved",
+        reject_reason: null,
+        ai_review_status: "reviewed",
+        ai_review_reason: "Disetujui manual oleh admin.",
+        ai_reviewed_at: new Date().toISOString(),
+      };
+
+      if (karyaObj?.pending_edits) {
+        updatePayload = {
+          ...updatePayload,
+          ...karyaObj.pending_edits,
+          pending_edits: null,
+        };
+      }
+
       const { error } = await supabase
         .from("karya")
-        .update({
-          status: "approved",
-          reject_reason: null,
-          ai_review_status: "reviewed",
-          ai_review_reason: "Disetujui manual oleh admin.",
-          ai_reviewed_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq("id", karyaId);
 
       if (error) {
         toast.error("Gagal menyetujui karya: " + error.message);
       } else {
-        toast.success("✅ Karya berhasil disetujui!");
+        toast.success(karyaObj?.pending_edits ? "✅ Perubahan berhasil disetujui!" : "✅ Karya berhasil disetujui!");
         setActiveConfirm(null);
         router.refresh();
       }
@@ -57,21 +67,36 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
     }
 
     startTransition(async () => {
+      let updatePayload: any = {
+        status: "rejected",
+        reject_reason: rejectReason.trim(),
+        ai_review_status: "reviewed",
+        ai_review_reason: rejectReason.trim(),
+        ai_reviewed_at: new Date().toISOString(),
+      };
+
+      if (karyaObj?.pending_edits) {
+        // If it's a pending edit, we don't reject the whole post, just discard the edit
+        updatePayload = {
+          // Keep the original status (approved)
+          status: "approved",
+          reject_reason: null, // Wait, maybe we want to notify user of edit rejection? For now just clear it.
+          pending_edits: null,
+          ai_review_status: "reviewed",
+          ai_review_reason: "Edit ditolak: " + rejectReason.trim(),
+          ai_reviewed_at: new Date().toISOString(),
+        };
+      }
+
       const { error } = await supabase
         .from("karya")
-        .update({
-          status: "rejected",
-          reject_reason: rejectReason.trim(),
-          ai_review_status: "reviewed",
-          ai_review_reason: rejectReason.trim(),
-          ai_reviewed_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq("id", karyaId);
 
       if (error) {
         toast.error("Gagal menolak karya: " + error.message);
       } else {
-        toast.success("❌ Karya berhasil ditolak.");
+        toast.success(karyaObj?.pending_edits ? "❌ Perubahan ditolak." : "❌ Karya berhasil ditolak.");
         setActiveConfirm(null);
         setRejectReason("");
         router.refresh();
@@ -81,15 +106,20 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
 
   const handleRetriggerAI = async () => {
     const toastId = toast.loading("Mengirim ulang ke antrean AI...");
+    let updatePayload: any = {
+      status: "pending",
+      ai_review_status: "pending_review",
+      ai_review_reason: null,
+      ai_review_score: null,
+      ai_reviewed_at: null,
+    };
+    if (karyaObj?.pending_edits) {
+      updatePayload.status = "approved"; // Keep it approved if we're retriggering AI for an edit
+    }
+
     const { error } = await supabase
       .from("karya")
-      .update({
-        status: "pending",
-        ai_review_status: "pending_review",
-        ai_review_reason: null,
-        ai_review_score: null,
-        ai_reviewed_at: null,
-      })
+      .update(updatePayload)
       .eq("id", karyaId);
 
     if (error) {
@@ -278,6 +308,17 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
                 {karyaObj.status === 'approved' ? 'Publik' : karyaObj.status === 'rejected' ? 'Ditolak' : 'Menunggu'}
               </span>
             </div>
+            
+            {karyaObj.pending_edits && (
+              <div className="mb-6 bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-r-xl">
+                <h3 className="text-sm font-black text-yellow-800 uppercase flex items-center gap-2 mb-1">
+                  ⚠️ Terdapat Pengajuan Perubahan (Edit)
+                </h3>
+                <p className="text-xs font-bold text-yellow-700">
+                  Mahasiswa mengubah detail karya ini. Klik setujui untuk memperbarui ke versi edit (otomatis mengganti data utama), atau tolak untuk membuang perubahan ini dan tetap menampilkan versi lama. Data di bawah ini adalah data asli.
+                </p>
+              </div>
+            )}
 
             {karyaObj.image_url && (
               <div className="w-full h-48 md:h-64 mb-6 rounded-2xl overflow-hidden border-4 border-border bg-muted">

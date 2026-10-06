@@ -32,6 +32,7 @@ export type Karya = {
   ai_review_score?: number | null;
   ai_review_reason?: string | null;
   ai_reviewed_at?: string | null;
+  pending_edits?: any | null;
 };
 
 /**

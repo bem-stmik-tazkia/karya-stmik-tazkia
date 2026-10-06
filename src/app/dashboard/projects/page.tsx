@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Folder, Plus, Clock, CheckCircle2, XCircle, Search } from "lucide-react";
 import { ProjectActions } from "@/components/dashboard/ProjectActions";
 import { RealtimeProjectsListener } from "@/components/dashboard/RealtimeProjectsListener";
+import { KARYA_CATEGORIES } from "@/types/karya";
 
 export const revalidate = 0;
 
@@ -126,7 +127,7 @@ export default async function ProjectsListPage() {
                       </td>
                       <td className="p-4 align-middle">
                         <span className="bg-secondary/10 text-secondary border-2 border-secondary/20 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase whitespace-nowrap">
-                          {karya.category || "-"}
+                          {KARYA_CATEGORIES.find(c => c.value === karya.category)?.label || karya.category || "-"}
                         </span>
                       </td>
                       <td className="p-4 align-middle text-sm font-bold text-muted-foreground whitespace-nowrap">
@@ -170,7 +171,7 @@ export default async function ProjectsListPage() {
                 {/* Meta row */}
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="bg-secondary/10 text-secondary border-2 border-secondary/20 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase">
-                    {karya.category || "Tanpa Kategori"}
+                    {KARYA_CATEGORIES.find(c => c.value === karya.category)?.label || karya.category || "Tanpa Kategori"}
                   </span>
                   <span className="text-[11px] font-bold text-muted-foreground">
                     {formatDate(karya.created_at)}

@@ -57,6 +57,7 @@ export default function UploadKaryaFormPage() {
   const [formData, setFormData] = useState({ ...initialFormState, category: typeParam });
   const [baseFormState, setBaseFormState] = useState({ ...initialFormState, category: typeParam });
   const [mahasiswaList, setMahasiswaList] = useState<any[]>([]);
+  const [originalStatus, setOriginalStatus] = useState<string>("");
   const isInitialMount = React.useRef(true);
 
   useEffect(() => {
@@ -162,6 +163,7 @@ export default function UploadKaryaFormPage() {
           router.push("/dashboard/projects");
           return;
         }
+        setOriginalStatus(data.status || "");
         const newFormData = {
           ...formData,
           title: data.title || "",
@@ -296,7 +298,7 @@ export default function UploadKaryaFormPage() {
       const techStackArray = dataToSubmit.tech_stack.split(",").map(t => t.trim()).filter(Boolean);
       const teamObjects = dataToSubmit.team.filter(t => t.name.trim() !== "").map(t => ({ name: t.name, role: t.role, avatar: t.avatar || "", user_id: t.user_id || undefined }));
 
-      const dataToSave = {
+      let dataToSave: any = {
         title: dataToSubmit.title,
         category: dataToSubmit.category,
         description: dataToSubmit.description,
@@ -306,17 +308,45 @@ export default function UploadKaryaFormPage() {
         team: teamObjects,
         features: validFeatures,
         gallery: validGallery,
-        status: "pending",
-        ai_review_status: "pending_review",
         image_url: dataToSubmit.image_url,
       };
 
+      const escapeHtml = (unsafe: string) => (unsafe || "").toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+
       if (editId) {
         // Edit Mode
+        if (originalStatus === "approved") {
+          dataToSave = {
+            pending_edits: dataToSave,
+            ai_review_status: "pending_review",
+            // Keep the status as "approved"
+          };
+        } else {
+          dataToSave = {
+            ...dataToSave,
+            status: "pending",
+            ai_review_status: "pending_review",
+          };
+        }
+
         const { error } = await supabase.from("karya").update(dataToSave).eq("id", editId);
         if (error) throw error;
+        
+        fetch("/api/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "submission",
+            message: `Mahasiswa baru saja mengajukan edit pada karya!\n\n📌 <b>Judul:</b> ${escapeHtml(dataToSubmit.title)}\n📁 <b>Kategori:</b> ${escapeHtml(dataToSubmit.category)}\n\nKarya ini sedang masuk ke antrean AI untuk di-review otomatis.`
+          })
+        }).catch(() => {});
       } else {
         // Create Mode
+        dataToSave = {
+          ...dataToSave,
+          status: "pending",
+          ai_review_status: "pending_review",
+        };
         const { error } = await supabase.from("karya").insert({
           user_id: authUser.id,
           slug: dataToSubmit.title.toLowerCase().replace(/[^a-z0-9]+/g, "-") + "-" + Math.random().toString(36).substring(2, 6),
@@ -324,8 +354,6 @@ export default function UploadKaryaFormPage() {
         });
         if (error) throw error;
         
-        // Kirim Notifikasi ke Telegram Admin
-        const escapeHtml = (unsafe: string) => (unsafe || "").toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         fetch("/api/notify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -458,11 +486,11 @@ export default function UploadKaryaFormPage() {
               </div>
               <div>
                 <label className={labelClass}>Kategori <span className="text-red-400">*</span></label>
-                <select id="input-category" name="category" value={formData.category} onChange={handleInput} className={`${getInputClass("input-category")} ${!editId ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`} disabled={!editId}>
+                <select id="input-category" name="category" value={formData.category} onChange={handleInput} className={`${getInputClass("input-category")} cursor-not-allowed opacity-70`} disabled={true}>
                   <option value="" disabled>Pilih kategori...</option>
                   {KATEGORI_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
                 </select>
-                {!editId && <p className="text-xs text-muted-foreground mt-2 font-bold">Kategori dipilih dari halaman sebelumnya. Kembali untuk mengubah.</p>}
+                <p className="text-xs text-muted-foreground mt-2 font-bold">{!editId ? "Kategori dipilih dari halaman sebelumnya. Kembali untuk mengubah." : "Kategori tidak dapat diubah saat mengedit karya."}</p>
               </div>
               <div>
                 <div className="flex justify-between items-center mb-1.5">
