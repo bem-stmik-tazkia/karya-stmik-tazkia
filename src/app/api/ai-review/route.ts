@@ -108,6 +108,10 @@ async function reviewWithGemini(karya: any): Promise<{
   let lastError = "";
   let usedModel = "";
 
+  if (!OPENROUTER_API_KEY && !GEMINI_API_KEY) {
+    throw new Error("API_KEY_ERROR");
+  }
+
   if (OPENROUTER_API_KEY) {
     // ── Gunakan OpenRouter dengan sistem AUTO-FALLBACK ──
     for (const model of FALLBACK_MODELS) {
@@ -144,6 +148,25 @@ async function reviewWithGemini(karya: any): Promise<{
           continue; // Lanjut coba model berikutnya
         }
 
+        const data = await res.json();
+        if (data?.error) {
+          const errMsg = data.error.message || "";
+          if (
+            errMsg.toLowerCase().includes("overloaded") ||
+            errMsg.toLowerCase().includes("rate limit") ||
+            data.error.code === 429 ||
+            data.error.code === 529 ||
+            data.error.code === 503 ||
+            data.error.code === 502
+          ) {
+            lastError = `Model ${model} overloaded.`;
+            continue; // Lanjut coba model berikutnya
+          }
+          throw new Error(`AI API error payload: ${JSON.stringify(data.error)}`);
+        }
+
+        // Simpan data di properti custom karena body stream dari res sudah dibaca
+        (res as any).parsedData = data;
         response = res;
         usedModel = model;
         break; // Berhasil! Keluar dari loop pencarian model
@@ -152,11 +175,10 @@ async function reviewWithGemini(karya: any): Promise<{
         lastError = `Gagal fetch ${model}: ${err.message}`;
       }
     }
-  } else {
+  }
+  
+  if (!response && GEMINI_API_KEY) {
     // ── Fallback: Gemini langsung (butuh API key yang valid) ──
-    if (!GEMINI_API_KEY) {
-      throw new Error("API_KEY_ERROR"); // Tidak ada key yang bisa dipakai
-    }
     
     const fallbackGeminiModel = process.env.GEMINI_MODEL || "gemini-2.5-flash";
     response = await fetch(
@@ -196,22 +218,7 @@ async function reviewWithGemini(karya: any): Promise<{
     throw new Error(`AI API error ${response.status}: ${errBody}`);
   }
 
-  const data = await response.json();
-
-  if (data?.error) {
-    const errMsg = data.error.message || "";
-    if (
-      errMsg.toLowerCase().includes("overloaded") ||
-      errMsg.toLowerCase().includes("rate limit") ||
-      data.error.code === 429 ||
-      data.error.code === 529 ||
-      data.error.code === 503 ||
-      data.error.code === 502
-    ) {
-      throw new Error("RATE_LIMIT");
-    }
-    throw new Error(`AI API error payload: ${JSON.stringify(data.error)}`);
-  }
+  const data = (response as any).parsedData ? (response as any).parsedData : await response.json();
 
   // Parse response — format berbeda antara OpenRouter & Gemini langsung
   let rawText: string;
