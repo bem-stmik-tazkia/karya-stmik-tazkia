@@ -143,43 +143,16 @@ export default function StudentClient({ params }: { params: Promise<{ id: string
       }
 
       const projs = await getMahasiswaProjects(data.user_id ?? data.id);
+
+      // Inisialisasi status like dari localStorage — anti-spam tetap di server via Redis
+      const initialLiked: Record<string, boolean> = {};
+      projs.forEach(k => {
+        if (localStorage.getItem(`liked_${k.id}`) === 'true') {
+          initialLiked[k.id] = true;
+        }
+      });
+      setLikedKarya(initialLiked);
       setProjects(projs);
-
-      // Cek status like dari server (Redis), localStorage sebagai optimistic fallback
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        const userId = session?.user?.id || null;
-        const deviceId = getDeviceId();
-
-        const checks = await Promise.all(
-          projs.map(async (k) => {
-            const localLiked = localStorage.getItem(`liked_${k.id}`) === 'true';
-            if (localLiked) return { id: k.id, liked: true };
-
-            try {
-              const params = new URLSearchParams({ karyaId: k.id, deviceId });
-              if (userId) params.set('userId', userId);
-              const res = await fetch(`/api/like?${params.toString()}`);
-              if (res.ok) {
-                const json = await res.json();
-                if (json.liked) localStorage.setItem(`liked_${k.id}`, 'true');
-                return { id: k.id, liked: json.liked as boolean };
-              }
-            } catch { /* ignore */ }
-            return { id: k.id, liked: false };
-          })
-        );
-
-        const initialLiked: Record<string, boolean> = {};
-        checks.forEach(({ id, liked }) => { if (liked) initialLiked[id] = true; });
-        setLikedKarya(initialLiked);
-      } catch {
-        const initialLiked: Record<string, boolean> = {};
-        projs.forEach(k => {
-          if (localStorage.getItem(`liked_${k.id}`) === 'true') initialLiked[k.id] = true;
-        });
-        setLikedKarya(initialLiked);
-      }
 
       if (data.user_id) {
         const feedPosts = await getFeedPosts(user?.id, data.user_id);
