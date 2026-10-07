@@ -62,20 +62,62 @@ function ExploreContent() {
     router.replace(newUrl, { scroll: false });
   };
 
-  // Fetch data from Supabase on mount
+  // Fetch data from Supabase on mount, lalu sync status like dari Redis
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       const data = await getKarya();
-      const initialLiked: Record<string, boolean> = {};
-      data.forEach(k => {
-        if (localStorage.getItem(`liked_${k.id}`) === 'true') {
-          initialLiked[k.id] = true;
-        }
-      });
-      setLikedKarya(initialLiked);
       setKarya(data);
       setLoading(false);
+
+      // Cek status like dari server (Redis) untuk semua karya
+      // Ini memastikan status akurat meski localStorage dihapus
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id || null;
+        const deviceId = getDeviceId();
+
+        const checks = await Promise.all(
+          data.map(async (k) => {
+            // Optimistic: cek localStorage dulu (cepat)
+            const localLiked = localStorage.getItem(`liked_${k.id}`) === 'true';
+            if (localLiked) return { id: k.id, liked: true };
+
+            // Verify ke server jika localStorage kosong
+            try {
+              const params = new URLSearchParams({ karyaId: k.id, deviceId });
+              if (userId) params.set('userId', userId);
+              const res = await fetch(`/api/like?${params.toString()}`);
+              if (res.ok) {
+                const json = await res.json();
+                // Sync balik ke localStorage jika server bilang sudah liked
+                if (json.liked) {
+                  localStorage.setItem(`liked_${k.id}`, 'true');
+                }
+                return { id: k.id, liked: json.liked as boolean };
+              }
+            } catch {
+              // Ignore, fallback ke false
+            }
+            return { id: k.id, liked: false };
+          })
+        );
+
+        const initialLiked: Record<string, boolean> = {};
+        checks.forEach(({ id, liked }) => {
+          if (liked) initialLiked[id] = true;
+        });
+        setLikedKarya(initialLiked);
+      } catch {
+        // Fallback ke localStorage saja jika gagal
+        const initialLiked: Record<string, boolean> = {};
+        data.forEach(k => {
+          if (localStorage.getItem(`liked_${k.id}`) === 'true') {
+            initialLiked[k.id] = true;
+          }
+        });
+        setLikedKarya(initialLiked);
+      }
     };
     fetchData();
   }, []);
