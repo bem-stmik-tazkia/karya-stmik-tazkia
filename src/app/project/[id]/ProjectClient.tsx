@@ -669,11 +669,11 @@ export default function ProjectClientPage({
                       {/* Stats */}
                       <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground mb-3">
                         <span className="flex items-center gap-1">
-                          <FiEye className="w-3.5 h-3.5" />
+                          <Eye className="w-3.5 h-3.5" />
                           {k.views ?? 0}
                         </span>
                         <span className="flex items-center gap-1">
-                          <FiHeart className="w-3.5 h-3.5" />
+                          <Heart className="w-3.5 h-3.5" />
                           {k.likes ?? 0}
                         </span>
                       </div>
