@@ -100,18 +100,34 @@ export async function checkKaryaLiked(karyaId: string, deviceId: string, userId:
 }
 
 /**
- * Toggle like/unlike karya.
+ * Toggle like/unlike karya secara aman via server-side API.
+ * Menggunakan Upstash Redis sebagai lock untuk mencegah spam/duplicate like.
  * Mengembalikan status like terbaru (true jika jadi liked, false jika di-unlike).
  */
 export async function toggleKaryaLike(karyaId: string, deviceId: string, userId: string | null = null, action: 'like' | 'unlike' = 'like'): Promise<boolean> {
-  // Manual update since the RPC might not support unliking
-  const { data: karyaData } = await supabase.from("karya").select("likes").eq("id", karyaId).single();
-  if (karyaData) {
-    const currentLikes = karyaData.likes || 0;
-    const newLikes = action === 'like' ? currentLikes + 1 : Math.max(0, currentLikes - 1);
-    await supabase.from("karya").update({ likes: newLikes }).eq("id", karyaId);
+  try {
+    const res = await fetch('/api/like', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ karyaId, deviceId, userId, action }),
+    });
+
+    if (res.status === 409) {
+      // Sudah liked / belum liked — kembalikan state yang seharusnya
+      return action === 'like';
+    }
+
+    if (!res.ok) {
+      console.error('[toggleKaryaLike] API error:', res.status);
+      throw new Error('Like API failed');
+    }
+
+    const data = await res.json();
+    return data.liked as boolean;
+  } catch (err) {
+    console.error('[toggleKaryaLike] Error:', err);
+    throw err;
   }
-  return action === 'like';
 }
 
 // ============================================================
