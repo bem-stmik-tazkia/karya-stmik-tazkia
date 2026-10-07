@@ -77,6 +77,7 @@ export default function StudentClient({ params }: { params: Promise<{ id: string
     setIsLiking(prev => ({ ...prev, [id]: true }));
     const wasLiked = likedKarya[id];
     setLikedKarya((prev) => ({ ...prev, [id]: !wasLiked }));
+    setProjects((prev) => prev.map(k => k.id === id ? { ...k, likes: Math.max(0, (k.likes ?? 0) + (wasLiked ? -1 : 1)) } : k));
     
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -86,9 +87,15 @@ export default function StudentClient({ params }: { params: Promise<{ id: string
       const actionToTake = wasLiked ? 'unlike' : 'like';
       const isNowLiked = await toggleKaryaLike(id, deviceId, userId, actionToTake);
       setLikedKarya((prev) => ({ ...prev, [id]: isNowLiked }));
+      if (isNowLiked) {
+        localStorage.setItem(`liked_${id}`, 'true');
+      } else {
+        localStorage.removeItem(`liked_${id}`);
+      }
     } catch (err) {
       console.error(err);
       setLikedKarya((prev) => ({ ...prev, [id]: wasLiked }));
+      setProjects((prev) => prev.map(k => k.id === id ? { ...k, likes: Math.max(0, (k.likes ?? 0) + (wasLiked ? 1 : -1)) } : k));
     } finally {
       setIsLiking(prev => ({ ...prev, [id]: false }));
     }
@@ -136,6 +143,13 @@ export default function StudentClient({ params }: { params: Promise<{ id: string
       }
 
       const projs = await getMahasiswaProjects(data.user_id ?? data.id);
+      const initialLiked: Record<string, boolean> = {};
+      projs.forEach(k => {
+        if (localStorage.getItem(`liked_${k.id}`) === 'true') {
+          initialLiked[k.id] = true;
+        }
+      });
+      setLikedKarya(initialLiked);
       setProjects(projs);
 
       if (data.user_id) {
@@ -423,7 +437,7 @@ export default function StudentClient({ params }: { params: Promise<{ id: string
               {paginatedProjects.map((project, index) => {
               const catLabel = KARYA_CATEGORIES.find((c) => c.value === project.category)?.label ?? project.category;
               const isLiked = likedKarya[project.id] ?? false;
-              const likesCount = (project.likes ?? 0) + (isLiked ? 1 : 0);
+              const likesCount = project.likes ?? 0;
               return (
                 <motion.div
                   key={project.id}

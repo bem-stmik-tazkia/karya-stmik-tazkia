@@ -67,6 +67,13 @@ function ExploreContent() {
     const fetchData = async () => {
       setLoading(true);
       const data = await getKarya();
+      const initialLiked: Record<string, boolean> = {};
+      data.forEach(k => {
+        if (localStorage.getItem(`liked_${k.id}`) === 'true') {
+          initialLiked[k.id] = true;
+        }
+      });
+      setLikedKarya(initialLiked);
       setKarya(data);
       setLoading(false);
     };
@@ -89,6 +96,7 @@ function ExploreContent() {
     setIsLiking(prev => ({ ...prev, [id]: true }));
     const wasLiked = likedKarya[id];
     setLikedKarya((prev) => ({ ...prev, [id]: !wasLiked }));
+    setKarya((prev) => prev.map(k => k.id === id ? { ...k, likes: Math.max(0, (k.likes ?? 0) + (wasLiked ? -1 : 1)) } : k));
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -98,9 +106,15 @@ function ExploreContent() {
       const actionToTake = wasLiked ? 'unlike' : 'like';
       const isNowLiked = await toggleKaryaLike(id, deviceId, userId, actionToTake);
       setLikedKarya((prev) => ({ ...prev, [id]: isNowLiked }));
+      if (isNowLiked) {
+        localStorage.setItem(`liked_${id}`, 'true');
+      } else {
+        localStorage.removeItem(`liked_${id}`);
+      }
     } catch (err) {
       console.error(err);
       setLikedKarya((prev) => ({ ...prev, [id]: wasLiked }));
+      setKarya((prev) => prev.map(k => k.id === id ? { ...k, likes: Math.max(0, (k.likes ?? 0) + (wasLiked ? 1 : -1)) } : k));
     } finally {
       setIsLiking(prev => ({ ...prev, [id]: false }));
     }
@@ -293,7 +307,7 @@ function ExploreContent() {
             >
                 {paginatedKarya.map((item) => {
                   const isLiked = likedKarya[item.id];
-                  const likesCount = (item.likes ?? 0) + (isLiked ? 1 : 0);
+                  const likesCount = item.likes ?? 0;
                   const categoryLabel =
                     KARYA_CATEGORIES.find((c) => c.value === item.category)?.label ??
                     item.category;
