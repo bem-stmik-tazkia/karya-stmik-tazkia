@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Search, Filter, X } from "lucide-react";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+
 import { ALL_PRODI_VALUE, PRODI_FILTER_OPTIONS } from "@/utils/prodiOptions";
 
 interface MahasiswaHeroProps {
@@ -78,7 +78,7 @@ export default function MahasiswaHero({
         >
           <div className="card-3d bg-card p-2 sm:p-4 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center text-center">
             <div className="mb-1 sm:mb-2 flex items-center justify-center w-12 h-12 sm:w-20 sm:h-20">
-              <DotLottieReact src="/animations/People.lottie" loop autoplay renderConfig={{ autoResize: true }} style={{ width: '100%', height: '100%' }} />
+              
             </div>
             <span className="text-base sm:text-3xl font-black text-foreground">{totalMahasiswa}</span>
             <span className="text-[9px] sm:text-xs font-bold text-muted-foreground uppercase">Mahasiswa</span>
@@ -86,7 +86,7 @@ export default function MahasiswaHero({
 
           <div className="card-3d bg-card p-2 sm:p-4 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center text-center">
             <div className="mb-1 sm:mb-2 flex items-center justify-center w-12 h-12 sm:w-20 sm:h-20">
-              <DotLottieReact src="/animations/search-projek.lottie" loop autoplay renderConfig={{ autoResize: true }} style={{ width: '100%', height: '100%' }} />
+              
             </div>
             <span className="text-base sm:text-3xl font-black text-foreground">{totalProjects}</span>
             <span className="text-[9px] sm:text-xs font-bold text-muted-foreground uppercase">Total Karya</span>
@@ -94,7 +94,7 @@ export default function MahasiswaHero({
 
           <div className="card-3d bg-card p-2 sm:p-4 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center text-center">
             <div className="mb-1 sm:mb-2 flex items-center justify-center w-12 h-12 sm:w-20 sm:h-20">
-              <DotLottieReact src="/animations/toga.lottie" loop autoplay renderConfig={{ autoResize: true }} style={{ width: '100%', height: '100%' }} />
+              
             </div>
             <span className="text-base sm:text-3xl font-black text-foreground">{availableAngkatan.length}</span>
             <span className="text-[9px] sm:text-xs font-bold text-muted-foreground uppercase">Angkatan</span>

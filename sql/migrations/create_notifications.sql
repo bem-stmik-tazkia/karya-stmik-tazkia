@@ -58,12 +58,12 @@ BEGIN
   -- Tentukan isi notifikasi berdasarkan status baru
   IF NEW.status = 'approved' THEN
     v_type    := 'karya_approved';
-    v_title   := '🎉 Karya Kamu Disetujui!';
+    v_title   := '[BARU] 🎉 Karya Kamu Disetujui!';
     v_message := 'Karya "' || NEW.title || '" telah disetujui dan sekarang sudah tayang di galeri publik!';
 
   ELSIF NEW.status = 'rejected' THEN
     v_type    := 'karya_rejected';
-    v_title   := '❌ Karya Kamu Ditolak';
+    v_title   := '[BARU] ❌ Karya Kamu Ditolak';
     v_message := 'Karya "' || NEW.title || '" ditolak. Kamu bisa edit dan kirim ulang karyamu.';
 
   ELSIF NEW.status = 'pending' THEN

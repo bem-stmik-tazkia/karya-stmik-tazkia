@@ -22,7 +22,7 @@ import {
   Loader2,
   UploadCloud,
 } from "lucide-react";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+
 import { StickerBadge } from "@/components/ui/StickerBadge";
 import { formatNumber } from "@/lib/data";
 import TechStackTags from "@/components/ui/TechStackTags";
@@ -147,13 +147,7 @@ function ExploreContent() {
            transition={{ type: "spring", bounce: 0.6 }}
            className="w-32 h-32 sm:w-40 sm:h-40 mx-auto -mb-2 relative z-10 pointer-events-none"
         >
-          <DotLottieReact 
-            src="/animations/Card.lottie" 
-            loop 
-            autoplay 
-            renderConfig={{ autoResize: true }} 
-            style={{ width: '100%', height: '100%' }} 
-          />
+          
         </motion.div>
         <motion.h1
           initial={{ y: 30, opacity: 0 }}
@@ -316,8 +310,8 @@ function ExploreContent() {
                       key={item.id}
                       className="h-full relative"
                     >
-                      {rank > 0 && <RankBadge rank={rank} />}
-                      <Link href={`/project/${item.id}`} className="block h-full">
+                      <Link href={`/project/${item.id}`} className="block h-full relative">
+                        {rank > 0 && <RankBadge rank={rank} />}
                         <div className="card-3d overflow-hidden flex flex-col h-full bg-card group">
                           {/* Cover Image */}
                           <div className="aspect-[16/10] w-full overflow-hidden relative border-b-4 border-border bg-muted">

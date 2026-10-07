@@ -19,7 +19,7 @@ import toast from "react-hot-toast";
 const KATEGORI_OPTIONS = [
   { id: "Technology", label: "Aplikasi Web & Sistem" },
   { id: "Programming", label: "Aplikasi Mobile" },
-  { id: "Research", label: "Karya Tulis & Jurnal" },
+  { id: "Research", label: "Riset / Jurnal" },
   { id: "IoT", label: "Proyek IoT" },
   { id: "Multimedia", label: "Desain & Lainnya" },
 ];
@@ -59,6 +59,7 @@ export default function UploadKaryaFormPage() {
   const [mahasiswaList, setMahasiswaList] = useState<any[]>([]);
   const [originalStatus, setOriginalStatus] = useState<string>("");
   const isInitialMount = React.useRef(true);
+  const hasFetchedExisting = React.useRef(false);
 
   useEffect(() => {
     if (!isLoading && !user) router.replace("/login");
@@ -154,8 +155,9 @@ export default function UploadKaryaFormPage() {
 
   // Fetch existing data if editing
   useEffect(() => {
-    if (!editId || !user) return;
+    if (!editId || !user || hasFetchedExisting.current) return;
     const fetchExisting = async () => {
+      hasFetchedExisting.current = true;
       const { data, error } = await supabase.from("karya").select("*").eq("id", editId).single();
       if (data && !error) {
         // Prevent unauthorized edits
@@ -203,22 +205,19 @@ export default function UploadKaryaFormPage() {
   };
 
   const handleFitur = (index: number, field: "title" | "desc", value: string) => {
-    const updated = [...formData.features];
-    updated[index][field] = value;
+    const updated = formData.features.map((item, i) => i === index ? { ...item, [field]: value } : item);
     setFormData(prev => ({ ...prev, features: updated }));
     setInvalidFields(prev => prev.filter(id => id !== `input-feature-0-title`));
   };
 
   const handleTim = (index: number, field: "name" | "role" | "avatar" | "user_id", value: string) => {
-    const updated = [...formData.team];
-    updated[index][field] = value;
+    const updated = formData.team.map((item, i) => i === index ? { ...item, [field]: value } : item);
     setFormData(prev => ({ ...prev, team: updated }));
     setInvalidFields(prev => prev.filter(id => id !== `input-team-0-name`));
   };
 
   const handleGallery = (index: number, field: "url" | "caption", value: string) => {
-    const updated = [...formData.gallery];
-    updated[index][field] = value;
+    const updated = formData.gallery.map((item, i) => i === index ? { ...item, [field]: value } : item);
     setFormData(prev => ({ ...prev, gallery: updated }));
     setInvalidFields(prev => prev.filter(id => id !== `input-gallery-0-url`));
   };
@@ -337,7 +336,7 @@ export default function UploadKaryaFormPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             type: "submission",
-            message: `Mahasiswa baru saja mengajukan edit pada karya!\n\n📌 <b>Judul:</b> ${escapeHtml(dataToSubmit.title)}\n📁 <b>Kategori:</b> ${escapeHtml(dataToSubmit.category)}\n\nKarya ini sedang masuk ke antrean AI untuk di-review otomatis.`
+            message: `[EDIT] Mahasiswa baru saja mengajukan edit pada karya!\n\n📌 <b>Judul:</b> ${escapeHtml(dataToSubmit.title)}\n📁 <b>Kategori:</b> ${escapeHtml(dataToSubmit.category)}\n\nKarya ini sedang masuk ke antrean AI untuk di-review otomatis.`
           })
         }).catch(() => {});
       } else {
@@ -359,7 +358,7 @@ export default function UploadKaryaFormPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             type: "submission",
-            message: `Mahasiswa baru saja mengunggah karya baru!\n\n📌 <b>Judul:</b> ${escapeHtml(dataToSubmit.title)}\n📁 <b>Kategori:</b> ${escapeHtml(dataToSubmit.category)}\n\nKarya ini sedang masuk ke antrean AI untuk di-review otomatis.`
+            message: `[BARU] Mahasiswa baru saja mengunggah karya baru!\n\n📌 <b>Judul:</b> ${escapeHtml(dataToSubmit.title)}\n📁 <b>Kategori:</b> ${escapeHtml(dataToSubmit.category)}\n\nKarya ini sedang masuk ke antrean AI untuk di-review otomatis.`
           })
         }).catch(() => {});
       }
@@ -486,11 +485,11 @@ export default function UploadKaryaFormPage() {
               </div>
               <div>
                 <label className={labelClass}>Kategori <span className="text-red-400">*</span></label>
-                <select id="input-category" name="category" value={formData.category} onChange={handleInput} className={`${getInputClass("input-category")} cursor-not-allowed opacity-70`} disabled={true}>
+                <select id="input-category" name="category" value={formData.category} onChange={handleInput} className={`${getInputClass("input-category")}`}>
                   <option value="" disabled>Pilih kategori...</option>
                   {KATEGORI_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
                 </select>
-                <p className="text-xs text-muted-foreground mt-2 font-bold">{!editId ? "Kategori dipilih dari halaman sebelumnya. Kembali untuk mengubah." : "Kategori tidak dapat diubah saat mengedit karya."}</p>
+                <p className="text-xs text-muted-foreground mt-2 font-bold">{!editId ? "Kategori dipilih dari halaman sebelumnya. Kembali untuk mengubah." : "Kamu dapat mengubah kategori jika ada kesalahan."}</p>
               </div>
               <div>
                 <div className="flex justify-between items-center mb-1.5">
@@ -589,10 +588,13 @@ export default function UploadKaryaFormPage() {
                           value={anggota.name}
                           mahasiswaList={mahasiswaList}
                           onChange={(name, user_id, avatar) => {
-                            const u = [...formData.team];
-                            u[i].name = name;
-                            if (user_id !== undefined) u[i].user_id = user_id;
-                            if (avatar !== undefined) u[i].avatar = avatar;
+                            const u = formData.team.map((item, idx) => {
+                              if (idx !== i) return item;
+                              const updated = { ...item, name };
+                              if (user_id !== undefined) updated.user_id = user_id;
+                              if (avatar !== undefined) updated.avatar = avatar;
+                              return updated;
+                            });
                             setFormData(prev => ({ ...prev, team: u }));
                           }}
                           placeholder="Nama Lengkap..."
@@ -633,17 +635,9 @@ export default function UploadKaryaFormPage() {
 
           {/* Submit */}
           <div className="pt-4 border-t-4 border-border/30">
-            {editId && !isDirty && (
-              <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/30 border-2 border-yellow-400 dark:border-yellow-700 rounded-xl flex items-start gap-3">
-                <FiAlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-500 shrink-0 mt-0.5" />
-                <p className="text-sm font-bold text-yellow-800 dark:text-yellow-400 leading-tight">
-                  Tombol kirim terkunci karena kamu belum membuat perubahan apa pun. Ubah minimal satu isian untuk dapat mengirim ulang.
-                </p>
-              </div>
-            )}
             <button
               type="submit"
-              disabled={isSubmitting || (!!editId && !isDirty)}
+              disabled={isSubmitting}
               className="w-full flex items-center justify-center gap-2.5 py-4 bg-primary text-primary-foreground font-black rounded-2xl border-4 border-border shadow-[4px_4px_0px_var(--color-border)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_var(--color-border)] active:translate-y-0 active:shadow-[2px_2px_0px_var(--color-border)] transition-all text-sm uppercase disabled:opacity-50 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-[2px_2px_0px_var(--color-border)]"
             >
               {isSubmitting ? <FiLoader className="animate-spin" size={18} /> : <FiSend size={18} />}

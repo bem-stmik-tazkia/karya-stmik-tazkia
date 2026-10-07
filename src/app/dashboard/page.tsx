@@ -50,11 +50,11 @@ export default async function DashboardProfilePage() {
     }
   }
 
-  // Get user's public projects
+  // Get user's projects
   const { data: karyaList } = await supabase
     .from("karya")
     .select("*")
-    .eq("status", "approved")
+    .neq("status", "deleted")
     .or(`user_id.eq.${user.id},team.cs.[{"user_id":"${user.id}"}]`)
     .order("created_at", { ascending: false });
 
@@ -74,6 +74,8 @@ export default async function DashboardProfilePage() {
     youtube_url: k.youtube_url,
     likes_count: k.likes || 0,
     views_count: k.views || 0,
+    pending_edits: k.pending_edits,
+    status: k.status,
   }));
 
   // Get user's feed posts

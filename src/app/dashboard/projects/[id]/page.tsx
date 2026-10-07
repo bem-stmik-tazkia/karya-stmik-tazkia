@@ -450,7 +450,7 @@ export default function ProjectDetailPage({
 
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-3 mb-8">
-              {karya.live_url && !isResearch && (
+              {karya.live_url && (
                 <a href={karya.live_url} target="_blank" rel="noreferrer">
                   <BouncyButton className="text-sm px-5 py-3">
                     {linkConfig.icon}
@@ -614,7 +614,7 @@ export default function ProjectDetailPage({
             </div>
 
             <div className="mt-5 flex flex-col gap-3">
-              {karya.live_url && !isResearch && (
+              {karya.live_url && (
                 <a href={karya.live_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-3 rounded-2xl bg-primary text-primary-foreground border-2 border-border hover:opacity-90 transition-all font-bold text-sm shadow-[2px_2px_0px_var(--color-border)]">
                   {linkConfig.icon} {linkConfig.label}
                 </a>

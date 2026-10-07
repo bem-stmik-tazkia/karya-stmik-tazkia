@@ -24,6 +24,7 @@ import { PREDEFINED_SKILLS } from "@/utils/skillOptions";
 import ShareProfileModal from "@/components/mahasiswa/ShareProfileModal";
 import FollowersListModal from "@/components/mahasiswa/FollowersListModal";
 import { NeobrutalismProjectCard, ProjectData } from "./NeobrutalismProjectCard";
+import { KARYA_CATEGORIES } from "@/types/karya";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { checkIsFollowing, toggleFollow } from "@/lib/followService";
 import { useRouter } from "next/navigation";
@@ -407,7 +408,7 @@ export function NeobrutalismProfileView({
                     : "bg-card border-border text-muted-foreground hover:border-primary hover:text-primary"
                 }`}
               >
-                {cat}
+                {KARYA_CATEGORIES.find(c => c.value === cat)?.label || cat}
               </button>
             ))}
           </div>

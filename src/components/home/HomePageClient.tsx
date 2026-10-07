@@ -121,8 +121,8 @@ export default function HomePageClient({ featuredKarya, totalKarya, totalMahasis
 
                 return (
                   <div key={item.id} className="h-full relative">
-                    <RankBadge rank={index + 1} />
-                    <Link href={`/project/${item.id}`} className="block h-full">
+                    <Link href={`/project/${item.id}`} className="block h-full relative">
+                      <RankBadge rank={index + 1} />
                       <div className="card-3d overflow-hidden flex flex-col h-full bg-card group">
                         <div className="aspect-[16/10] w-full overflow-hidden relative border-b-4 border-border bg-muted">
                           {item.image_url ? (

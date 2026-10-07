@@ -14,9 +14,9 @@ const STATUS_CONFIG = {
 };
 
 const AI_STATUS_CONFIG = {
-  processing: { label: "🤖 Sedang Diperiksa", className: "bg-blue-100 text-blue-800 border-blue-800 shadow-[2px_2px_0px_#1e40af] animate-pulse" },
-  pending_review: { label: "🕐 Dalam Antrean", className: "bg-gray-100 text-gray-700 border-gray-700 shadow-[2px_2px_0px_#374151]" },
-  reviewed: { label: "✔️ Selesai", className: "bg-green-50 text-green-800 border-green-800 shadow-[2px_2px_0px_#166534]" },
+  processing: { label: "Sedang Diperiksa", className: "bg-blue-100 text-blue-800 border-blue-800 shadow-[2px_2px_0px_#1e40af] animate-pulse" },
+  pending_review: { label: "Dalam Antrean", className: "bg-gray-100 text-gray-700 border-gray-700 shadow-[2px_2px_0px_#374151]" },
+  reviewed: { label: "Selesai", className: "bg-green-50 text-green-800 border-green-800 shadow-[2px_2px_0px_#166534]" },
 };
 
 interface PageProps {
@@ -223,7 +223,17 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
                 </tr>
               ) : (
                 paginatedKarya.map((karya) => {
-                  const statusCfg = STATUS_CONFIG[karya.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
+                  let statusCfg = STATUS_CONFIG[karya.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
+                  
+                  if (karya.pending_edits) {
+                    if (karya.pending_edits.type === 'delete') {
+                      statusCfg = { ...statusCfg, label: "⏳ Hapus (Menunggu)", className: "bg-yellow-100 text-yellow-800 border-yellow-800 shadow-[2px_2px_0px_#854d0e]" };
+                    } else {
+                      statusCfg = { ...statusCfg, label: "⏳ Edit (Menunggu)", className: "bg-yellow-100 text-yellow-800 border-yellow-800 shadow-[2px_2px_0px_#854d0e]" };
+                    }
+                  } else if (karya.status === 'pending') {
+                    statusCfg = { ...statusCfg, label: "⏳ Baru (Menunggu)" };
+                  }
 
                   const isAlreadyFinal = (karya.status === "approved" || karya.status === "rejected") && karya.ai_review_status !== "reviewed";
                   const isAiError = karya.ai_review_status === "reviewed" && karya.ai_review_score == null;
@@ -239,7 +249,9 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
                       <td className="p-4 max-w-[250px]">
                         <div className="font-black text-sm text-foreground line-clamp-2 leading-snug">
                           {karya.title}
-                          {karya.pending_edits ? (
+                          {karya.pending_edits && karya.pending_edits.type === "delete" ? (
+                            <span className="ml-2 inline-block bg-red-100 text-red-800 border border-red-300 text-[9px] px-1.5 py-0.5 rounded-md uppercase font-black align-middle">HAPUS</span>
+                          ) : karya.pending_edits ? (
                             <span className="ml-2 inline-block bg-yellow-100 text-yellow-800 border border-yellow-300 text-[9px] px-1.5 py-0.5 rounded-md uppercase font-black align-middle">EDIT</span>
                           ) : karya.status === 'pending' ? (
                             <span className="ml-2 inline-block bg-blue-100 text-blue-800 border border-blue-300 text-[9px] px-1.5 py-0.5 rounded-md uppercase font-black align-middle">BARU</span>

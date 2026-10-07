@@ -20,6 +20,8 @@ export interface ProjectData {
   youtube_url?: string;
   likes_count?: number;
   views_count?: number;
+  pending_edits?: any;
+  status?: string;
 }
 
 // Peta warna badge per-kategori, konsisten dengan ProjectCoverPlaceholder
@@ -34,7 +36,7 @@ const CATEGORY_BADGE: Record<string, string> = {
 const CATEGORY_LABEL: Record<string, string> = {
   Technology: "Aplikasi Web",
   Programming: "Aplikasi Mobile",
-  Research: "Karya Tulis",
+  Research: "Riset & Jurnal",
   IoT: "Proyek IoT",
   Multimedia: "Desain & Multimedia",
 };
@@ -54,61 +56,78 @@ function getCategoryLabel(category?: string): string {
 export function NeobrutalismProjectCard({ project }: { project: ProjectData }) {
   return (
     <div className="card-3d bg-card border-4 border-border rounded-3xl overflow-hidden h-full flex flex-col group relative">
-      {/* Cover Image / Placeholder */}
-      <div className="relative w-full aspect-video bg-muted border-b-4 border-border overflow-hidden">
-        {project.cover_image ? (
-          <img
-            src={project.cover_image}
-            alt={project.title}
-            className="w-full h-full object-contain bg-muted dark:bg-card p-2 group-hover:scale-105 transition-transform duration-500"
-          />
-        ) : (
-          <ProjectCoverPlaceholder
-            id={project.id}
-            title={project.title}
-            category={project.category}
-          />
-        )}
+      <Link href={`/project/${project.id}`} className="flex flex-col flex-1">
+        {/* Cover Image / Placeholder */}
+        <div className="relative w-full aspect-video bg-muted border-b-4 border-border overflow-hidden">
+          {project.cover_image ? (
+            <img
+              src={project.cover_image}
+              alt={project.title}
+              className="w-full h-full object-contain bg-muted dark:bg-card p-2 group-hover:scale-105 transition-transform duration-500"
+            />
+          ) : (
+            <ProjectCoverPlaceholder
+              id={project.id}
+              title={project.title}
+              category={project.category}
+            />
+          )}
 
-        {/* Category badge overlaid on cover */}
-        {project.category && (
-          <div className="absolute top-3 left-3 z-10">
-            <span
-              className={`font-black text-[10px] px-2.5 py-1 rounded-xl border-2 uppercase tracking-wide shadow-sm ${getCategoryStyle(project.category)}`}
-            >
-              {getCategoryLabel(project.category)}
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="p-5 flex-1 flex flex-col">
-        <h3 className="font-black text-lg text-foreground line-clamp-2 mb-1.5 group-hover:text-primary transition-colors leading-snug">
-          {project.title}
-        </h3>
-        <p className="text-sm font-medium text-muted-foreground line-clamp-2 mb-4 flex-1 leading-relaxed">
-          {project.description}
-        </p>
-
-        {/* Tech Stack */}
-        {project.tech_stack && project.tech_stack.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-4">
-            {project.tech_stack.slice(0, 4).map((tech, i) => (
-              <span key={i} className="px-2 py-0.5 bg-muted border-2 border-border rounded-lg text-[10px] font-black text-foreground">
-                {tech}
+          {/* Category badge overlaid on cover */}
+          {project.category && (
+            <div className="absolute top-3 left-3 z-10">
+              <span
+                className={`font-black text-[10px] px-2.5 py-1 rounded-xl border-2 uppercase tracking-wide shadow-sm ${getCategoryStyle(project.category)}`}
+              >
+                {getCategoryLabel(project.category)}
               </span>
-            ))}
-            {project.tech_stack.length > 4 && (
-              <span className="px-2 py-0.5 bg-muted border-2 border-border rounded-lg text-[10px] font-black text-muted-foreground">
-                +{project.tech_stack.length - 4} lagi
-              </span>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
 
+        {/* Content */}
+        <div className="px-5 pt-5 flex-1 flex flex-col">
+          <div className="flex items-start justify-between gap-2 mb-1.5">
+            <h3 className="font-black text-lg text-foreground line-clamp-2 group-hover:text-primary transition-colors leading-snug">
+              {project.title}
+            </h3>
+            {project.status === "pending" ? (
+              <span className="shrink-0 bg-blue-100 text-blue-800 border-2 border-blue-800 text-[9px] font-black uppercase px-2 py-0.5 rounded-lg whitespace-nowrap">
+                Menunggu (Baru)
+              </span>
+            ) : project.pending_edits ? (
+              <span className="shrink-0 bg-yellow-100 text-yellow-800 border-2 border-yellow-800 text-[9px] font-black uppercase px-2 py-0.5 rounded-lg whitespace-nowrap">
+                Menunggu (Edit)
+              </span>
+            ) : project.status === "rejected" ? (
+              <span className="shrink-0 bg-red-100 text-red-800 border-2 border-red-800 text-[9px] font-black uppercase px-2 py-0.5 rounded-lg whitespace-nowrap">
+                Ditolak
+              </span>
+            ) : null}
+          </div>
+          <p className="text-sm font-medium text-muted-foreground line-clamp-2 mb-4 flex-1 leading-relaxed">
+            {project.description}
+          </p>
+
+          {/* Tech Stack */}
+          {project.tech_stack && project.tech_stack.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {project.tech_stack.slice(0, 4).map((tech, i) => (
+                <span key={i} className="px-2 py-0.5 bg-muted border-2 border-border rounded-lg text-[10px] font-black text-foreground">
+                  {tech}
+                </span>
+              ))}
+              {project.tech_stack.length > 4 && (
+                <span className="px-2 py-0.5 bg-muted border-2 border-border rounded-lg text-[10px] font-black text-muted-foreground">
+                  +{project.tech_stack.length - 4} lagi
+                </span>
+              )}
+            </div>
+          )}
+        </div>
         {/* Footer: Stats + Links */}
-        <div className="flex items-center justify-between pt-3 border-t-2 border-border/50 mt-auto">
+        <div className="px-5 pb-5 mt-auto">
+          <div className="flex items-center justify-between pt-3 border-t-2 border-border/50">
           {/* Stats */}
           <div className="flex gap-3 text-muted-foreground font-bold text-xs">
             <div className="flex items-center gap-1 hover:text-red-500 transition-colors">
@@ -130,7 +149,7 @@ export function NeobrutalismProjectCard({ project }: { project: ProjectData }) {
                 rel="noopener noreferrer"
                 className="w-8 h-8 rounded-xl bg-muted border-2 border-border flex items-center justify-center text-foreground hover:-translate-y-0.5 hover:shadow-[2px_2px_0px_var(--color-border)] hover:bg-[#24292e] hover:text-white hover:border-[#24292e] transition-all"
                 title="Source Code"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
               >
                 <FiGithub size={13} />
               </a>
@@ -142,7 +161,7 @@ export function NeobrutalismProjectCard({ project }: { project: ProjectData }) {
                 rel="noopener noreferrer"
                 className="w-8 h-8 rounded-xl bg-primary text-white border-2 border-border flex items-center justify-center hover:-translate-y-0.5 hover:shadow-[2px_2px_0px_var(--color-border)] transition-all"
                 title="Demo Langsung"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
               >
                 <FiExternalLink size={13} />
               </a>
@@ -151,7 +170,7 @@ export function NeobrutalismProjectCard({ project }: { project: ProjectData }) {
                 href={`/project/${project.id}`}
                 className="w-8 h-8 rounded-xl bg-primary text-white border-2 border-border flex items-center justify-center hover:-translate-y-0.5 hover:shadow-[2px_2px_0px_var(--color-border)] transition-all"
                 title="Lihat Detail"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
               >
                 <FiExternalLink size={13} />
               </Link>
@@ -159,6 +178,7 @@ export function NeobrutalismProjectCard({ project }: { project: ProjectData }) {
           </div>
         </div>
       </div>
+      </Link>
     </div>
   );
 }

@@ -51,20 +51,23 @@ export function ProjectActions({ projectId, isApproved, karyaObj }: ProjectActio
     setIsDeleting(true);
     const toastId = toast.loading("Menghapus karya...");
     
-    // Hard delete from database
+    // Instead of hard delete, submit a request to delete
     const { error } = await supabase
       .from("karya")
-      .delete()
+      .update({
+        pending_edits: { type: "delete" },
+        ai_review_status: "pending_review"
+      })
       .eq("id", projectId);
 
     setIsDeleting(false);
     closeConfirm();
 
     if (!error) {
-      toast.success("Karya berhasil dihapus secara permanen.", { id: toastId });
+      toast.success("Pengajuan hapus karya berhasil dikirim.", { id: toastId });
       router.refresh();
     } else {
-      toast.error("Gagal menghapus karya. Silakan coba lagi.", { id: toastId });
+      toast.error("Gagal mengirim pengajuan hapus. Silakan coba lagi.", { id: toastId });
     }
   };
 

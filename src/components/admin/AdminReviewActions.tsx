@@ -38,6 +38,25 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
       };
 
       if (karyaObj?.pending_edits) {
+        if (karyaObj.pending_edits.type === "delete") {
+          const { error: deleteError } = await supabase.from("karya").delete().eq("id", karyaId);
+          if (deleteError) {
+            toast.error("Gagal menyetujui penghapusan: " + deleteError.message);
+            return;
+          }
+          await supabase.from("notifications").insert({
+            user_id: karyaObj.user_id,
+            title: "[HAPUS] Penghapusan Karya Disetujui",
+            message: `Pengajuan hapus untuk karya "${karyaObj.title}" telah disetujui.`,
+            karya_id: karyaId,
+            type: "success"
+          });
+          toast.success("✅ Pengajuan hapus disetujui, karya dihapus.");
+          setActiveConfirm(null);
+          router.refresh();
+          return;
+        }
+
         updatePayload = {
           ...updatePayload,
           ...karyaObj.pending_edits,
@@ -53,7 +72,30 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
       if (error) {
         toast.error("Gagal menyetujui karya: " + error.message);
       } else {
+        if (karyaObj?.pending_edits) {
+          // Manual in-app notification insertion
+          await supabase.from("notifications").insert({
+            user_id: karyaObj.user_id,
+            title: "[EDIT] Perubahan Karya Disetujui",
+            message: `Edit untuk karya "${karyaObj.title}" telah disetujui dan diperbarui.`,
+            karya_id: karyaId,
+            type: "success"
+          });
+        }
+        
         toast.success(karyaObj?.pending_edits ? "✅ Perubahan berhasil disetujui!" : "✅ Karya berhasil disetujui!");
+        
+        fetch("/api/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "info",
+            message: karyaObj?.pending_edits 
+              ? `[EDIT] ✅ Admin telah menyetujui edit untuk karya:\n📌 <b>${karyaObj?.title || 'Unknown'}</b>` 
+              : `[BARU] ✅ Admin telah menyetujui karya baru:\n📌 <b>${karyaObj?.title || 'Unknown'}</b>`
+          })
+        }).catch(() => {});
+
         setActiveConfirm(null);
         router.refresh();
       }
@@ -96,44 +138,37 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
       if (error) {
         toast.error("Gagal menolak karya: " + error.message);
       } else {
-        toast.success(karyaObj?.pending_edits ? "❌ Perubahan ditolak." : "❌ Karya berhasil ditolak.");
+        if (karyaObj?.pending_edits) {
+          const isDeleteReq = karyaObj.pending_edits.type === "delete";
+          // Manual in-app notification insertion
+          await supabase.from("notifications").insert({
+            user_id: karyaObj.user_id,
+            title: isDeleteReq ? "[HAPUS] Pengajuan Hapus Ditolak" : "[EDIT] Perubahan Karya Ditolak",
+            message: isDeleteReq 
+              ? `Pengajuan hapus untuk karya "${karyaObj.title}" ditolak oleh admin. Alasan: ${rejectReason.trim()}`
+              : `Edit untuk karya "${karyaObj.title}" ditolak oleh admin. Alasan: ${rejectReason.trim()}`,
+            karya_id: karyaId,
+            type: "error"
+          });
+        }
+        toast.success(karyaObj?.pending_edits ? (karyaObj.pending_edits.type === "delete" ? "❌ Pengajuan hapus ditolak." : "❌ Perubahan ditolak.") : "❌ Karya berhasil ditolak.");
+        
+        fetch("/api/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "error",
+            message: karyaObj?.pending_edits 
+              ? `[EDIT] ❌ Admin telah menolak edit untuk karya:\n📌 <b>${karyaObj?.title || 'Unknown'}</b>\n💬 Alasan: ${rejectReason.trim()}` 
+              : `[BARU] ❌ Admin telah menolak karya baru:\n📌 <b>${karyaObj?.title || 'Unknown'}</b>\n💬 Alasan: ${rejectReason.trim()}`
+          })
+        }).catch(() => {});
+
         setActiveConfirm(null);
         setRejectReason("");
         router.refresh();
       }
     });
-  };
-
-  const handleRetriggerAI = async () => {
-    const toastId = toast.loading("Mengirim ulang ke antrean AI...");
-    let updatePayload: any = {
-      status: "pending",
-      ai_review_status: "pending_review",
-      ai_review_reason: null,
-      ai_review_score: null,
-      ai_reviewed_at: null,
-    };
-    if (karyaObj?.pending_edits) {
-      updatePayload.status = "approved"; // Keep it approved if we're retriggering AI for an edit
-    }
-
-    const { error } = await supabase
-      .from("karya")
-      .update(updatePayload)
-      .eq("id", karyaId);
-
-    if (error) {
-      toast.error("Gagal reset: " + error.message, { id: toastId });
-    } else {
-      toast.success("Karya dikembalikan ke antrean AI!", { id: toastId });
-      setActiveConfirm(null);
-      router.refresh();
-
-      // Trigger worker AI secara asinkron di background (fire and forget)
-      fetch("/api/ai-review", {
-        method: "POST"
-      }).catch(err => console.error("Gagal trigger AI worker:", err));
-    }
   };
 
   const handleDelete = () => {
@@ -147,6 +182,16 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
         toast.error("Gagal menghapus karya: " + error.message);
       } else {
         toast.success("🗑️ Karya berhasil dihapus permanen.");
+
+        fetch("/api/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "error",
+            message: `[HAPUS] 🗑️ Admin telah menghapus permanen karya:\n📌 <b>${karyaObj?.title || 'Unknown'}</b>`
+          })
+        }).catch(() => {});
+
         setActiveConfirm(null);
         router.refresh();
       }
@@ -192,15 +237,6 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
           <FiX size={16} />
         </button>
 
-        {/* Tombol Kirim Ulang ke AI */}
-        <button
-          onClick={() => toggleConfirm("ai")}
-          disabled={isPending || aiStatus === "processing"}
-          title="Kirim Ulang ke AI"
-          className="p-2 rounded-lg bg-blue-100 border-2 border-blue-600 text-blue-700 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-[2px_2px_0px_#1d4ed8]"
-        >
-          <FiCpu size={16} />
-        </button>
 
         {/* Tombol Hapus Permanen */}
         <button
@@ -252,22 +288,6 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
         </div>
       )}
 
-      {/* 3. Konfirmasi Kirim Ulang ke AI */}
-      {activeConfirm === "ai" && (
-        <div className="flex flex-col gap-1.5 mt-1">
-          <p className="text-[10px] font-bold text-blue-700 leading-tight text-center">
-            Kirim ulang karya ini untuk dicek bot AI?
-          </p>
-          <button
-            onClick={handleRetriggerAI}
-            disabled={isPending}
-            className="text-xs font-black text-white bg-blue-600 border-2 border-blue-800 rounded-lg py-1.5 hover:bg-blue-700 transition-colors disabled:opacity-50"
-          >
-            {isPending ? "Memproses..." : "Ya, Kirim ke AI"}
-          </button>
-        </div>
-      )}
-
       {/* 4. Konfirmasi Hapus */}
       {activeConfirm === "delete" && (
         <div className="flex flex-col gap-1.5 mt-1">
@@ -310,12 +330,14 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
             </div>
             
             {karyaObj.pending_edits && (
-              <div className="mb-6 bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-r-xl">
-                <h3 className="text-sm font-black text-yellow-800 uppercase flex items-center gap-2 mb-1">
-                  ⚠️ Terdapat Pengajuan Perubahan (Edit)
+              <div className={`mb-6 p-4 rounded-r-xl border-l-4 ${karyaObj.pending_edits.type === "delete" ? "bg-red-50 border-red-500" : "bg-yellow-50 border-yellow-500"}`}>
+                <h3 className={`text-sm font-black uppercase flex items-center gap-2 mb-1 ${karyaObj.pending_edits.type === "delete" ? "text-red-800" : "text-yellow-800"}`}>
+                  ⚠️ {karyaObj.pending_edits.type === "delete" ? "Terdapat Pengajuan Penghapusan Karya" : "Terdapat Pengajuan Perubahan (Edit)"}
                 </h3>
-                <p className="text-xs font-bold text-yellow-700">
-                  Mahasiswa mengubah detail karya ini. Klik setujui untuk memperbarui ke versi edit (otomatis mengganti data utama), atau tolak untuk membuang perubahan ini dan tetap menampilkan versi lama. Data di bawah ini adalah data asli.
+                <p className={`text-xs font-bold ${karyaObj.pending_edits.type === "delete" ? "text-red-700" : "text-yellow-700"}`}>
+                  {karyaObj.pending_edits.type === "delete"
+                    ? "Mahasiswa mengajukan penghapusan untuk karya ini. Klik setujui untuk menghapus permanen, atau tolak untuk membatalkan pengajuan hapus."
+                    : "Mahasiswa mengubah detail karya ini. Klik setujui untuk memperbarui ke versi edit (otomatis mengganti data utama), atau tolak untuk membuang perubahan ini dan tetap menampilkan versi lama. Data di bawah ini adalah data asli."}
                 </p>
               </div>
             )}

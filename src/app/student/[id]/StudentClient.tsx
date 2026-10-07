@@ -384,50 +384,7 @@ export default function StudentClient({ params }: { params: Promise<{ id: string
         </div>
       </motion.div>
 
-      {/* ── PANEL RINGKASAN PROFESIONAL (untuk recruiter) ── */}
-      {projects.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="bg-card border-4 border-border rounded-3xl p-5 sm:p-6 mb-10 shadow-[4px_4px_0px_var(--color-border)]"
-        >
-          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4">📋 Ringkasan Profesional</p>
-          <div className="grid grid-cols-3 gap-3 sm:gap-4">
-            <div className="bg-muted rounded-2xl border-2 border-border p-3 sm:p-4 text-center">
-              <p className="text-2xl sm:text-3xl font-black text-primary">{projects.length}</p>
-              <p className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase mt-0.5">Total Karya</p>
-            </div>
-            <div className="bg-muted rounded-2xl border-2 border-border p-3 sm:p-4 text-center">
-              <p className="text-2xl sm:text-3xl font-black text-secondary">
-                {projects.reduce((sum, p) => sum + (p.views ?? 0), 0).toLocaleString("id-ID")}
-              </p>
-              <p className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase mt-0.5">Total Dilihat</p>
-            </div>
-            <div className="bg-muted rounded-2xl border-2 border-border p-3 sm:p-4 text-center">
-              <p className="text-2xl sm:text-3xl font-black text-accent">
-                {projects.reduce((sum, p) => sum + (p.likes ?? 0), 0).toLocaleString("id-ID")}
-              </p>
-              <p className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase mt-0.5">Total Suka</p>
-            </div>
-          </div>
 
-          {/* Kategori karya */}
-          {projects.length > 0 && (
-            <div className="mt-4 pt-4 border-t-2 border-border flex flex-wrap gap-2 items-center">
-              <span className="text-[10px] font-black text-muted-foreground uppercase shrink-0">Bidang:</span>
-              {Array.from(new Set(projects.map((p) => p.category).filter(Boolean))).map((cat) => (
-                <span
-                  key={cat as string}
-                  className="px-3 py-1 text-[10px] font-black uppercase rounded-xl border-2 border-secondary/30 bg-secondary/10 text-secondary"
-                >
-                  {cat}
-                </span>
-              ))}
-            </div>
-          )}
-        </motion.div>
-      )}
 
       {/* Student Projects */}
       <div>

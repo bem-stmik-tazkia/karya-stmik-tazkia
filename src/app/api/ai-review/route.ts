@@ -432,9 +432,27 @@ export async function POST(req: NextRequest) {
           console.log(consoleMsg);
           
           const truncatedReason = review.reason.length > 1000 ? review.reason.substring(0, 1000) + "..." : review.reason;
+          const typeLabel = isEditRevision ? "[EDIT]" : "[BARU]";
+          
           await sendTelegramNotification(
-            `🤖 <b>Review AI Selesai</b>\n\n📌 <b>Judul:</b> ${escapeHtml(karya.title)}\n📊 <b>Kategori:</b> ${escapeHtml(karya.category)}\n\n✅ <b>Keputusan:</b> ${review.approved ? 'DITERIMA (Publik)' : 'DITOLAK'}\n⭐ <b>Skor:</b> ${review.score}/100\n💬 <b>Alasan:</b>\n<i>${escapeHtml(truncatedReason)}</i>`
+            `<b>Review AI Selesai ${typeLabel}</b>\n\n📌 <b>Judul:</b> ${escapeHtml(karya.title)}\n📊 <b>Kategori:</b> ${escapeHtml(karya.category)}\n\n✅ <b>Keputusan:</b> ${review.approved ? 'DITERIMA (Publik)' : 'DITOLAK'}\n⭐ <b>Skor:</b> ${review.score}/100\n💬 <b>Alasan:</b>\n<i>${escapeHtml(truncatedReason)}</i>`
           );
+
+          if (isEditRevision) {
+            // Manual in-app notification insertion since the DB trigger only fires on status change
+            const notifTitle = review.approved ? `${typeLabel} Perubahan Karya Disetujui` : `${typeLabel} Perubahan Karya Ditolak`;
+            const notifMessage = review.approved 
+              ? `Edit untuk karya "${karya.title}" telah disetujui dan diperbarui.`
+              : `Edit untuk karya "${karya.title}" ditolak: ${truncatedReason}`;
+            
+            await supabaseAdmin.from("notifications").insert({
+              user_id: karya.user_id,
+              title: notifTitle,
+              message: notifMessage,
+              karya_id: karya.id,
+              type: review.approved ? "success" : "error"
+            });
+          }
         }
       } catch (err: any) {
         const errorMsg = err.message || "";

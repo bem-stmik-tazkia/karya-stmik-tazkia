@@ -222,12 +222,7 @@ export default function ProjectClientPage({
         const isLiked = await checkKaryaLiked(data.id, deviceId, userId);
         setLikedLocal(isLiked);
         
-        // Optimistic view increment for better UX
-        const hasViewed = sessionStorage.getItem(`viewed_${data.id}`);
-        if (!hasViewed) {
-          sessionStorage.setItem(`viewed_${data.id}`, "true");
-          setKarya(prev => prev ? { ...prev, views: (prev.views ?? 0) + 1 } : prev);
-        }
+
 
         // Increment view in DB (this will only increment once per 24 hours per device due to anti-spam in RPC)
         await incrementKaryaView(data.id, deviceId, userId);
@@ -407,7 +402,7 @@ export default function ProjectClientPage({
 
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-3 mb-8">
-              {karya.live_url && !isResearch && (
+              {karya.live_url && (
                 <a href={karya.live_url} target="_blank" rel="noreferrer">
                   <BouncyButton className="text-sm px-5 py-3">
                     {linkConfig.icon}
@@ -571,7 +566,7 @@ export default function ProjectClientPage({
             </div>
 
             <div className="mt-5 flex flex-col gap-3">
-              {karya.live_url && !isResearch && (
+              {karya.live_url && (
                 <a href={karya.live_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-3 rounded-2xl bg-primary text-primary-foreground border-2 border-border hover:opacity-90 transition-all font-bold text-sm shadow-[2px_2px_0px_var(--color-border)]">
                   {linkConfig.icon} {linkConfig.label}
                 </a>
@@ -668,9 +663,20 @@ export default function ProjectClientPage({
                       <h3 className="text-lg font-black text-foreground group-hover:text-primary transition-colors line-clamp-1">
                         {k.title}
                       </h3>
-                      <p className="text-xs font-medium text-muted-foreground line-clamp-2 mt-1">
+                      <p className="text-xs font-medium text-muted-foreground line-clamp-2 mt-1 mb-2">
                         {k.description}
                       </p>
+                      {/* Stats */}
+                      <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground mb-3">
+                        <span className="flex items-center gap-1">
+                          <FiEye className="w-3.5 h-3.5" />
+                          {k.views ?? 0}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <FiHeart className="w-3.5 h-3.5" />
+                          {k.likes ?? 0}
+                        </span>
+                      </div>
                       {/* Author info */}
                       {k.team && k.team.length > 0 && (
                         <div className="flex items-center gap-2 mt-3 pt-3 border-t-2 border-border">

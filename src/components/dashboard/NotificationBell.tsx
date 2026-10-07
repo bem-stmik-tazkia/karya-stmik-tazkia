@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Bell, CheckCheck, X, Clock, CheckCircle, XCircle, RefreshCw } from "lucide-react";
+import { Bell, CheckCheck, X, Clock, CheckCircle, XCircle, RefreshCw, Trash } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { formatDistanceToNow } from "date-fns";
@@ -106,6 +106,12 @@ export function NotificationBell() {
     );
   };
 
+  // Delete single notification
+  const deleteNotif = async (id: string) => {
+    await supabase.from("notifications").delete().eq("id", id);
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
+
   // Clear all notifications
   const clearAll = async () => {
     if (!user) return;
@@ -167,7 +173,8 @@ export function NotificationBell() {
                   className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground hover:text-red-500 transition-colors px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30"
                   title="Bersihkan semua notifikasi"
                 >
-                  <span className="hidden sm:inline">Bersihkan</span>
+                  <Trash className="w-3.5 h-3.5" />
+                  <span>Bersihkan Semua</span>
                 </button>
               )}
               <button
@@ -217,9 +224,18 @@ export function NotificationBell() {
                         <p className={`text-sm font-black leading-tight ${!notif.is_read ? "text-foreground" : "text-muted-foreground"}`}>
                           {notif.title}
                         </p>
-                        {!notif.is_read && (
-                          <span className="w-2 h-2 bg-primary rounded-full shrink-0 mt-1" />
-                        )}
+                        <div className="flex items-center gap-2">
+                          {!notif.is_read && (
+                            <span className="w-2 h-2 bg-primary rounded-full shrink-0 mt-1" />
+                          )}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); deleteNotif(notif.id); }}
+                            className="flex items-center gap-1 p-1 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors"
+                            title="Hapus notifikasi ini"
+                          >
+                            <span className="text-[9px] font-black uppercase">Hapus</span> <Trash className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                       <p className="text-xs font-bold text-muted-foreground mt-1 leading-relaxed">
                         {notif.message}

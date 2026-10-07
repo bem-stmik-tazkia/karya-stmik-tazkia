@@ -18,7 +18,7 @@ function StatusBadge({ status, aiStatus, rejectReason, pendingEdits }: { status:
         </span>
         {pendingEdits && (
           <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 border-2 border-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-600 px-2.5 py-0.5 rounded-xl text-[9px] font-black uppercase shadow-[2px_2px_0px_#854d0e] dark:shadow-none">
-            <Clock className="w-2.5 h-2.5" /> Edit Menunggu Review
+            <Clock className="w-2.5 h-2.5" /> {pendingEdits.type === 'delete' ? 'Hapus Menunggu Review' : 'Edit Menunggu Review'}
           </span>
         )}
       </div>
@@ -45,7 +45,7 @@ function StatusBadge({ status, aiStatus, rejectReason, pendingEdits }: { status:
   }
   return (
     <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 border-2 border-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-600 px-2.5 py-1 rounded-xl text-[10px] font-black uppercase shadow-[2px_2px_0px_#854d0e] dark:shadow-none">
-      <Clock className="w-3 h-3" /> Menunggu
+      <Clock className="w-3 h-3" /> Menunggu (Baru)
     </span>
   );
 }
@@ -127,7 +127,7 @@ export default async function ProjectsListPage() {
                   {karyaList.map((karya) => (
                     <tr key={karya.id} className="hover:bg-muted/30 transition-colors">
                       <td className="p-4 align-middle">
-                        <div className="font-black text-base text-foreground line-clamp-1">{karya.title}</div>
+                        <div className="font-black text-base text-foreground line-clamp-1">{karya.title} {karya.pending_edits && karya.pending_edits.type === "delete" ? <span className="inline-block bg-red-100 text-red-800 border border-red-300 text-[9px] px-1.5 py-0.5 rounded-md uppercase font-black align-middle ml-2">HAPUS</span> : karya.status === "approved" && karya.pending_edits ? <span className="inline-block bg-yellow-100 text-yellow-800 border border-yellow-300 text-[9px] px-1.5 py-0.5 rounded-md uppercase font-black align-middle ml-2">EDIT</span> : karya.status === "pending" ? <span className="inline-block bg-blue-100 text-blue-800 border border-blue-300 text-[9px] px-1.5 py-0.5 rounded-md uppercase font-black align-middle ml-2">BARU</span> : null}</div>
                         <div className="text-xs text-muted-foreground font-bold mt-0.5 line-clamp-1">
                           {karya.description}
                         </div>
@@ -167,7 +167,7 @@ export default async function ProjectsListPage() {
                 {/* Title row */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-black text-foreground text-base line-clamp-2 leading-snug">{karya.title}</h3>
+                    <h3 className="font-black text-foreground text-base line-clamp-2 leading-snug">{karya.title} {karya.pending_edits && karya.pending_edits.type === "delete" ? <span className="inline-block bg-red-100 text-red-800 border border-red-300 text-[9px] px-1.5 py-0.5 rounded-md uppercase font-black align-middle ml-2">HAPUS</span> : karya.status === "approved" && karya.pending_edits ? <span className="inline-block bg-yellow-100 text-yellow-800 border border-yellow-300 text-[9px] px-1.5 py-0.5 rounded-md uppercase font-black align-middle ml-2">EDIT</span> : karya.status === "pending" ? <span className="inline-block bg-blue-100 text-blue-800 border border-blue-300 text-[9px] px-1.5 py-0.5 rounded-md uppercase font-black align-middle ml-2">BARU</span> : null}</h3>
                     {karya.description && (
                       <p className="text-xs text-muted-foreground font-medium mt-0.5 line-clamp-2">{karya.description}</p>
                     )}
