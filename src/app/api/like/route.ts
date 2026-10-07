@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Redis } from "@upstash/redis";
-import { supabaseAdmin } from "@/lib/supabase-server";
+import { createClient } from "@/lib/supabase-server";
 
-// Redis bersifat opsional — jika tidak dikonfigurasi, anti-spam dilewati
+// Redis opsional — jika tidak dikonfigurasi, anti-spam dilewati
 const isRedisConfigured = !!(
   process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
 );
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
         : deviceId;
     const redisKey = `liked:${karyaId}:${identity}`;
 
-    // ─── Cek Redis (jika dikonfigurasi) ───────────────────────────────────
+    // ─── Cek Redis lock (jika dikonfigurasi) ─────────────────────────────
     if (redis) {
       if (action === "like") {
         const alreadyLiked = await redis.get(redisKey);
@@ -59,9 +59,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ─── Update DB via supabaseAdmin ───────────────────────────────────────
-    // Ambil likes terkini lalu update
-    const { data: karyaData, error: fetchError } = await supabaseAdmin
+    // ─── Gunakan authenticated Supabase client (dari cookies user) ────────
+    // Ini menggunakan session user yang sudah login — tidak perlu service role key
+    const supabase = await createClient();
+
+    const { data: karyaData, error: fetchError } = await supabase
       .from("karya")
       .select("likes")
       .eq("id", karyaId)
@@ -78,7 +80,7 @@ export async function POST(req: NextRequest) {
         ? currentLikes + 1
         : Math.max(0, currentLikes - 1);
 
-    const { error: updateError } = await supabaseAdmin
+    const { error: updateError } = await supabase
       .from("karya")
       .update({ likes: newLikes })
       .eq("id", karyaId);
@@ -88,7 +90,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to update likes" }, { status: 500 });
     }
 
-    // ─── Update Redis (jika dikonfigurasi) ────────────────────────────────
+    // ─── Update Redis setelah DB sukses ──────────────────────────────────
     if (redis) {
       if (action === "like") {
         await redis.set(redisKey, "1", { ex: 60 * 60 * 24 * 365 });
@@ -104,7 +106,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// GET — cek status liked
+// GET — cek status liked (dari Redis)
 export async function GET(req: NextRequest) {
   try {
     if (!redis) {
@@ -123,8 +125,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Invalid characters" }, { status: 400 });
     }
 
-    const identity =
-      userId && uuidRegex.test(userId) ? userId : deviceId;
+    const identity = userId && uuidRegex.test(userId) ? userId : deviceId;
     const redisKey = `liked:${karyaId}:${identity}`;
     const liked = await redis.get(redisKey);
 
