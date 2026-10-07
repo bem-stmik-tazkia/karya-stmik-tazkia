@@ -83,7 +83,8 @@ export default function StudentClient({ params }: { params: Promise<{ id: string
       const userId = session?.user?.id || null;
       const deviceId = getDeviceId();
       
-      const isNowLiked = await toggleKaryaLike(id, deviceId, userId);
+      const actionToTake = wasLiked ? 'unlike' : 'like';
+      const isNowLiked = await toggleKaryaLike(id, deviceId, userId, actionToTake);
       setLikedKarya((prev) => ({ ...prev, [id]: isNowLiked }));
     } catch (err) {
       console.error(err);

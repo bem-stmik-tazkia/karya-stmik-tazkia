@@ -224,8 +224,15 @@ export default function ProjectClientPage({
         
 
 
-        // Increment view in DB (this will only increment once per 24 hours per device due to anti-spam in RPC)
-        await incrementKaryaView(data.id, deviceId, userId);
+        // Increment view in DB (with localStorage anti-spam)
+        const lastViewed = localStorage.getItem(`viewed_${data.id}`);
+        const now = Date.now();
+        if (!lastViewed || now - parseInt(lastViewed) > 24 * 60 * 60 * 1000) {
+          await incrementKaryaView(data.id, deviceId, userId);
+          localStorage.setItem(`viewed_${data.id}`, now.toString());
+          // Update local state so it doesn't stay behind the DB
+          setKarya(prev => prev ? { ...prev, views: (prev.views || 0) + 1 } : prev);
+        }
       }
       setLoading(false);
     }
@@ -236,22 +243,34 @@ export default function ProjectClientPage({
     if (!karya || isLiking) return;
     
     setIsLiking(true);
+    const newLikedState = !likedLocal;
     // Optimistic update
-    setLikedLocal(!likedLocal);
-    setLikeCount(prev => likedLocal ? Math.max(0, prev - 1) : prev + 1);
+    setLikedLocal(newLikedState);
+    setLikeCount(prev => newLikedState ? prev + 1 : Math.max(0, prev - 1));
+
+    if (newLikedState) {
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ["#f97316", "#1e3a8a", "#f59e0b"] });
+    }
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id || null;
       const deviceId = getDeviceId();
       
-      const isNowLiked = await toggleKaryaLike(karya.id, deviceId, userId);
+      const actionToTake = newLikedState ? 'like' : 'unlike';
+      const isNowLiked = await toggleKaryaLike(karya.id, deviceId, userId, actionToTake);
       setLikedLocal(isNowLiked);
+      
+      if (isNowLiked) {
+        localStorage.setItem(`liked_${karya.id}`, 'true');
+      } else {
+        localStorage.removeItem(`liked_${karya.id}`);
+      }
     } catch (err) {
       console.error(err);
       // Revert if error
-      setLikedLocal(likedLocal);
-      setLikeCount(prev => likedLocal ? prev + 1 : Math.max(0, prev - 1));
+      setLikedLocal(!newLikedState);
+      setLikeCount(prev => !newLikedState ? prev + 1 : Math.max(0, prev - 1));
     } finally {
       setIsLiking(false);
     }

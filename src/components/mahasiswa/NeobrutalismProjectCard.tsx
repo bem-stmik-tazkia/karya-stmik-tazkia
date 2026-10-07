@@ -55,8 +55,17 @@ function getCategoryLabel(category?: string): string {
 
 export function NeobrutalismProjectCard({ project }: { project: ProjectData }) {
   return (
-    <div className="card-3d bg-card border-4 border-border rounded-3xl overflow-hidden h-full flex flex-col group relative">
-      <Link href={`/project/${project.id}`} className="flex flex-col flex-1">
+    <div 
+      onClick={(e) => {
+        // Find if the click is on an anchor or button inside
+        const target = e.target as HTMLElement;
+        if (!target.closest('a') && !target.closest('button')) {
+          window.location.href = `/project/${project.id}`;
+        }
+      }}
+      className="card-3d bg-card border-4 border-border rounded-3xl overflow-hidden h-full flex flex-col group relative cursor-pointer"
+    >
+      <div className="flex flex-col flex-1">
         {/* Cover Image / Placeholder */}
         <div className="relative w-full aspect-video bg-muted border-b-4 border-border overflow-hidden">
           {project.cover_image ? (
@@ -177,8 +186,8 @@ export function NeobrutalismProjectCard({ project }: { project: ProjectData }) {
             )}
           </div>
         </div>
+        </div>
       </div>
-      </Link>
     </div>
   );
 }

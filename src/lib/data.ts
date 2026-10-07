@@ -103,23 +103,15 @@ export async function checkKaryaLiked(karyaId: string, deviceId: string, userId:
  * Toggle like/unlike karya.
  * Mengembalikan status like terbaru (true jika jadi liked, false jika di-unlike).
  */
-export async function toggleKaryaLike(karyaId: string, deviceId: string, userId: string | null = null): Promise<boolean> {
-  const { data, error } = await supabase.rpc("toggle_karya_like", {
-    karya_id: karyaId,
-  });
-  if (error) {
-    if (error.message.includes("does not exist")) {
-      const { data: karyaData } = await supabase.from("karya").select("likes").eq("id", karyaId).single();
-      if (karyaData) {
-        // Just increment for now as a fallback since we can't properly track unlikes without a table
-        await supabase.from("karya").update({ likes: (karyaData.likes || 0) + 1 }).eq("id", karyaId);
-      }
-      return true;
-    }
-    console.error("[toggleKaryaLike] Error:", error.message);
-    return false;
+export async function toggleKaryaLike(karyaId: string, deviceId: string, userId: string | null = null, action: 'like' | 'unlike' = 'like'): Promise<boolean> {
+  // Manual update since the RPC might not support unliking
+  const { data: karyaData } = await supabase.from("karya").select("likes").eq("id", karyaId).single();
+  if (karyaData) {
+    const currentLikes = karyaData.likes || 0;
+    const newLikes = action === 'like' ? currentLikes + 1 : Math.max(0, currentLikes - 1);
+    await supabase.from("karya").update({ likes: newLikes }).eq("id", karyaId);
   }
-  return data ?? false;
+  return action === 'like';
 }
 
 // ============================================================

@@ -266,7 +266,8 @@ export default function ProjectDetailPage({
       const userId = session?.user?.id || null;
       const deviceId = getDeviceId();
       
-      const isNowLiked = await toggleKaryaLike(karya.id, deviceId, userId);
+      const actionToTake = likedLocal ? 'unlike' : 'like';
+      const isNowLiked = await toggleKaryaLike(karya.id, deviceId, userId, actionToTake);
       setLikedLocal(isNowLiked);
     } catch (err) {
       console.error(err);
