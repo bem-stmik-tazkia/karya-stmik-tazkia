@@ -2,9 +2,9 @@ import HomePageClient from "@/components/home/HomePageClient";
 import { supabaseServer } from "@/lib/supabase-server";
 import type { Karya } from "@/types/karya";
 
-// Opt into static rendering and revalidate every hour, or stay dynamic.
-// We'll keep it default (dynamic if using cookies, otherwise static).
-export const revalidate = 60; // Revalidate every 60 seconds (ISR) for super fast performance!
+// Selalu ambil data live terbaru agar angka views dan likes langsung update
+export const revalidate = 0;
+
 
 export default async function Home() {
   // Fetch featured karya (Top 3 based on likes and views) on the server!
