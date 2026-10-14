@@ -149,6 +149,47 @@ export async function checkKaryaLiked(karyaId: string, deviceId: string, userId:
   return false;
 }
 
+/**
+ * Mengambil daftar ID karya yang sudah dilike oleh device/user ini.
+ * Memadukan localStorage dan server-side /api/like.
+ */
+export async function getLikedKaryaIds(deviceId: string, userId: string | null = null): Promise<string[]> {
+  const likedIds = new Set<string>();
+
+  // 1. Cek semua key di localStorage yang berawalan 'liked_'
+  if (typeof window !== "undefined") {
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("liked_") && localStorage.getItem(key) === "true") {
+          likedIds.add(key.replace("liked_", ""));
+        }
+      }
+    } catch {}
+  }
+
+  // 2. Fetch dari server /api/like?deviceId=...
+  try {
+    const params = new URLSearchParams({ deviceId });
+    if (userId) params.set("userId", userId);
+    const res = await fetch(`/api/like?${params.toString()}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.likedIds)) {
+        data.likedIds.forEach((id: string) => {
+          likedIds.add(id);
+          if (typeof window !== "undefined") {
+            localStorage.setItem(`liked_${id}`, "true");
+          }
+        });
+      }
+    }
+  } catch (err) {
+    console.warn("[getLikedKaryaIds] Fetch error:", err);
+  }
+
+  return Array.from(likedIds);
+}
 
 /**
  * Toggle like/unlike karya secara aman via server-side API.

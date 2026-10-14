@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { getMahasiswaById, getMahasiswaProjects, formatNumber, toggleKaryaLike } from "@/lib/data";
+import { getMahasiswaById, getMahasiswaProjects, formatNumber, toggleKaryaLike, getLikedKaryaIds } from "@/lib/data";
 import { getDeviceId } from "@/utils/identity";
 import { supabase } from "@/lib/supabase";
 import { checkIsFollowing, toggleFollow } from "@/lib/followService";
@@ -144,7 +144,7 @@ export default function StudentClient({ params }: { params: Promise<{ id: string
 
       const projs = await getMahasiswaProjects(data.user_id ?? data.id);
 
-      // Inisialisasi status like dari localStorage — anti-spam tetap di server via Redis
+      // Inisialisasi status like dari localStorage dan server
       const initialLiked: Record<string, boolean> = {};
       projs.forEach(k => {
         if (localStorage.getItem(`liked_${k.id}`) === 'true') {
@@ -153,6 +153,22 @@ export default function StudentClient({ params }: { params: Promise<{ id: string
       });
       setLikedKarya(initialLiked);
       setProjects(projs);
+
+      try {
+        const deviceId = getDeviceId();
+        const ids = await getLikedKaryaIds(deviceId, user?.id || null);
+        if (ids && ids.length > 0) {
+          setLikedKarya((prev) => {
+            const updated = { ...prev };
+            ids.forEach((id) => {
+              updated[id] = true;
+            });
+            return updated;
+          });
+        }
+      } catch {
+        // abaikan jika gagal
+      }
 
       if (data.user_id) {
         const feedPosts = await getFeedPosts(user?.id, data.user_id);

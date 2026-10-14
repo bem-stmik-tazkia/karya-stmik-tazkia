@@ -163,33 +163,48 @@ export async function GET(req: NextRequest) {
     const deviceId = searchParams.get("deviceId");
     const userId = searchParams.get("userId");
 
-    if (!karyaId || !deviceId) {
-      return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
+    if (!deviceId) {
+      return NextResponse.json({ error: "Missing deviceId" }, { status: 400 });
     }
-    if (!uuidRegex.test(karyaId) || !uuidRegex.test(deviceId)) {
-      return NextResponse.json({ error: "Invalid characters" }, { status: 400 });
+    if (!uuidRegex.test(deviceId)) {
+      return NextResponse.json({ error: "Invalid deviceId" }, { status: 400 });
+    }
+    if (karyaId && !uuidRegex.test(karyaId)) {
+      return NextResponse.json({ error: "Invalid karyaId" }, { status: 400 });
     }
 
     const identity = userId && uuidRegex.test(userId) ? userId : deviceId;
+    const db = supabaseAdmin || (await createClient());
 
-    if (redis) {
-      const redisKey = `liked:${karyaId}:${identity}`;
-      const liked = await redis.get(redisKey);
-      return NextResponse.json({ liked: !!liked });
+    // Kasus 1: Cek single karyaId
+    if (karyaId) {
+      if (redis) {
+        const redisKey = `liked:${karyaId}:${identity}`;
+        const liked = await redis.get(redisKey);
+        return NextResponse.json({ liked: !!liked });
+      }
+
+      // Fallback ke karya_likes_log
+      const query = db
+        .from("karya_likes_log")
+        .select("id")
+        .eq("karya_id", karyaId);
+
+      const { data } = userId && uuidRegex.test(userId)
+        ? await query.eq("user_id", userId).maybeSingle()
+        : await query.eq("device_id", deviceId).maybeSingle();
+
+      return NextResponse.json({ liked: !!data });
     }
 
-    // Fallback ke karya_likes_log
-    const db = supabaseAdmin || (await createClient());
-    const query = db
-      .from("karya_likes_log")
-      .select("id")
-      .eq("karya_id", karyaId);
-
+    // Kasus 2: Fetch semua liked karya untuk user/device ini
+    const query = db.from("karya_likes_log").select("karya_id");
     const { data } = userId && uuidRegex.test(userId)
-      ? await query.eq("user_id", userId).maybeSingle()
-      : await query.eq("device_id", deviceId).maybeSingle();
+      ? await query.eq("user_id", userId)
+      : await query.eq("device_id", deviceId);
 
-    return NextResponse.json({ liked: !!data });
+    const likedIds = (data || []).map((r: { karya_id: string }) => r.karya_id);
+    return NextResponse.json({ likedIds });
   } catch (err) {
     console.error("[/api/like GET] Error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { motion, AnimatePresence } from "framer-motion";
-import { getKarya, toggleKaryaLike } from "@/lib/data";
+import { getKarya, toggleKaryaLike, getLikedKaryaIds } from "@/lib/data";
 import { getDeviceId } from "@/utils/identity";
 import { supabase } from "@/lib/supabase";
 import type { Karya } from "@/types/karya";
@@ -73,35 +73,29 @@ function ExploreContent() {
       const userId = session?.user?.id || null;
       const deviceId = getDeviceId();
 
-      // ── Sync liked status dari server (karya_likes_log) ──────────────
-      // Ini memastikan heart menyala meski localStorage kosong/beda device
+      // ── Sync liked status dari localStorage & server ──────────────
       const initialLiked: Record<string, boolean> = {};
+      data.forEach((k) => {
+        if (localStorage.getItem(`liked_${k.id}`) === "true") {
+          initialLiked[k.id] = true;
+        }
+      });
+      setLikedKarya(initialLiked);
+
       try {
-        const query = supabase
-          .from('karya_likes_log')
-          .select('karya_id');
-
-        const { data: likedRows } = userId
-          ? await query.eq('user_id', userId)
-          : await query.eq('device_id', deviceId);
-
-        if (likedRows) {
-          likedRows.forEach((row: { karya_id: string }) => {
-            initialLiked[row.karya_id] = true;
-            // Sync ke localStorage juga
-            localStorage.setItem(`liked_${row.karya_id}`, 'true');
+        const ids = await getLikedKaryaIds(deviceId, userId);
+        if (ids && ids.length > 0) {
+          setLikedKarya((prev) => {
+            const updated = { ...prev };
+            ids.forEach((id) => {
+              updated[id] = true;
+            });
+            return updated;
           });
         }
       } catch {
-        // Fallback ke localStorage jika query gagal
-        data.forEach(k => {
-          if (localStorage.getItem(`liked_${k.id}`) === 'true') {
-            initialLiked[k.id] = true;
-          }
-        });
+        // abaikan jika gagal
       }
-
-      setLikedKarya(initialLiked);
       setKarya(data);
       setLoading(false);
     };
@@ -445,12 +439,17 @@ function ExploreContent() {
                                   {formatNumber(item.views ?? 0)}
                                 </span>
                                 <button
+                                  type="button"
                                   onClick={(e) => toggleLike(e, item.id)}
-                                  className={`flex items-center gap-1 hover:text-secondary transition-colors ${isLiked ? "text-secondary font-black" : ""
-                                    }`}
+                                  className={`flex items-center gap-1 transition-colors cursor-pointer ${
+                                    isLiked ? "text-red-500 font-black" : "text-muted-foreground hover:text-red-500"
+                                  }`}
+                                  title={isLiked ? "Batal suka" : "Sukai"}
                                 >
                                   <Heart
-                                    className={`w-4 h-4 ${isLiked ? "fill-current text-secondary" : ""}`}
+                                    className={`w-4 h-4 transition-transform active:scale-125 ${
+                                      isLiked ? "fill-red-500 text-red-500" : ""
+                                    }`}
                                   />
                                   {formatNumber(likesCount)}
                                 </button>

@@ -16,16 +16,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid karyaId" }, { status: 400 });
     }
 
-    const supabase = await createClient();
+    const db = supabaseAdmin || (await createClient());
 
     // 1. Coba RPC increment_karya_view (signature karya_id)
-    let { error: rpcError } = await supabase.rpc("increment_karya_view", {
+    let { error: rpcError } = await db.rpc("increment_karya_view", {
       karya_id: karyaId,
     });
 
     // 2. Jika gagal, coba signature alternatif (p_karya_id, p_device_id, p_user_id)
     if (rpcError) {
-      const res2 = await supabase.rpc("increment_karya_view", {
+      const res2 = await db.rpc("increment_karya_view", {
         p_karya_id: karyaId,
         p_device_id: deviceId || null,
         p_user_id: userId || null,
@@ -33,19 +33,18 @@ export async function POST(req: NextRequest) {
       rpcError = res2.error;
     }
 
-    // 3. Fallback: jika RPC belum ada di database, update langsung via service role / server client
+    // 3. Fallback: jika RPC belum ada di database, update langsung via service role
     if (rpcError) {
       console.warn("[/api/view] RPC increment_karya_view gagal, fallback ke direct update:", rpcError.message);
       
-      const client = supabaseAdmin || supabase;
-      const { data: current, error: fetchErr } = await client
+      const { data: current, error: fetchErr } = await db
         .from("karya")
         .select("views")
         .eq("id", karyaId)
         .single();
 
       if (!fetchErr && current) {
-        await client
+        await db
           .from("karya")
           .update({ views: (current.views || 0) + 1 })
           .eq("id", karyaId);
@@ -55,8 +54,7 @@ export async function POST(req: NextRequest) {
     // Log ke karya_views_log jika ada
     if (deviceId) {
       try {
-        const client = supabaseAdmin || supabase;
-        await client.from("karya_views_log").insert({
+        await db.from("karya_views_log").insert({
           karya_id: karyaId,
           device_id: deviceId,
           ...(userId ? { user_id: userId } : {}),

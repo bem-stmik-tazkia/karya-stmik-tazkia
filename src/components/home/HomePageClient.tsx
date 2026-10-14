@@ -1,11 +1,14 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { Karya } from "@/types/karya";
 import { KARYA_CATEGORIES } from "@/types/karya";
 import { ArrowRight, Flame, Users, Eye, Heart } from "lucide-react";
-import { formatNumber } from "@/lib/data";
+import { formatNumber, toggleKaryaLike, getLikedKaryaIds } from "@/lib/data";
+import { supabase } from "@/lib/supabase";
+import { getDeviceId } from "@/utils/identity";
 import { BouncyButton } from "@/components/ui/BouncyButton";
 import { StickerBadge } from "@/components/ui/StickerBadge";
 import TechStackTags from "@/components/ui/TechStackTags";
@@ -22,6 +25,110 @@ interface HomePageClientProps {
 }
 
 export default function HomePageClient({ featuredKarya, totalKarya, totalMahasiswa }: HomePageClientProps) {
+  const [karyaList, setKaryaList] = useState<Karya[]>(featuredKarya);
+  const [likedKarya, setLikedKarya] = useState<Record<string, boolean>>({});
+  const [isLiking, setIsLiking] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    setKaryaList(featuredKarya);
+  }, [featuredKarya]);
+
+  // Inisialisasi status liked dari localStorage dan server
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // 1. Cepat dari localStorage
+    const initialLiked: Record<string, boolean> = {};
+    featuredKarya.forEach((k) => {
+      if (localStorage.getItem(`liked_${k.id}`) === "true") {
+        initialLiked[k.id] = true;
+      }
+    });
+    setLikedKarya(initialLiked);
+
+    // 2. Sinkronisasi dengan server via getLikedKaryaIds (bypass RLS)
+    const syncLikes = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id || null;
+        const deviceId = getDeviceId();
+
+        const ids = await getLikedKaryaIds(deviceId, userId);
+        if (ids && ids.length > 0) {
+          setLikedKarya((prev) => {
+            const updated = { ...prev };
+            ids.forEach((id) => {
+              updated[id] = true;
+            });
+            return updated;
+          });
+        }
+      } catch {
+        // abaikan jika gagal
+      }
+    };
+    syncLikes();
+  }, [featuredKarya]);
+
+  const toggleLike = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (isLiking[id]) return;
+    setIsLiking((prev) => ({ ...prev, [id]: true }));
+
+    const wasLiked = !!likedKarya[id];
+    const newLiked = !wasLiked;
+
+    // Optimistic toggle: langsung nyala (+1) atau mati (-1)
+    setLikedKarya((prev) => ({ ...prev, [id]: newLiked }));
+    setKaryaList((prev) =>
+      prev.map((k) =>
+        k.id === id
+          ? { ...k, likes: Math.max(0, (k.likes ?? 0) + (newLiked ? 1 : -1)) }
+          : k
+      )
+    );
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id || null;
+      const deviceId = getDeviceId();
+
+      const actionToTake = newLiked ? "like" : "unlike";
+      const isNowLiked = await toggleKaryaLike(id, deviceId, userId, actionToTake);
+
+      setLikedKarya((prev) => ({ ...prev, [id]: isNowLiked }));
+      if (isNowLiked === wasLiked) {
+        setKaryaList((prev) =>
+          prev.map((k) =>
+            k.id === id
+              ? { ...k, likes: Math.max(0, (k.likes ?? 0) + (wasLiked ? 1 : -1)) }
+              : k
+          )
+        );
+      }
+
+      if (isNowLiked) {
+        localStorage.setItem(`liked_${id}`, "true");
+      } else {
+        localStorage.removeItem(`liked_${id}`);
+      }
+    } catch (err) {
+      console.error(err);
+      setLikedKarya((prev) => ({ ...prev, [id]: wasLiked }));
+      setKaryaList((prev) =>
+        prev.map((k) =>
+          k.id === id
+            ? { ...k, likes: Math.max(0, (k.likes ?? 0) + (wasLiked ? 1 : -1)) }
+            : k
+        )
+      );
+    } finally {
+      setIsLiking((prev) => ({ ...prev, [id]: false }));
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Playful Stats Bar */}
@@ -104,7 +211,7 @@ export default function HomePageClient({ featuredKarya, totalKarya, totalMahasis
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
-            {featuredKarya.length === 0
+            {karyaList.length === 0
               ? [1, 2, 3].map((n) => (
                 <div key={n} className="card-3d bg-card border-4 border-border rounded-2xl overflow-hidden animate-pulse">
                   <div className="aspect-[16/10] bg-muted" />
@@ -115,7 +222,9 @@ export default function HomePageClient({ featuredKarya, totalKarya, totalMahasis
                   </div>
                 </div>
               ))
-              : featuredKarya.map((item, index) => {
+              : karyaList.map((item, index) => {
+                const isLiked = !!likedKarya[item.id];
+                const likesCount = item.likes ?? 0;
                 const categoryLabel =
                   KARYA_CATEGORIES.find((c) => c.value === item.category)?.label ?? item.category;
 
@@ -185,9 +294,21 @@ export default function HomePageClient({ featuredKarya, totalKarya, totalMahasis
                               <span className="flex items-center gap-1">
                                 <Eye className="w-4 h-4 text-primary" /> {formatNumber(item.views ?? 0)}
                               </span>
-                              <span className="flex items-center gap-1">
-                                <Heart className="w-4 h-4 text-secondary" /> {formatNumber(item.likes ?? 0)}
-                              </span>
+                              <button
+                                type="button"
+                                onClick={(e) => toggleLike(e, item.id)}
+                                className={`flex items-center gap-1 transition-colors cursor-pointer z-10 ${
+                                  isLiked ? "text-red-500 font-black" : "text-muted-foreground hover:text-red-500"
+                                }`}
+                                title={isLiked ? "Batal suka" : "Sukai"}
+                              >
+                                <Heart
+                                  className={`w-4 h-4 transition-transform active:scale-125 ${
+                                    isLiked ? "fill-red-500 text-red-500" : ""
+                                  }`}
+                                />
+                                {formatNumber(likesCount)}
+                              </button>
                             </div>
                           </div>
                         </div>
