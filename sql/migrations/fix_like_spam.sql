@@ -46,3 +46,39 @@ $$;
 -- Berikan akses RPC ke authenticated user dan anon
 GRANT EXECUTE ON FUNCTION public.increment_likes(uuid, integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.increment_likes(uuid, integer) TO anon;
+
+-- ─── 4. RPC increment_karya_view (atomic update views, aman untuk anon/HP) ──
+CREATE OR REPLACE FUNCTION public.increment_karya_view(karya_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE public.karya
+  SET views = COALESCE(views, 0) + 1
+  WHERE id = karya_id;
+END;
+$$;
+
+-- Handle juga signature alternatif p_karya_id
+CREATE OR REPLACE FUNCTION public.increment_karya_view(
+  p_karya_id uuid,
+  p_device_id text DEFAULT NULL,
+  p_user_id uuid DEFAULT NULL
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE public.karya
+  SET views = COALESCE(views, 0) + 1
+  WHERE id = p_karya_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.increment_karya_view(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.increment_karya_view(uuid) TO anon;
+GRANT EXECUTE ON FUNCTION public.increment_karya_view(uuid, text, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.increment_karya_view(uuid, text, uuid) TO anon;
+

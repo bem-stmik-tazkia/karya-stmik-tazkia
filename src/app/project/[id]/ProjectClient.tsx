@@ -228,12 +228,15 @@ export default function ProjectClientPage({
         const lastViewed = localStorage.getItem(`viewed_${data.id}`);
         const now = Date.now();
         if (!lastViewed || now - parseInt(lastViewed) > 24 * 60 * 60 * 1000) {
-          await incrementKaryaView(data.id, deviceId, userId);
-          localStorage.setItem(`viewed_${data.id}`, now.toString());
-          // Update local state so it doesn't stay behind the DB
-          setKarya(prev => prev ? { ...prev, views: (prev.views || 0) + 1 } : prev);
+          const success = await incrementKaryaView(data.id, deviceId, userId);
+          if (success) {
+            localStorage.setItem(`viewed_${data.id}`, now.toString());
+            // Update local state so it doesn't stay behind the DB
+            setKarya(prev => prev ? { ...prev, views: (prev.views || 0) + 1 } : prev);
+          }
         }
       }
+
       setLoading(false);
     }
     fetchData();

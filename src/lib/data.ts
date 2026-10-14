@@ -66,24 +66,40 @@ export async function getKaryaById(id: string): Promise<Karya | null> {
 
 /**
  * Tambah view ke karya (anti-spam 24 jam per device).
- * Memanggil RPC function yang sudah ada di Supabase BEM.
+ * Menggunakan server-side /api/view agar tidak terhalang permission RLS di HP / anon client.
  */
-export async function incrementKaryaView(karyaId: string, deviceId: string, userId?: string | null) {
-  const { error } = await supabase.rpc("increment_karya_view", {
-    karya_id: karyaId,
-  });
-  if (error) {
-    // Fallback if RPC doesn't exist: manually fetch and update
-    if (error.message.includes("does not exist")) {
-      const { data } = await supabase.from("karya").select("views").eq("id", karyaId).single();
-      if (data) {
-        await supabase.from("karya").update({ views: (data.views || 0) + 1 }).eq("id", karyaId);
-      }
-    } else {
-      console.error("[incrementKaryaView] Error:", error.message);
+export async function incrementKaryaView(karyaId: string, deviceId: string, userId?: string | null): Promise<boolean> {
+  try {
+    const res = await fetch("/api/view", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ karyaId, deviceId, userId }),
+    });
+    if (res.ok) return true;
+  } catch (err) {
+    console.warn("[incrementKaryaView] /api/view failed, trying direct RPC fallback:", err);
+  }
+
+  // Fallback ke direct RPC client-side jika fetch route gagal
+  try {
+    let { error } = await supabase.rpc("increment_karya_view", {
+      karya_id: karyaId,
+    });
+    if (error) {
+      const res2 = await supabase.rpc("increment_karya_view", {
+        p_karya_id: karyaId,
+        p_device_id: deviceId,
+        p_user_id: userId || null,
+      });
+      error = res2.error;
     }
+    return !error;
+  } catch (err) {
+    console.error("[incrementKaryaView] Fallback error:", err);
+    return false;
   }
 }
+
 
 /**
  * Cek apakah user/device sudah like karya ini.
