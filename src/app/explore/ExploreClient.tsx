@@ -68,20 +68,46 @@ function ExploreContent() {
       setLoading(true);
       const data = await getKarya();
 
-      // Inisialisasi status like dari localStorage (sumber kebenaran sisi client)
-      // Anti-spam tetap di-enforce server-side via Redis, tidak perlu sync ke sini
+      // Cek session dulu untuk tahu identity
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id || null;
+      const deviceId = getDeviceId();
+
+      // ── Sync liked status dari server (karya_likes_log) ──────────────
+      // Ini memastikan heart menyala meski localStorage kosong/beda device
       const initialLiked: Record<string, boolean> = {};
-      data.forEach(k => {
-        if (localStorage.getItem(`liked_${k.id}`) === 'true') {
-          initialLiked[k.id] = true;
+      try {
+        const query = supabase
+          .from('karya_likes_log')
+          .select('karya_id');
+
+        const { data: likedRows } = userId
+          ? await query.eq('user_id', userId)
+          : await query.eq('device_id', deviceId);
+
+        if (likedRows) {
+          likedRows.forEach((row: { karya_id: string }) => {
+            initialLiked[row.karya_id] = true;
+            // Sync ke localStorage juga
+            localStorage.setItem(`liked_${row.karya_id}`, 'true');
+          });
         }
-      });
+      } catch {
+        // Fallback ke localStorage jika query gagal
+        data.forEach(k => {
+          if (localStorage.getItem(`liked_${k.id}`) === 'true') {
+            initialLiked[k.id] = true;
+          }
+        });
+      }
+
       setLikedKarya(initialLiked);
       setKarya(data);
       setLoading(false);
     };
     fetchData();
   }, []);
+
 
   const [isLiking, setIsLiking] = useState<Record<string, boolean>>({});
 
@@ -100,6 +126,7 @@ function ExploreContent() {
     setIsLiking(prev => ({ ...prev, [id]: true }));
 
     const wasLiked = likedKarya[id];
+    // Optimistic update
     setLikedKarya((prev) => ({ ...prev, [id]: !wasLiked }));
     setKarya((prev) => prev.map(k => k.id === id ? { ...k, likes: Math.max(0, (k.likes ?? 0) + (wasLiked ? -1 : 1)) } : k));
 
@@ -110,7 +137,16 @@ function ExploreContent() {
 
       const actionToTake = wasLiked ? 'unlike' : 'like';
       const isNowLiked = await toggleKaryaLike(id, deviceId, userId, actionToTake);
+
+      // Konfirmasi state dari server
       setLikedKarya((prev) => ({ ...prev, [id]: isNowLiked }));
+
+      // Jika server state berbeda dari optimistic (misal 409 sudah liked),
+      // revert count agar tidak meleset
+      if (isNowLiked === wasLiked) {
+        setKarya((prev) => prev.map(k => k.id === id ? { ...k, likes: Math.max(0, (k.likes ?? 0) + (wasLiked ? 1 : -1)) } : k));
+      }
+
       if (isNowLiked) {
         localStorage.setItem(`liked_${id}`, 'true');
       } else {
@@ -125,6 +161,7 @@ function ExploreContent() {
       setIsLiking(prev => ({ ...prev, [id]: false }));
     }
   };
+
 
   const filteredKarya = useMemo(() => {
     return karya.filter((item) => {
