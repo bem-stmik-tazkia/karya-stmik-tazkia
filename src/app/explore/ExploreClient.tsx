@@ -106,7 +106,18 @@ function ExploreContent() {
       setLoading(false);
     };
     fetchData();
+  }, [user]);
+
+  // Refresh data otomatis saat tab/jendela kembali aktif (misal setelah balik dari detail)
+  useEffect(() => {
+    const handleFocus = async () => {
+      const data = await getKarya();
+      setKarya(data);
+    };
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
   }, []);
+
 
 
   const [isLiking, setIsLiking] = useState<Record<string, boolean>>({});

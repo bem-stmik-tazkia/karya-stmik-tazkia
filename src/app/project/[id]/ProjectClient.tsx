@@ -2,7 +2,9 @@
 
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { getKaryaById, getKarya, formatNumber, incrementKaryaView, checkKaryaLiked, toggleKaryaLike } from "@/lib/data";
+
 import { supabase } from "@/lib/supabase";
 import { getDeviceId } from "@/utils/identity";
 import type { Karya } from "@/types/karya";
@@ -190,6 +192,7 @@ export default function ProjectClientPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const { user } = useAuth();
   const [karya, setKarya] = useState<Karya | null>(null);
   const [relatedKarya, setRelatedKarya] = useState<Karya[]>([]);
   const [loading, setLoading] = useState(true);
@@ -214,21 +217,17 @@ export default function ProjectClientPage({
         
         // Track View
         const deviceId = getDeviceId();
+        const currentUserId = user?.id || null;
         
-        // Check if liked
-        const { data: { session } } = await supabase.auth.getSession();
-        const userId = session?.user?.id || null;
-        
-        const isLiked = await checkKaryaLiked(data.id, deviceId, userId);
+        // Check if liked dari database & localStorage
+        const isLiked = await checkKaryaLiked(data.id, deviceId, currentUserId);
         setLikedLocal(isLiked);
-        
-
 
         // Increment view in DB (with localStorage anti-spam)
         const lastViewed = localStorage.getItem(`viewed_${data.id}`);
         const now = Date.now();
         if (!lastViewed || now - parseInt(lastViewed) > 24 * 60 * 60 * 1000) {
-          const success = await incrementKaryaView(data.id, deviceId, userId);
+          const success = await incrementKaryaView(data.id, deviceId, currentUserId);
           if (success) {
             localStorage.setItem(`viewed_${data.id}`, now.toString());
             // Update local state so it doesn't stay behind the DB
@@ -240,13 +239,19 @@ export default function ProjectClientPage({
       setLoading(false);
     }
     fetchData();
-  }, [id]);
+  }, [id, user]);
 
   const handleLike = async () => {
     if (!karya || isLiking) return;
+
+    if (!user) {
+      router.push("/login");
+      return;
+    }
     
     setIsLiking(true);
-    const newLikedState = !likedLocal;
+    const wasLiked = likedLocal;
+    const newLikedState = !wasLiked;
     // Optimistic update
     setLikedLocal(newLikedState);
     setLikeCount(prev => newLikedState ? prev + 1 : Math.max(0, prev - 1));
@@ -256,14 +261,18 @@ export default function ProjectClientPage({
     }
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id || null;
       const deviceId = getDeviceId();
+      const userId = user.id;
       
       const actionToTake = newLikedState ? 'like' : 'unlike';
       const isNowLiked = await toggleKaryaLike(karya.id, deviceId, userId, actionToTake);
       setLikedLocal(isNowLiked);
       
+      // Jika server reject (misal state tidak berubah), revert count
+      if (isNowLiked === wasLiked) {
+        setLikeCount(prev => wasLiked ? prev + 1 : Math.max(0, prev - 1));
+      }
+
       if (isNowLiked) {
         localStorage.setItem(`liked_${karya.id}`, 'true');
       } else {
@@ -272,12 +281,13 @@ export default function ProjectClientPage({
     } catch (err) {
       console.error(err);
       // Revert if error
-      setLikedLocal(!newLikedState);
-      setLikeCount(prev => !newLikedState ? prev + 1 : Math.max(0, prev - 1));
+      setLikedLocal(wasLiked);
+      setLikeCount(prev => wasLiked ? prev + 1 : Math.max(0, prev - 1));
     } finally {
       setIsLiking(false);
     }
   };
+
 
   const handleShare = async () => {
     if (!karya) return;

@@ -103,17 +103,52 @@ export async function incrementKaryaView(karyaId: string, deviceId: string, user
 
 /**
  * Cek apakah user/device sudah like karya ini.
+ * Memeriksa localStorage, endpoint server-side /api/like, dan fallback ke tabel karya_likes_log.
  */
 export async function checkKaryaLiked(karyaId: string, deviceId: string, userId: string | null = null): Promise<boolean> {
-  const { data, error } = await supabase.rpc("check_karya_liked", {
-    karya_id: karyaId,
-  });
-  if (error) {
-    // If RPC doesn't exist, we rely entirely on local storage in the frontend
-    return false;
+  // 1. Cek localStorage terlebih dahulu (cepat untuk UI)
+  if (typeof window !== "undefined" && localStorage.getItem(`liked_${karyaId}`) === "true") {
+    return true;
   }
-  return data ?? false;
+
+  // 2. Cek ke endpoint server-side /api/like (cek Redis & karya_likes_log)
+  try {
+    const params = new URLSearchParams({ karyaId, deviceId });
+    if (userId) params.set("userId", userId);
+    const res = await fetch(`/api/like?${params.toString()}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.liked) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem(`liked_${karyaId}`, "true");
+        }
+        return true;
+      }
+    }
+  } catch (err) {
+    console.warn("[checkKaryaLiked] /api/like check failed:", err);
+  }
+
+  // 3. Fallback direct query Supabase ke karya_likes_log
+  try {
+    const query = supabase.from("karya_likes_log").select("id").eq("karya_id", karyaId);
+    const { data } = userId
+      ? await query.eq("user_id", userId).maybeSingle()
+      : await query.eq("device_id", deviceId).maybeSingle();
+
+    if (data) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(`liked_${karyaId}`, "true");
+      }
+      return true;
+    }
+  } catch {
+    // abaikan jika query gagal
+  }
+
+  return false;
 }
+
 
 /**
  * Toggle like/unlike karya secara aman via server-side API.
