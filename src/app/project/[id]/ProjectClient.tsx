@@ -202,6 +202,15 @@ export default function ProjectClientPage({
   const [showToast, setShowToast] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+  // Inisialisasi status like langsung dari localStorage agar tombol langsung NYALA jika sudah liked
+  useEffect(() => {
+    if (typeof window !== "undefined" && id) {
+      if (localStorage.getItem(`liked_${id}`) === "true") {
+        setLikedLocal(true);
+      }
+    }
+  }, [id]);
+
   useEffect(() => {
     async function fetchData() {
       if (!id) return;
@@ -243,16 +252,12 @@ export default function ProjectClientPage({
 
   const handleLike = async () => {
     if (!karya || isLiking) return;
-
-    if (!user) {
-      router.push("/login");
-      return;
-    }
     
     setIsLiking(true);
     const wasLiked = likedLocal;
     const newLikedState = !wasLiked;
-    // Optimistic update
+
+    // Optimistic toggle: langsung nyala (+1) atau mati (-1)
     setLikedLocal(newLikedState);
     setLikeCount(prev => newLikedState ? prev + 1 : Math.max(0, prev - 1));
 
@@ -262,13 +267,13 @@ export default function ProjectClientPage({
 
     try {
       const deviceId = getDeviceId();
-      const userId = user.id;
+      const userId = user?.id || null;
       
       const actionToTake = newLikedState ? 'like' : 'unlike';
       const isNowLiked = await toggleKaryaLike(karya.id, deviceId, userId, actionToTake);
       setLikedLocal(isNowLiked);
       
-      // Jika server reject (misal state tidak berubah), revert count
+      // Jika server reject (state tidak berubah), revert count
       if (isNowLiked === wasLiked) {
         setLikeCount(prev => wasLiked ? prev + 1 : Math.max(0, prev - 1));
       }
@@ -287,6 +292,7 @@ export default function ProjectClientPage({
       setIsLiking(false);
     }
   };
+
 
 
   const handleShare = async () => {

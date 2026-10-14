@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Redis } from "@upstash/redis";
-import { createClient } from "@/lib/supabase-server";
+import { createClient, supabaseAdmin } from "@/lib/supabase-server";
 
 // Redis opsional — jika tidak dikonfigurasi, fallback ke karya_likes_log
 const isRedisConfigured = !!(
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
         : deviceId;
     const redisKey = `liked:${karyaId}:${identity}`;
 
-    const supabase = await createClient();
+    const db = supabaseAdmin || (await createClient());
 
     // ─── Cek Redis lock (jika dikonfigurasi) ─────────────────────────────
     if (redis) {
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     } else {
       // ─── Fallback anti-spam via karya_likes_log ───────────────────────
       // Prioritas: cek user_id jika login, fallback ke device_id
-      const query = supabase
+      const query = db
         .from("karya_likes_log")
         .select("id")
         .eq("karya_id", karyaId);
@@ -80,17 +80,16 @@ export async function POST(req: NextRequest) {
     }
 
     // ─── Atomic increment/decrement via Supabase RPC ──────────────────────
-    // Menghindari race condition read-then-write
-    const { error: rpcError } = await supabase.rpc("increment_likes", {
+    const { error: rpcError } = await db.rpc("increment_likes", {
       karya_id: karyaId,
       delta: action === "like" ? 1 : -1,
     });
 
     if (rpcError) {
-      // Fallback ke read-then-write jika RPC belum ada
-      console.warn("[/api/like] RPC increment_likes tidak tersedia, fallback ke manual update:", rpcError.message);
+      // Fallback ke manual update jika RPC belum ada
+      console.warn("[/api/like] RPC increment_likes gagal, fallback ke manual update:", rpcError.message);
 
-      const { data: karyaData, error: fetchError } = await supabase
+      const { data: karyaData, error: fetchError } = await db
         .from("karya")
         .select("likes")
         .eq("id", karyaId)
@@ -107,7 +106,7 @@ export async function POST(req: NextRequest) {
           ? currentLikes + 1
           : Math.max(0, currentLikes - 1);
 
-      const { error: updateError } = await supabase
+      const { error: updateError } = await db
         .from("karya")
         .update({ likes: newLikes })
         .eq("id", karyaId);
@@ -128,7 +127,7 @@ export async function POST(req: NextRequest) {
     } else {
       // Fallback: insert / delete ke karya_likes_log
       if (action === "like") {
-        await supabase
+        await db
           .from("karya_likes_log")
           .insert({
             karya_id: karyaId,
@@ -136,7 +135,7 @@ export async function POST(req: NextRequest) {
             ...(userId ? { user_id: userId } : {}),
           });
       } else {
-        const deleteQuery = supabase
+        const deleteQuery = db
           .from("karya_likes_log")
           .delete()
           .eq("karya_id", karyaId);
@@ -180,8 +179,8 @@ export async function GET(req: NextRequest) {
     }
 
     // Fallback ke karya_likes_log
-    const supabase = await createClient();
-    const query = supabase
+    const db = supabaseAdmin || (await createClient());
+    const query = db
       .from("karya_likes_log")
       .select("id")
       .eq("karya_id", karyaId);
@@ -196,3 +195,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+

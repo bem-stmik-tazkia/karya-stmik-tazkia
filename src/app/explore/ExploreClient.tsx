@@ -126,12 +126,8 @@ function ExploreContent() {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-
     if (isLiking[id]) return;
+
 
     // Set isLiking SEBELUM optimistic update agar tidak bisa di-spam
     setIsLiking(prev => ({ ...prev, [id]: true }));

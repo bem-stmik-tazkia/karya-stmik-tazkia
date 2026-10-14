@@ -27,10 +27,28 @@ ALTER TABLE public.karya_likes_log
 
 -- Index untuk performa query cek like status
 CREATE INDEX IF NOT EXISTS idx_karya_likes_log_karya_id ON public.karya_likes_log(karya_id);
-CREATE INDEX IF NOT EXISTS idx_karya_likes_log_user_id  ON public.karya_likes_log(user_id);
 CREATE INDEX IF NOT EXISTS idx_karya_likes_log_device_id ON public.karya_likes_log(device_id);
 
+-- RLS policies untuk karya_likes_log agar select/insert/delete diizinkan
+ALTER TABLE public.karya_likes_log ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "karya_likes_log_select_all" ON public.karya_likes_log;
+CREATE POLICY "karya_likes_log_select_all"
+  ON public.karya_likes_log FOR SELECT
+  USING (true);
+
+DROP POLICY IF EXISTS "karya_likes_log_insert_all" ON public.karya_likes_log;
+CREATE POLICY "karya_likes_log_insert_all"
+  ON public.karya_likes_log FOR INSERT
+  WITH CHECK (true);
+
+DROP POLICY IF EXISTS "karya_likes_log_delete_all" ON public.karya_likes_log;
+CREATE POLICY "karya_likes_log_delete_all"
+  ON public.karya_likes_log FOR DELETE
+  USING (true);
+
 -- ─── 3. RPC increment_likes (atomic, mencegah race condition) ────────────────
+
 CREATE OR REPLACE FUNCTION public.increment_likes(karya_id uuid, delta integer)
 RETURNS void
 LANGUAGE plpgsql
