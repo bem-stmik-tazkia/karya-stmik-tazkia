@@ -96,7 +96,9 @@ function ExploreContent() {
 
     if (isLiking[id]) return;
 
+    // Set isLiking SEBELUM optimistic update agar tidak bisa di-spam
     setIsLiking(prev => ({ ...prev, [id]: true }));
+
     const wasLiked = likedKarya[id];
     setLikedKarya((prev) => ({ ...prev, [id]: !wasLiked }));
     setKarya((prev) => prev.map(k => k.id === id ? { ...k, likes: Math.max(0, (k.likes ?? 0) + (wasLiked ? -1 : 1)) } : k));
@@ -116,6 +118,7 @@ function ExploreContent() {
       }
     } catch (err) {
       console.error(err);
+      // Revert jika error
       setLikedKarya((prev) => ({ ...prev, [id]: wasLiked }));
       setKarya((prev) => prev.map(k => k.id === id ? { ...k, likes: Math.max(0, (k.likes ?? 0) + (wasLiked ? 1 : -1)) } : k));
     } finally {

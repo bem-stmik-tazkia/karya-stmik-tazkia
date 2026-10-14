@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Redis } from "@upstash/redis";
 import { createClient } from "@/lib/supabase-server";
 
-// Redis opsional — jika tidak dikonfigurasi, anti-spam dilewati
+// Redis opsional — jika tidak dikonfigurasi, fallback ke karya_likes_log
 const isRedisConfigured = !!(
   process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
 );
@@ -44,6 +44,8 @@ export async function POST(req: NextRequest) {
         : deviceId;
     const redisKey = `liked:${karyaId}:${identity}`;
 
+    const supabase = await createClient();
+
     // ─── Cek Redis lock (jika dikonfigurasi) ─────────────────────────────
     if (redis) {
       if (action === "like") {
@@ -57,45 +59,93 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: "Not liked yet", liked: false }, { status: 409 });
         }
       }
+    } else {
+      // ─── Fallback anti-spam via karya_likes_log ───────────────────────
+      // Prioritas: cek user_id jika login, fallback ke device_id
+      const query = supabase
+        .from("karya_likes_log")
+        .select("id")
+        .eq("karya_id", karyaId);
+
+      const { data: existingLike } = userId
+        ? await query.eq("user_id", userId).maybeSingle()
+        : await query.eq("device_id", deviceId).maybeSingle();
+
+      if (action === "like" && existingLike) {
+        return NextResponse.json({ error: "Already liked", liked: true }, { status: 409 });
+      }
+      if (action === "unlike" && !existingLike) {
+        return NextResponse.json({ error: "Not liked yet", liked: false }, { status: 409 });
+      }
     }
 
-    // ─── Gunakan authenticated Supabase client (dari cookies user) ────────
-    // Ini menggunakan session user yang sudah login — tidak perlu service role key
-    const supabase = await createClient();
+    // ─── Atomic increment/decrement via Supabase RPC ──────────────────────
+    // Menghindari race condition read-then-write
+    const { error: rpcError } = await supabase.rpc("increment_likes", {
+      karya_id: karyaId,
+      delta: action === "like" ? 1 : -1,
+    });
 
-    const { data: karyaData, error: fetchError } = await supabase
-      .from("karya")
-      .select("likes")
-      .eq("id", karyaId)
-      .single();
+    if (rpcError) {
+      // Fallback ke read-then-write jika RPC belum ada
+      console.warn("[/api/like] RPC increment_likes tidak tersedia, fallback ke manual update:", rpcError.message);
 
-    if (fetchError || !karyaData) {
-      console.error("[/api/like] Fetch error:", fetchError?.message);
-      return NextResponse.json({ error: "Karya not found" }, { status: 404 });
+      const { data: karyaData, error: fetchError } = await supabase
+        .from("karya")
+        .select("likes")
+        .eq("id", karyaId)
+        .single();
+
+      if (fetchError || !karyaData) {
+        console.error("[/api/like] Fetch error:", fetchError?.message);
+        return NextResponse.json({ error: "Karya not found" }, { status: 404 });
+      }
+
+      const currentLikes: number = karyaData.likes || 0;
+      const newLikes =
+        action === "like"
+          ? currentLikes + 1
+          : Math.max(0, currentLikes - 1);
+
+      const { error: updateError } = await supabase
+        .from("karya")
+        .update({ likes: newLikes })
+        .eq("id", karyaId);
+
+      if (updateError) {
+        console.error("[/api/like] Update error:", updateError.message);
+        return NextResponse.json({ error: "Failed to update likes" }, { status: 500 });
+      }
     }
 
-    const currentLikes: number = karyaData.likes || 0;
-    const newLikes =
-      action === "like"
-        ? currentLikes + 1
-        : Math.max(0, currentLikes - 1);
-
-    const { error: updateError } = await supabase
-      .from("karya")
-      .update({ likes: newLikes })
-      .eq("id", karyaId);
-
-    if (updateError) {
-      console.error("[/api/like] Update error:", updateError.message);
-      return NextResponse.json({ error: "Failed to update likes" }, { status: 500 });
-    }
-
-    // ─── Update Redis setelah DB sukses ──────────────────────────────────
+    // ─── Catat/hapus status like (Redis atau karya_likes_log) ────────────
     if (redis) {
       if (action === "like") {
         await redis.set(redisKey, "1", { ex: 60 * 60 * 24 * 365 });
       } else {
         await redis.del(redisKey);
+      }
+    } else {
+      // Fallback: insert / delete ke karya_likes_log
+      if (action === "like") {
+        await supabase
+          .from("karya_likes_log")
+          .insert({
+            karya_id: karyaId,
+            device_id: deviceId,
+            ...(userId ? { user_id: userId } : {}),
+          });
+      } else {
+        const deleteQuery = supabase
+          .from("karya_likes_log")
+          .delete()
+          .eq("karya_id", karyaId);
+
+        if (userId) {
+          await deleteQuery.eq("user_id", userId);
+        } else {
+          await deleteQuery.eq("device_id", deviceId);
+        }
       }
     }
 
@@ -106,13 +156,9 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// GET — cek status liked (dari Redis)
+// GET — cek status liked (dari Redis atau karya_likes_log)
 export async function GET(req: NextRequest) {
   try {
-    if (!redis) {
-      return NextResponse.json({ liked: false });
-    }
-
     const { searchParams } = new URL(req.url);
     const karyaId = searchParams.get("karyaId");
     const deviceId = searchParams.get("deviceId");
@@ -126,10 +172,25 @@ export async function GET(req: NextRequest) {
     }
 
     const identity = userId && uuidRegex.test(userId) ? userId : deviceId;
-    const redisKey = `liked:${karyaId}:${identity}`;
-    const liked = await redis.get(redisKey);
 
-    return NextResponse.json({ liked: !!liked });
+    if (redis) {
+      const redisKey = `liked:${karyaId}:${identity}`;
+      const liked = await redis.get(redisKey);
+      return NextResponse.json({ liked: !!liked });
+    }
+
+    // Fallback ke karya_likes_log
+    const supabase = await createClient();
+    const query = supabase
+      .from("karya_likes_log")
+      .select("id")
+      .eq("karya_id", karyaId);
+
+    const { data } = userId && uuidRegex.test(userId)
+      ? await query.eq("user_id", userId).maybeSingle()
+      : await query.eq("device_id", deviceId).maybeSingle();
+
+    return NextResponse.json({ liked: !!data });
   } catch (err) {
     console.error("[/api/like GET] Error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
