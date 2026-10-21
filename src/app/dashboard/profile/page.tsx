@@ -9,6 +9,9 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import toast from "react-hot-toast";
 import { fetchMasterProdiOptions, fetchMasterAngkatanOptions } from "@/utils/prodiOptions";
 import { PREDEFINED_SKILLS } from "@/utils/skillOptions";
+import { SkillPicker } from "@/components/mahasiswa/SkillPicker";
+import { useUnsavedChangesWarning } from "@/hooks/useUnsavedChangesWarning";
+import { UnsavedChangesModal } from "@/components/ui/UnsavedChangesModal";
 
 const PREDEFINED_STATUSES = [
   "🚀 Open for Collab", "💼 Mencari Magang", "🤝 Siap Freelance", 
@@ -42,7 +45,19 @@ export default function ProfileSettingsPage() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [skillInput, setSkillInput] = useState("");
+
+  const isFormDirty = isDirty || Boolean(avatarFile);
+
+  const {
+    showPrompt: showLeavePrompt,
+    triggerLeave,
+    confirmLeave,
+    cancelLeave,
+    allowNavigation,
+  } = useUnsavedChangesWarning({
+    isDirty: isFormDirty,
+    defaultBackUrl: "/dashboard",
+  });
 
   const [prodiOptions, setProdiOptions] = useState<{ value: string; label: string }[]>([
     { value: "Teknik Informatika", label: "Teknik Informatika" },
@@ -149,27 +164,6 @@ export default function ProfileSettingsPage() {
     }
   };
 
-  const addSkill = (skill: string) => {
-    if (formData.skills.length >= 5) {
-      toast.error('Maksimal 5 keahlian');
-      return;
-    }
-    if (formData.skills.includes(skill)) return;
-    if (!PREDEFINED_SKILLS.includes(skill)) {
-      toast.error('Keahlian tidak valid');
-      return;
-    }
-    
-    setFormData(prev => ({ ...prev, skills: [...prev.skills, skill] }));
-    setIsDirty(true);
-    setSkillInput("");
-  };
-
-  const removeSkill = (skillToRemove: string) => {
-    setFormData(prev => ({ ...prev, skills: prev.skills.filter(s => s !== skillToRemove) }));
-    setIsDirty(true);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -235,6 +229,7 @@ export default function ProfileSettingsPage() {
       toast.error(`Gagal menyimpan: ${error.message}`);
     } else {
       setIsDirty(false);
+      allowNavigation();
       toast.success('Profil berhasil disimpan! ✅');
       setTimeout(() => {
         router.push("/dashboard");
@@ -254,16 +249,16 @@ export default function ProfileSettingsPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl relative">
       
-      <div className="flex items-center gap-4 mb-8">
-        <div className="w-14 h-14 bg-secondary text-secondary-foreground border-4 border-border shadow-[4px_4px_0px_0px_var(--color-border)] rounded-2xl flex items-center justify-center">
-          <FiUser size={28} />
+      <div className="flex items-center gap-3.5 mb-8">
+        <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center shrink-0">
+          <FiUser size={24} />
         </div>
         <div>
-          <h1 className="text-3xl font-black text-foreground uppercase tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
             Edit Profil
           </h1>
-          <p className="text-muted-foreground font-bold">
-            Sesuaikan profil portofoliomu agar tampil profesional.
+          <p className="text-muted-foreground font-normal text-sm mt-0.5">
+            Sesuaikan profil portofoliomu agar tampil profesional dan terpercaya.
           </p>
         </div>
       </div>
@@ -276,63 +271,65 @@ export default function ProfileSettingsPage() {
             exit={{ opacity: 0, height: 0 }}
             className="mb-6 overflow-hidden"
           >
-            <div className="bg-accent/20 border-4 border-accent text-accent-foreground p-4 rounded-2xl flex items-center gap-3 font-black text-sm">
-              <FiAlertCircle size={20} />
-              Ada perubahan yang belum disimpan!
+            <div className="bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 p-4 rounded-xl flex items-center gap-2.5 text-xs sm:text-sm font-medium shadow-xs">
+              <FiAlertCircle size={18} className="shrink-0" />
+              <span>Ada perubahan yang belum disimpan. Pastikan untuk menekan Simpan Perubahan.</span>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <form onSubmit={handleSubmit} className="card-3d bg-card border-4 border-border rounded-3xl p-6 sm:p-8 space-y-8">
+      <form onSubmit={handleSubmit} className="bg-card border border-border rounded-2xl p-6 sm:p-8 space-y-8 shadow-xs">
         
         {/* Photo Upload Section */}
-        <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-muted rounded-2xl border-2 border-border/50">
-          <div className="relative w-32 h-32 rounded-2xl border-4 border-border shadow-[4px_4px_0px_0px_var(--color-border)] overflow-hidden bg-background flex items-center justify-center shrink-0">
+        <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-muted/40 rounded-xl border border-border/80">
+          <div className="relative w-28 h-28 rounded-2xl border border-border shadow-xs overflow-hidden bg-background flex items-center justify-center shrink-0">
             {avatarPreview ? (
               <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
             ) : (
-              <FiUser size={48} className="text-muted-foreground" />
+              <FiUser size={40} className="text-muted-foreground" />
             )}
             {uploadingAvatar && (
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               </div>
             )}
           </div>
-          <div className="flex flex-col items-center sm:items-start gap-3">
-            <h3 className="font-black text-lg text-foreground">Foto Profil</h3>
-            <p className="text-sm font-bold text-muted-foreground text-center sm:text-left">
-              Disarankan rasio 1:1, ukuran maksimal 2MB.
+          <div className="flex flex-col items-center sm:items-start gap-2.5">
+            <h3 className="font-bold text-base text-foreground">Foto Profil</h3>
+            <p className="text-xs text-muted-foreground text-center sm:text-left font-normal">
+              Disarankan foto persegi beresolusi jelas (rasio 1:1), ukuran maksimal 2MB.
             </p>
-            <label className="cursor-pointer bg-primary text-primary-foreground font-black text-sm px-6 py-2.5 rounded-xl border-4 border-border shadow-[4px_4px_0px_0px_var(--color-border)] hover:translate-y-0.5 hover:shadow-[2px_2px_0px_0px_var(--color-border)] transition-all">
-              Pilih Foto
+            <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2 rounded-xl bg-primary text-white font-semibold text-xs hover:bg-[#ea580c] shadow-xs hover:shadow-md transition-all">
+              <span>Pilih Foto Baru</span>
               <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} disabled={uploadingAvatar || saving} />
             </label>
           </div>
         </div>
 
         {/* Basic Info */}
-        <div className="space-y-6">
-          <h2 className="text-xl font-black text-foreground uppercase border-b-4 border-border/30 pb-2">Informasi Dasar</h2>
+        <div className="space-y-5">
+          <h2 className="text-base font-bold text-foreground border-b border-border pb-3">Informasi Dasar</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="font-black text-sm text-foreground flex justify-between">
-                Nama Lengkap <span className="text-xs text-primary bg-primary/10 px-2 rounded-md">Dari Google</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="space-y-1.5">
+              <label className="font-semibold text-xs text-foreground flex justify-between">
+                <span>Nama Lengkap</span>
+                <span className="text-[10px] text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full font-medium">Dari Akun</span>
               </label>
               <input
                 type="text"
                 value={formData.full_name}
                 readOnly
                 disabled
-                className="w-full px-4 py-3 rounded-xl border-4 border-border/50 bg-muted text-muted-foreground font-bold outline-none cursor-not-allowed"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-border/60 bg-muted/60 text-muted-foreground text-sm font-medium outline-none cursor-not-allowed"
               />
             </div>
             
-            <div className="space-y-2">
-              <label className="font-black text-sm text-foreground flex justify-between">
-                Email Kontak <span className="text-xs text-muted-foreground bg-muted px-2 rounded-md">Bisa email pribadi</span>
+            <div className="space-y-1.5">
+              <label className="font-semibold text-xs text-foreground flex justify-between">
+                <span>Email Kontak</span>
+                <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full font-normal">Bisa email pribadi</span>
               </label>
               <input
                 type="email"
@@ -340,19 +337,19 @@ export default function ProfileSettingsPage() {
                 value={formData.contact_email}
                 onChange={handleChange}
                 placeholder="namakamu@gmail.com"
-                className="w-full px-4 py-3 rounded-xl border-4 border-border bg-background font-bold outline-none focus:border-primary focus:shadow-[4px_4px_0px_0px_var(--color-primary)] transition-all"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="font-black text-sm text-foreground flex justify-between">
+            <div className="space-y-1.5">
+              <label className="font-semibold text-xs text-foreground">
                 Program Studi
               </label>
               <select
                 name="prodi"
                 value={formData.prodi}
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl border-4 border-border bg-background font-bold outline-none focus:border-primary focus:shadow-[4px_4px_0px_0px_var(--color-primary)] transition-all appearance-none"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
               >
                 {prodiOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -362,15 +359,15 @@ export default function ProfileSettingsPage() {
               </select>
             </div>
 
-            <div className="space-y-2">
-              <label className="font-black text-sm text-foreground flex justify-between">
+            <div className="space-y-1.5">
+              <label className="font-semibold text-xs text-foreground">
                 Angkatan
               </label>
               <select
                 name="angkatan"
                 value={formData.angkatan}
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl border-4 border-border bg-background font-bold outline-none focus:border-primary focus:shadow-[4px_4px_0px_0px_var(--color-primary)] transition-all appearance-none"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
               >
                 {angkatanOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -383,162 +380,153 @@ export default function ProfileSettingsPage() {
         </div>
 
         {/* Bio & Skills */}
-        <div className="space-y-6">
-          <h2 className="text-xl font-black text-foreground uppercase border-b-4 border-border/30 pb-2">Profil & Keahlian</h2>
+        <div className="space-y-5">
+          <h2 className="text-base font-bold text-foreground border-b border-border pb-3">Profil & Keahlian</h2>
           
           <div className="space-y-2">
-            <label className="font-black text-sm text-foreground flex justify-between">
-              Status Kesibukan
+            <label className="font-semibold text-xs text-foreground flex items-center justify-between">
+              <span>Status Ketersediaan / Badge</span>
+              <span className="text-[10px] text-muted-foreground font-normal">Pilih satu status profilmu</span>
             </label>
-            <select
-              name="status_badge"
-              value={formData.status_badge}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border-4 border-border bg-background font-bold outline-none focus:border-accent focus:shadow-[4px_4px_0px_0px_var(--color-accent)] transition-all appearance-none"
-            >
-              {PREDEFINED_STATUSES.map(status => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </select>
+            <div className="flex flex-wrap gap-2">
+              {PREDEFINED_STATUSES.map((status) => {
+                const isSelected = formData.status_badge === status;
+                return (
+                  <button
+                    type="button"
+                    key={status}
+                    onClick={() => {
+                      setFormData((prev) => ({ ...prev, status_badge: status }));
+                      setIsDirty(true);
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                      isSelected
+                        ? "bg-primary text-white border-primary shadow-xs ring-2 ring-primary/20 -translate-y-0.5"
+                        : "bg-card border-border text-muted-foreground hover:text-foreground hover:border-primary/40 hover:bg-muted/40"
+                    }`}
+                  >
+                    {status}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="font-black text-sm text-foreground">Tentang Saya (Bio)</label>
+          <div className="space-y-1.5">
+            <label className="font-semibold text-xs text-foreground">Tentang Saya (Bio)</label>
             <textarea
               name="bio"
               value={formData.bio}
               onChange={handleChange}
               rows={4}
-              placeholder="Ceritakan sedikit tentang dirimu, passion, dan tujuanmu..."
-              className="w-full px-4 py-3 rounded-xl border-4 border-border bg-background font-bold outline-none focus:border-primary focus:shadow-[4px_4px_0px_0px_var(--color-primary)] transition-all resize-none"
+              placeholder="Ceritakan sedikit tentang dirimu, passion teknologi, dan minat riset..."
+              className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none leading-relaxed"
             />
           </div>
 
-          <div className="space-y-3">
-            <label className="font-black text-sm text-foreground flex justify-between">
-              Keahlian Utama (Skills) <span className="text-xs text-muted-foreground bg-muted px-2 rounded-md">Max 5</span>
-            </label>
-            
-            {/* Selected Skills */}
-            <div className="flex flex-wrap gap-2 mb-3">
-              {formData.skills.map(skill => (
-                <span key={skill} className="px-3 py-1.5 rounded-xl border-2 border-border bg-primary/20 text-primary-foreground font-black text-xs flex items-center gap-2 shadow-[2px_2px_0px_0px_var(--color-border)]">
-                  {skill}
-                  <button type="button" onClick={() => removeSkill(skill)} className="hover:text-red-500 transition-colors">
-                    <FiX size={14} />
-                  </button>
-                </span>
-              ))}
-              {formData.skills.length === 0 && (
-                <span className="text-xs font-bold text-muted-foreground italic bg-muted px-3 py-1.5 rounded-xl border-2 border-dashed border-border/50">Belum ada keahlian ditambahkan</span>
-              )}
-            </div>
-
-            {/* Add Skill Input */}
-            {formData.skills.length < 5 && (
-              <div className="flex gap-2">
-                <select
-                  value={skillInput}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val) addSkill(val);
-                  }}
-                  className="flex-1 px-4 py-3 rounded-xl border-4 border-border bg-background font-bold outline-none focus:border-secondary focus:shadow-[4px_4px_0px_0px_var(--color-secondary)] transition-all appearance-none cursor-pointer"
-                >
-                  <option value="" disabled>Pilih keahlian...</option>
-                  {PREDEFINED_SKILLS.filter(s => !formData.skills.includes(s)).map(s => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-[120px] flex items-center pointer-events-none px-2 hidden">
-                  {/* Just for UI, native select handles arrow */}
-                </div>
-              </div>
-            )}
-          </div>
+          {/* Skill Picker with Colorful Tags and Searchable Dropdown */}
+          <SkillPicker
+            selectedSkills={formData.skills}
+            onChange={(newSkills) => {
+              setFormData((prev) => ({ ...prev, skills: newSkills }));
+              setIsDirty(true);
+            }}
+            maxSkills={5}
+          />
         </div>
 
         {/* Social Links */}
-        <div className="space-y-6">
-          <h2 className="text-xl font-black text-foreground uppercase border-b-4 border-border/30 pb-2">Tautan Sosial</h2>
+        <div className="space-y-5">
+          <h2 className="text-base font-bold text-foreground border-b border-border pb-3">Tautan Sosial &amp; Portfolio</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="font-black text-sm text-foreground">URL GitHub</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="space-y-1.5">
+              <label className="font-semibold text-xs text-foreground">URL GitHub</label>
               <input
                 type="url"
                 name="github_url"
                 value={formData.github_url}
                 onChange={handleChange}
                 placeholder="https://github.com/username"
-                className="w-full px-4 py-3 rounded-xl border-4 border-border bg-background font-bold outline-none focus:border-primary focus:shadow-[4px_4px_0px_0px_var(--color-primary)] transition-all"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
               />
             </div>
-            <div className="space-y-2">
-              <label className="font-black text-sm text-foreground">URL LinkedIn</label>
+            <div className="space-y-1.5">
+              <label className="font-semibold text-xs text-foreground">URL LinkedIn</label>
               <input
                 type="url"
                 name="linkedin_url"
                 value={formData.linkedin_url}
                 onChange={handleChange}
                 placeholder="https://linkedin.com/in/username"
-                className="w-full px-4 py-3 rounded-xl border-4 border-border bg-background font-bold outline-none focus:border-primary focus:shadow-[4px_4px_0px_0px_var(--color-primary)] transition-all"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
               />
             </div>
-            <div className="space-y-2">
-              <label className="font-black text-sm text-foreground">URL Instagram</label>
+            <div className="space-y-1.5">
+              <label className="font-semibold text-xs text-foreground">URL Instagram</label>
               <input
                 type="url"
                 name="instagram_url"
                 value={formData.instagram_url}
                 onChange={handleChange}
                 placeholder="https://instagram.com/username"
-                className="w-full px-4 py-3 rounded-xl border-4 border-border bg-background font-bold outline-none focus:border-primary focus:shadow-[4px_4px_0px_0px_var(--color-primary)] transition-all"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
               />
             </div>
-            <div className="space-y-2">
-              <label className="font-black text-sm text-foreground">URL Website Pribadi</label>
+            <div className="space-y-1.5">
+              <label className="font-semibold text-xs text-foreground">URL Website Pribadi</label>
               <input
                 type="url"
                 name="website_url"
                 value={formData.website_url}
                 onChange={handleChange}
                 placeholder="https://domainkamu.com"
-                className="w-full px-4 py-3 rounded-xl border-4 border-border bg-background font-bold outline-none focus:border-primary focus:shadow-[4px_4px_0px_0px_var(--color-primary)] transition-all"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-sm font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
               />
             </div>
           </div>
         </div>
 
         {/* Submit Button */}
-        <div className="pt-6 border-t-4 border-border/30 flex gap-4">
+        <div className="pt-6 border-t border-border flex flex-col sm:flex-row justify-end gap-3">
           <button
             type="button"
-            onClick={() => router.push("/dashboard")}
-            className="px-6 py-4 rounded-xl bg-muted text-muted-foreground font-black border-4 border-border hover:bg-muted/80 transition-all flex-1 md:flex-none text-center"
+            onClick={() => triggerLeave()}
+            className="px-5 py-2.5 rounded-xl bg-card border border-border text-foreground font-semibold text-xs sm:text-sm hover:bg-muted transition-all text-center cursor-pointer"
           >
             Batal
           </button>
           <button
             type="submit"
             disabled={saving || (!isDirty && !avatarFile)}
-            className="flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-primary text-primary-foreground font-black border-4 border-border shadow-[6px_6px_0px_0px_var(--color-border)] hover:translate-y-0.5 hover:shadow-[3px_3px_0px_0px_var(--color-border)] active:translate-y-1 active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[6px_6px_0px_0px_var(--color-border)]"
+            className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white font-semibold text-xs sm:text-sm hover:bg-[#ea580c] shadow-xs hover:shadow-md hover:shadow-orange-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? (
               <>
-                <div className="w-5 h-5 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-                Menyimpan...
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Menyimpan...</span>
               </>
             ) : (
               <>
-                <FiSave size={20} />
-                Simpan Perubahan
+                <FiSave size={16} />
+                <span>Simpan Perubahan</span>
               </>
             )}
           </button>
         </div>
 
       </form>
+
+      {/* Unsaved Changes Confirmation Modal */}
+      <UnsavedChangesModal
+        open={showLeavePrompt}
+        onStay={cancelLeave}
+        onLeave={confirmLeave}
+        title="Perubahan Profil Belum Disimpan"
+        description="Ada perubahan data profil yang belum kamu simpan. Yakin ingin keluar? Semua perubahan akan hilang."
+        stayText="Tetap Lanjut Edit"
+        leaveText="Tinggalkan Halaman"
+      />
     </div>
   );
 }

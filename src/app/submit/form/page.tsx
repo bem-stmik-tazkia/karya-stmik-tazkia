@@ -15,6 +15,8 @@ import { SkeletonForm } from "@/components/ui/Skeleton";
 import TeamMemberAutocomplete from "@/components/upload/TeamMemberAutocomplete";
 import { useAuth } from "@/components/providers/AuthProvider";
 import toast from "react-hot-toast";
+import { useUnsavedChangesWarning } from "@/hooks/useUnsavedChangesWarning";
+import { UnsavedChangesModal } from "@/components/ui/UnsavedChangesModal";
 
 const KATEGORI_OPTIONS = [
   { id: "Technology", label: "Aplikasi Web & Sistem" },
@@ -23,6 +25,39 @@ const KATEGORI_OPTIONS = [
   { id: "IoT", label: "Proyek IoT" },
   { id: "Multimedia", label: "Desain & Lainnya" },
 ];
+
+const DRAFT_STORAGE_KEY = "karya_upload_draft";
+
+const saveDraftData = (data: any) => {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {}
+};
+
+const getDraftData = () => {
+  if (typeof window === "undefined") return null;
+  try {
+    const session = sessionStorage.getItem(DRAFT_STORAGE_KEY);
+    if (session) return session;
+    // Fallback: migrate from legacy localStorage if present, then clean it up
+    const local = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (local) {
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
+      sessionStorage.setItem(DRAFT_STORAGE_KEY, local);
+      return local;
+    }
+  } catch (e) {}
+  return null;
+};
+
+const clearDraftData = () => {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+    localStorage.removeItem(DRAFT_STORAGE_KEY);
+  } catch (e) {}
+};
 
 const initialFormState = {
   title: "",
@@ -51,7 +86,6 @@ export default function UploadKaryaFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [invalidFields, setInvalidFields] = useState<string[]>([]);
-  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [showDraftBadge, setShowDraftBadge] = useState(false);
   const [formData, setFormData] = useState({ ...initialFormState, category: typeParam });
@@ -64,19 +98,6 @@ export default function UploadKaryaFormPage() {
   useEffect(() => {
     if (!isLoading && !user) router.replace("/login");
   }, [user, isLoading, router]);
-
-  // Handle beforeunload to prevent accidental data loss
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      const isDirtyCheck = JSON.stringify(formData) !== JSON.stringify(baseFormState);
-      if (isDirtyCheck && !isSubmitting) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [formData, baseFormState, isSubmitting]);
 
   // Fetch mahasiswa profiles + auto-fill user
   useEffect(() => {
@@ -110,7 +131,7 @@ export default function UploadKaryaFormPage() {
     }
   }, [typeParam, editId]);
 
-  // Save draft to localStorage with debounce
+  // Save draft to sessionStorage with debounce (persists on refresh, clears on exit)
   useEffect(() => {
     if (editId) return; // Don't auto-save draft if we are editing an existing item
     if (isInitialMount.current) {
@@ -120,7 +141,7 @@ export default function UploadKaryaFormPage() {
 
     setIsSavingDraft(true);
     const handler = setTimeout(() => {
-      localStorage.setItem("karya_upload_draft", JSON.stringify(formData));
+      saveDraftData(formData);
       setIsSavingDraft(false);
       setShowDraftBadge(true);
       setTimeout(() => setShowDraftBadge(false), 2000);
@@ -129,10 +150,10 @@ export default function UploadKaryaFormPage() {
     return () => clearTimeout(handler);
   }, [formData, editId]);
 
-  // Load draft from localStorage
+  // Load draft from sessionStorage (survives refresh)
   useEffect(() => {
     if (editId) return; // Do not load draft when editing an existing item
-    const saved = localStorage.getItem("karya_upload_draft");
+    const saved = getDraftData();
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -187,6 +208,19 @@ export default function UploadKaryaFormPage() {
   }, [editId, user, supabase, router, typeParam]);
 
   const isDirty = JSON.stringify(formData) !== JSON.stringify(baseFormState);
+  const defaultBackUrl = editId ? "/dashboard/projects" : "/submit";
+
+  const {
+    showPrompt: showLeavePrompt,
+    triggerLeave,
+    confirmLeave,
+    cancelLeave,
+    allowNavigation,
+  } = useUnsavedChangesWarning({
+    isDirty: isDirty && !isSubmitting,
+    defaultBackUrl,
+    onConfirmLeave: clearDraftData,
+  });
 
   // Dynamic labels by category (use formData.category to support edit mode)
   const activeCategory = formData.category || typeParam;
@@ -369,7 +403,7 @@ export default function UploadKaryaFormPage() {
         method: "POST",
       }).catch(err => console.error("Gagal trigger AI worker:", err));
 
-      localStorage.removeItem("karya_upload_draft");
+      clearDraftData();
       confetti({
         particleCount: 150,
         spread: 70,
@@ -378,6 +412,7 @@ export default function UploadKaryaFormPage() {
       });
       
       toast.success(editId ? "Karya berhasil diperbarui!" : "Karya berhasil diupload!", { id: toastId, duration: 5000 });
+      allowNavigation();
       setTimeout(() => { router.push("/dashboard/projects"); }, 2000);
     } catch (err: any) {
       console.error(err);
@@ -389,13 +424,13 @@ export default function UploadKaryaFormPage() {
     }
   };
 
-  const getInputClass = (id: string) => `w-full px-4 py-3 bg-muted/30 border-2 rounded-xl text-sm focus:outline-none focus:ring-2 transition-all font-medium text-foreground ${
+  const getInputClass = (id: string) => `w-full px-3.5 py-2.5 bg-background border rounded-xl text-sm focus:outline-none focus:ring-2 transition-all font-medium text-foreground ${
     invalidFields.includes(id)
-      ? "border-red-500 focus:ring-red-500/40 bg-red-50/20"
-      : "border-border focus:ring-primary/30 focus:border-primary"
+      ? "border-rose-500 focus:ring-rose-500/20 bg-rose-50/10"
+      : "border-border focus:ring-primary/20 focus:border-primary"
   }`;
-  const labelClass = "block text-sm font-black text-foreground mb-1.5 uppercase";
-  const sectionTitleClass = "text-sm font-black text-primary uppercase tracking-wider mb-4 flex items-center gap-2";
+  const labelClass = "block text-xs font-semibold text-foreground mb-1.5";
+  const sectionTitleClass = "text-xs font-bold text-primary uppercase tracking-wider mb-4 flex items-center gap-2";
 
   if (isLoading || !user) {
     return (
@@ -413,17 +448,19 @@ export default function UploadKaryaFormPage() {
         {/* Header */}
         <div className="mb-8">
           <button
-            onClick={() => isDirty ? setShowLeaveConfirm(true) : router.push(editId ? "/dashboard/projects" : "/submit")}
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors text-sm font-black mb-4 uppercase"
+            type="button"
+            onClick={() => triggerLeave()}
+            className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors text-xs font-semibold mb-4 cursor-pointer"
           >
-            <FiArrowLeft className="w-4 h-4" /> Kembali
+            <FiArrowLeft className="w-4 h-4" />
+            <span>Kembali</span>
           </button>
-          <h1 className="text-3xl font-black text-primary uppercase tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
             {editId ? "Edit Karya" : "Form Upload Karya"}
           </h1>
-          <div className="flex items-center justify-between">
-            <p className="text-muted-foreground font-bold">
-              Kategori: <span className="text-foreground font-black">{KATEGORI_OPTIONS.find(o => o.id === formData.category)?.label || formData.category}</span>
+          <div className="flex items-center justify-between mt-1">
+            <p className="text-muted-foreground text-xs sm:text-sm font-normal">
+              Kategori: <span className="text-foreground font-semibold">{KATEGORI_OPTIONS.find(o => o.id === formData.category)?.label || formData.category}</span>
             </p>
             <div className="h-6 flex items-center">
               <AnimatePresence>
@@ -432,18 +469,20 @@ export default function UploadKaryaFormPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="flex items-center gap-1.5 text-[10px] font-black text-muted-foreground uppercase"
+                    className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground"
                   >
-                    <FiLoader className="w-3 h-3 animate-spin" /> Menyimpan draf...
+                    <FiLoader className="w-3 h-3 animate-spin" />
+                    <span>Menyimpan draf...</span>
                   </motion.div>
                 ) : showDraftBadge ? (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.8, y: 5 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.8, y: -5 }}
-                    className="flex items-center gap-1 px-2 py-1 rounded-md bg-secondary text-white border-2 border-secondary-shadow shadow-[2px_2px_0px_var(--color-secondary-shadow)] text-[10px] font-black uppercase rotate-2 origin-bottom-right"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-medium"
                   >
-                    <span className="w-3 h-3 font-bold">✓</span> Draft tersimpan
+                    <span>✓</span>
+                    <span>Draft tersimpan</span>
                   </motion.div>
                 ) : null}
               </AnimatePresence>
@@ -451,10 +490,11 @@ export default function UploadKaryaFormPage() {
           </div>
         </div>
 
-        <form noValidate onSubmit={handleSubmit} className="bg-card border-4 border-border rounded-3xl shadow-[8px_8px_0px_var(--color-border)] p-6 md:p-8 space-y-8">
+        <form noValidate onSubmit={handleSubmit} className="bg-card border border-border rounded-2xl shadow-xs p-6 md:p-8 space-y-8">
           {errorMsg && (
-            <div className="p-4 bg-red-100 text-red-700 border-2 border-red-500 rounded-xl text-sm font-bold flex items-center gap-2">
-              <FiAlertCircle size={18} className="shrink-0" /> {errorMsg}
+            <div className="p-4 bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 rounded-xl text-xs font-medium flex items-center gap-2">
+              <FiAlertCircle size={16} className="shrink-0" />
+              <span>{errorMsg}</span>
             </div>
           )}
 
@@ -489,7 +529,6 @@ export default function UploadKaryaFormPage() {
                   <option value="" disabled>Pilih kategori...</option>
                   {KATEGORI_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
                 </select>
-                <p className="text-xs text-muted-foreground mt-2 font-bold">{!editId ? "Kategori dipilih dari halaman sebelumnya. Kembali untuk mengubah." : "Kamu dapat mengubah kategori jika ada kesalahan."}</p>
               </div>
               <div>
                 <div className="flex justify-between items-center mb-1.5">
@@ -634,18 +673,20 @@ export default function UploadKaryaFormPage() {
           </div>
 
           {/* Submit */}
-          <div className="pt-4 border-t-4 border-border/30">
+          <div className="pt-4 border-t border-border">
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full flex items-center justify-center gap-2.5 py-4 bg-primary text-primary-foreground font-black rounded-2xl border-4 border-border shadow-[4px_4px_0px_var(--color-border)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_var(--color-border)] active:translate-y-0 active:shadow-[2px_2px_0px_var(--color-border)] transition-all text-sm uppercase disabled:opacity-50 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-[2px_2px_0px_var(--color-border)]"
+              className="w-full flex items-center justify-center gap-2 py-3.5 bg-primary text-white font-semibold rounded-xl shadow-xs hover:bg-[#ea580c] hover:shadow-md hover:shadow-orange-500/20 active:translate-y-0 transition-all text-sm disabled:opacity-50 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
             >
-              {isSubmitting ? <FiLoader className="animate-spin" size={18} /> : <FiSend size={18} />}
-              {isSubmitting 
-                ? (editId ? "Memperbarui Karya..." : "Mengirim Karya...") 
-                : (editId ? "Perbarui & Kirim Ulang" : "Kirim Karya untuk Ditinjau")}
+              {isSubmitting ? <FiLoader className="animate-spin" size={16} /> : <FiSend size={16} />}
+              <span>
+                {isSubmitting 
+                  ? (editId ? "Memperbarui Karya..." : "Mengirim Karya...") 
+                  : (editId ? "Perbarui & Kirim Ulang" : "Kirim Karya untuk Ditinjau")}
+              </span>
             </button>
-            <p className="text-center text-xs text-muted-foreground mt-3 font-bold">
+            <p className="text-center text-xs text-muted-foreground mt-3 font-normal">
               {editId 
                 ? "Karya akan kembali berstatus Menunggu dan di-review ulang setelah diperbarui."
                 : 'Karya akan masuk ke mode "Menunggu" dan ditinjau sebelum dipublikasikan.'}
@@ -655,21 +696,15 @@ export default function UploadKaryaFormPage() {
       </div>
 
       {/* Leave Confirm Modal */}
-      <AnimatePresence>
-        {showLeaveConfirm && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-card border-4 border-border rounded-3xl p-6 md:p-8 max-w-sm w-full shadow-[8px_8px_0px_var(--color-border)]">
-              <div className="w-16 h-16 rounded-2xl bg-red-100 border-4 border-red-500 text-red-500 flex items-center justify-center mb-4"><FiAlertCircle size={28} /></div>
-              <h3 className="text-xl font-black text-foreground mb-2 uppercase">Perubahan Belum Tersimpan</h3>
-              <p className="text-muted-foreground text-sm mb-6 font-bold">Semua isian form akan hilang jika kamu meninggalkan halaman ini.</p>
-              <div className="flex gap-3">
-                <button type="button" onClick={() => setShowLeaveConfirm(false)} className="flex-1 py-3 px-4 rounded-xl font-black text-sm text-foreground bg-muted border-2 border-border hover:bg-muted/80 transition-colors">Tetap di Sini</button>
-                <button type="button" onClick={() => { setShowLeaveConfirm(false); router.push(editId ? "/dashboard/projects" : "/submit"); }} className="flex-1 py-3 px-4 rounded-xl font-black text-sm text-white bg-red-500 border-2 border-red-700 shadow-[3px_3px_0px_0px_#991b1b] hover:bg-red-600 hover:translate-y-0.5 transition-all">Ya, Kembali</button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <UnsavedChangesModal
+        open={showLeavePrompt}
+        onStay={cancelLeave}
+        onLeave={confirmLeave}
+        title="Perubahan Karya Belum Tersimpan"
+        description="Semua isian form dan file yang diunggah akan hilang jika kamu meninggalkan halaman ini tanpa menyimpan."
+        stayText="Tetap Lanjut Edit"
+        leaveText="Tinggalkan Halaman"
+      />
     </div>
   );
 }

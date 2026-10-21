@@ -44,6 +44,20 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: "/feed",
+        destination: "/explore",
+        permanent: true,
+      },
+      {
+        source: "/inbox/:path*",
+        destination: "/student",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -12,7 +12,7 @@ export const BouncyButton = React.forwardRef<HTMLElement, BouncyButtonProps>(
       <Component
         ref={ref}
         className={cn(
-          "btn-3d px-6 py-3 rounded-2xl font-bold text-lg inline-flex items-center justify-center",
+          "btn-3d px-6 py-3 rounded-lg font-semibold text-base inline-flex items-center justify-center",
           {
             "btn-3d-primary": variant === "primary",
             "btn-3d-secondary": variant === "secondary",

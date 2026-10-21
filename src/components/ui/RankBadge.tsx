@@ -1,92 +1,52 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React from "react";
+import { Trophy, Flame, Award } from "lucide-react";
 
 interface RankBadgeProps {
   rank: number;
+  className?: string;
 }
 
-export function RankBadge({ rank }: RankBadgeProps) {
+export function RankBadge({ rank, className = "" }: RankBadgeProps) {
   if (rank < 1 || rank > 3) return null;
 
   const config = {
     1: {
-      gradient: "from-yellow-300 via-yellow-400 to-yellow-600",
-      text: "text-yellow-950",
-      border: "border-yellow-200",
-      shadow: "shadow-[0_0_20px_rgba(250,204,21,0.6)]",
-      icon: "👑",
-      label: "1st",
+      number: "#01",
+      label: "Utama",
+      icon: Trophy,
+      badgeClass:
+        "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25 shadow-amber-500/5",
+      iconClass: "text-amber-500",
     },
     2: {
-      gradient: "from-slate-200 via-slate-300 to-slate-400",
-      text: "text-slate-900",
-      border: "border-white",
-      shadow: "shadow-[0_0_20px_rgba(203,213,225,0.6)]",
-      icon: "🥈",
-      label: "2nd",
+      number: "#02",
+      label: "Populer",
+      icon: Flame,
+      badgeClass:
+        "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/25 shadow-orange-500/5",
+      iconClass: "text-orange-500",
     },
     3: {
-      gradient: "from-orange-300 via-orange-500 to-orange-700",
-      text: "text-orange-950",
-      border: "border-orange-200",
-      shadow: "shadow-[0_0_20px_rgba(249,115,22,0.6)]",
-      icon: "🥉",
-      label: "3rd",
+      number: "#03",
+      label: "Pilihan",
+      icon: Award,
+      badgeClass:
+        "bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/20 shadow-slate-500/5",
+      iconClass: "text-slate-500 dark:text-slate-400",
     },
   }[rank as 1 | 2 | 3];
 
+  const Icon = config.icon;
+
   return (
-    <motion.div
-      initial={{ scale: 0, rotate: -180 }}
-      animate={{ scale: 1, rotate: 0 }}
-      transition={{ type: "spring", stiffness: 200, damping: 12, delay: 0.5 + (rank * 0.1) }}
-      className={`absolute -top-3 -right-3 sm:-top-5 sm:-right-5 w-10 h-10 sm:w-14 sm:h-14 rounded-full flex items-center justify-center border-4 z-20 font-black bg-gradient-to-br ${config.gradient} ${config.text} ${config.border} ${config.shadow} rank-float-anim`}
-      style={{
-        animation: "rankFloat 3s ease-in-out infinite",
-        animationDelay: `${rank * 0.2}s`,
-      }}
+    <div
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border backdrop-blur-md text-xs font-medium ${config.badgeClass} transition-transform duration-200 select-none ${className}`}
     >
-      <style>{`
-        @keyframes rankFloat {
-          0%, 100% { transform: translateY(0) scale(1); }
-          50% { transform: translateY(-6px) scale(1.05); }
-        }
-        @keyframes rankShine {
-          0% { left: -100%; opacity: 0; }
-          10% { opacity: 1; }
-          20% { left: 100%; opacity: 0; }
-          100% { left: 100%; opacity: 0; }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .rank-float-anim {
-            animation: none !important;
-          }
-          .rank-shine-anim {
-            animation: none !important;
-            display: none;
-          }
-        }
-      `}</style>
-      
-      {/* Shine effect */}
-      <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
-        <div 
-          className="absolute top-0 bottom-0 w-1/2 bg-white/60 blur-[2px] skew-x-[-20deg] rank-shine-anim"
-          style={{
-            animation: "rankShine 4s infinite",
-            animationDelay: `${rank * 0.5}s`
-          }}
-        />
-      </div>
-      
-      <span className="relative z-10 text-lg sm:text-2xl filter drop-shadow-md">
-        {config.icon}
-      </span>
-      
-      {/* Mini rank label */}
-      <div className="absolute -bottom-2 bg-foreground text-background text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full border-2 border-background tracking-wider">
-        {config.label}
-      </div>
-    </motion.div>
+      <Icon className={`w-3.5 h-3.5 shrink-0 ${config.iconClass}`} />
+      <span className="font-mono font-bold tracking-tight">{config.number}</span>
+      <span className="opacity-70 text-[11px] font-sans">|</span>
+      <span className="text-[11px] font-medium">{config.label}</span>
+    </div>
   );
 }
+

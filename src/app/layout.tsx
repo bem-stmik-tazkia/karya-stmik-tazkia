@@ -1,26 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Lexend } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
-import { E2EEProvider } from "@/components/providers/E2EEProvider";
 import { AppLayoutWrapper } from "@/components/layout/AppLayoutWrapper";
+import { PerformancePatch } from "@/components/providers/PerformancePatch";
 import { Toaster } from "react-hot-toast";
-
-const lexend = Lexend({
-  variable: "--font-lexend",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://karya.stmik.tazkia.ac.id"),
   title: {
-    default: "Karya Tazkia - Galeri Portofolio Mahasiswa STMIK Tazkia",
+    default: "Karya Tazkia - Galeri Portofolio & Rekayasa Digital Mahasiswa STMIK Tazkia",
     template: "%s | Karya Tazkia"
   },
-  description: "Galeri digital karya mahasiswa STMIK Tazkia. Temukan inovasi, kreativitas, dan portofolio terbaik mahasiswa.",
-  keywords: ["Portofolio Mahasiswa", "STMIK Tazkia", "Karya Mahasiswa", "Tugas Akhir", "Inovasi Digital", "Kampus Bisnis Digital"],
+  description: "Galeri kurasi karya teknologi, riset, dan portofolio resmi mahasiswa STMIK Tazkia. Menghubungkan inovasi kampus dengan industri modern.",
+  keywords: ["Portofolio Mahasiswa", "STMIK Tazkia", "Karya Mahasiswa", "Tugas Akhir", "Inovasi Digital", "Kampus Bisnis Digital", "Developer Showcase"],
   authors: [{ name: "STMIK Tazkia" }],
   robots: {
     index: true,
@@ -37,8 +30,8 @@ export const metadata: Metadata = {
     canonical: "https://karya.stmik.tazkia.ac.id",
   },
   openGraph: {
-    title: "Karya Tazkia - Galeri Portofolio Mahasiswa",
-    description: "Galeri digital karya mahasiswa STMIK Tazkia. Temukan inovasi, kreativitas, dan portofolio terbaik mahasiswa.",
+    title: "Karya Tazkia - Galeri Portofolio & Rekayasa Digital",
+    description: "Galeri kurasi karya teknologi, riset, dan portofolio resmi mahasiswa STMIK Tazkia.",
     url: "https://karya.stmik.tazkia.ac.id",
     siteName: "Karya STMIK Tazkia",
     locale: "id_ID",
@@ -46,8 +39,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Karya Tazkia - Galeri Portofolio Mahasiswa",
-    description: "Galeri digital karya mahasiswa STMIK Tazkia. Temukan inovasi, kreativitas, dan portofolio terbaik mahasiswa.",
+    title: "Karya Tazkia - Galeri Portofolio & Rekayasa Digital",
+    description: "Galeri kurasi karya teknologi, riset, dan portofolio resmi mahasiswa STMIK Tazkia.",
   },
   verification: {
     google: "google88a80d49b5d89521",
@@ -66,12 +59,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={`${lexend.variable} font-sans antialiased max-w-full overflow-x-clip`} suppressHydrationWarning>
+    <html
+      lang="id"
+      className="font-sans antialiased max-w-full overflow-x-clip"
+      suppressHydrationWarning
+    >
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+        />
         <link rel="preconnect" href="https://pmrowiyvuqnxgzmlbfzx.supabase.co" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://pmrowiyvuqnxgzmlbfzx.supabase.co" />
       </head>
       <body className="min-h-screen bg-background text-foreground flex flex-col max-w-full overflow-x-clip relative" suppressHydrationWarning>
+        <PerformancePatch />
         <AuthProvider>
           <ThemeProvider
             attribute="class"
@@ -85,19 +89,19 @@ export default function RootLayout({
                 style: { 
                   background: 'var(--card)', 
                   color: 'var(--foreground)', 
-                  border: '2px solid var(--border)', 
+                  border: '1px solid var(--border)', 
                   borderRadius: '1rem', 
-                  fontWeight: 'bold',
+                  fontWeight: '500',
+                  fontSize: '0.875rem',
                   maxWidth: '420px',
                   width: '100%',
+                  boxShadow: '0 10px 30px -10px rgba(0,0,0,0.15)',
                 } 
               }} 
             />
-            <E2EEProvider>
-              <AppLayoutWrapper>
-                {children}
-              </AppLayoutWrapper>
-            </E2EEProvider>
+            <AppLayoutWrapper>
+              {children}
+            </AppLayoutWrapper>
           </ThemeProvider>
         </AuthProvider>
       </body>

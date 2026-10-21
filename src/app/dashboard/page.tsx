@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import { NeobrutalismProfileView } from "@/components/mahasiswa/NeobrutalismProfileView";
 import { CompleteProfileModalWrapper } from "@/components/mahasiswa/CompleteProfileModalWrapper";
-import { getFeedPosts } from "@/lib/feedService";
 
 export const revalidate = 0;
 
@@ -76,17 +75,15 @@ export default async function DashboardProfilePage() {
     views_count: k.views || 0,
     pending_edits: k.pending_edits,
     status: k.status,
+    image_url: k.image_url,
+    team: k.team && k.team.length > 0 ? k.team : [{ name: profile?.full_name || "Mahasiswa", user_id: user.id }],
   }));
-
-  // Get user's feed posts
-  const posts = await getFeedPosts(user.id, user.id);
 
   return (
     <div className="container mx-auto px-4 py-8 relative">
       <NeobrutalismProfileView
         profile={profile}
         projects={projects}
-        posts={posts}
         isOwnProfile={true}
       />
       {(!profile.prodi || !profile.angkatan) && (

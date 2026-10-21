@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient, supabaseAdmin } from "@/lib/supabase-server";
+import { supabaseAdmin, supabaseServer } from "@/lib/supabase-server";
 
 const uuidRegex = /^[a-zA-Z0-9_\-]{1,128}$/;
 
@@ -16,42 +16,78 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid karyaId" }, { status: 400 });
     }
 
-    const db = supabaseAdmin || (await createClient());
+    // Gunakan supabaseAdmin jika service role key tersedia, jika tidak gunakan supabaseServer (anon key)
+    const db = supabaseAdmin || supabaseServer;
 
-    // 1. Coba RPC increment_karya_view (signature karya_id)
-    let { error: rpcError } = await db.rpc("increment_karya_view", {
+    let success = false;
+    let lastError: string | null = null;
+
+    // 1. Coba RPC increment_karya_view (signature 1: karya_id UUID)
+    const res1 = await db.rpc("increment_karya_view", {
       karya_id: karyaId,
     });
 
-    // 2. Jika gagal, coba signature alternatif (p_karya_id, p_device_id, p_user_id)
-    if (rpcError) {
+    if (!res1.error) {
+      success = true;
+    } else {
+      lastError = res1.error.message;
+      // 2. Coba signature 2: p_karya_id
       const res2 = await db.rpc("increment_karya_view", {
         p_karya_id: karyaId,
-        p_device_id: deviceId || null,
-        p_user_id: userId || null,
       });
-      rpcError = res2.error;
-    }
 
-    // 3. Fallback: jika RPC belum ada di database, update langsung via service role
-    if (rpcError) {
-      console.warn("[/api/view] RPC increment_karya_view gagal, fallback ke direct update:", rpcError.message);
-      
-      const { data: current, error: fetchErr } = await db
-        .from("karya")
-        .select("views")
-        .eq("id", karyaId)
-        .single();
+      if (!res2.error) {
+        success = true;
+      } else {
+        lastError = res2.error.message;
+        // 3. Coba signature 3: (p_karya_id, p_device_id, p_user_id)
+        const res3 = await db.rpc("increment_karya_view", {
+          p_karya_id: karyaId,
+          p_device_id: deviceId || null,
+          p_user_id: userId || null,
+        });
 
-      if (!fetchErr && current) {
-        await db
-          .from("karya")
-          .update({ views: (current.views || 0) + 1 })
-          .eq("id", karyaId);
+        if (!res3.error) {
+          success = true;
+        } else {
+          lastError = res3.error.message;
+          // 4. Fallback direct update hanya jika supabaseAdmin aktif
+          if (supabaseAdmin) {
+            console.warn("[/api/view] Semua RPC gagal, mencoba fallback direct update:", lastError);
+            const { data: current, error: fetchErr } = await supabaseAdmin
+              .from("karya")
+              .select("views")
+              .eq("id", karyaId)
+              .single();
+
+            if (!fetchErr && current) {
+              const { error: updateErr } = await supabaseAdmin
+                .from("karya")
+                .update({ views: (current.views || 0) + 1 })
+                .eq("id", karyaId);
+
+              if (!updateErr) {
+                success = true;
+              } else {
+                lastError = updateErr.message;
+              }
+            } else if (fetchErr) {
+              lastError = fetchErr.message;
+            }
+          }
+        }
       }
     }
 
-    // Log ke karya_views_log jika ada
+    if (!success) {
+      console.error("[/api/view] Gagal menambah view untuk karyaId:", karyaId, "Error:", lastError);
+      return NextResponse.json(
+        { success: false, error: lastError || "Gagal menambah view" },
+        { status: 500 }
+      );
+    }
+
+    // Log ke karya_views_log jika ada tabelnya
     if (deviceId) {
       try {
         await db.from("karya_views_log").insert({

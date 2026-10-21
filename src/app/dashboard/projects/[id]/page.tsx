@@ -28,13 +28,13 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Sparkles,
+  ArrowRight,
 } from "lucide-react";
 import { notFound } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
-import { StickerBadge } from "@/components/ui/StickerBadge";
-import { BouncyButton } from "@/components/ui/BouncyButton";
 import { ProjectCoverPlaceholder } from "@/components/ui/ProjectCoverPlaceholder";
 import toast from "react-hot-toast";
 
@@ -339,71 +339,87 @@ export default function ProjectDetailPage({
 
   const statusBanner = {
     approved: {
-      bg: "bg-green-50 border-green-400 dark:bg-green-950/30",
-      text: "text-green-700 dark:text-green-400",
-      icon: <CheckCircle className="w-5 h-5 shrink-0" />,
-      label: "✅ Karya ini sudah PUBLIK dan bisa dilihat semua orang di galeri.",
+      bg: "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400",
+      badge: "bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-500/30",
+      icon: <CheckCircle className="w-5 h-5 shrink-0 text-emerald-600 dark:text-emerald-400" />,
+      title: "Karya Terverifikasi & Publik",
+      label: "Karya ini sudah dipublikasikan secara resmi dan dapat dilihat semua pengunjung di galeri.",
     },
     rejected: {
-      bg: "bg-red-50 border-red-400 dark:bg-red-950/30",
-      text: "text-red-700 dark:text-red-400",
-      icon: <XCircle className="w-5 h-5 shrink-0" />,
-      label: "❌ Karya ini DITOLAK. Perbaiki dan kirim ulang lewat tombol Edit.",
+      bg: "bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-400",
+      badge: "bg-rose-500/20 text-rose-800 dark:text-rose-300 border-rose-500/30",
+      icon: <XCircle className="w-5 h-5 shrink-0 text-rose-600 dark:text-rose-400" />,
+      title: "Karya Memerlukan Perbaikan",
+      label: "Karya ini belum disetujui. Perbaiki data karya dan ajukan kembali untuk ditinjau.",
     },
     pending: {
-      bg: "bg-yellow-50 border-yellow-400 dark:bg-yellow-950/30",
-      text: "text-yellow-700 dark:text-yellow-400",
-      icon: <Clock className="w-5 h-5 shrink-0" />,
-      label: "⏳ Karya ini sedang MENUNGGU review. Belum bisa dilihat publik.",
+      bg: "bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400",
+      badge: "bg-amber-500/20 text-amber-800 dark:text-amber-300 border-amber-500/30",
+      icon: <Clock className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400" />,
+      title: "Menunggu Peninjauan Admin",
+      label: "Karya ini sedang dalam antrean verifikasi kampus. Belum dapat diakses oleh publik.",
     },
   }[karya.status as "approved" | "rejected" | "pending"] ?? {
-    bg: "bg-muted border-border",
-    text: "text-muted-foreground",
-    icon: <AlertCircle className="w-5 h-5 shrink-0" />,
-    label: "Status karya tidak diketahui.",
+    bg: "bg-muted/80 border-border text-muted-foreground",
+    badge: "bg-muted text-muted-foreground border-border",
+    icon: <AlertCircle className="w-5 h-5 shrink-0 text-muted-foreground" />,
+    title: "Status Belum Diketahui",
+    label: "Status karya saat ini belum ditentukan.",
   };
 
   return (
-    <div className="container mx-auto px-4 md:px-6 py-12 max-w-6xl">
+    <div className="container mx-auto px-4 md:px-6 py-10 max-w-6xl">
+      {/* Back Button */}
       <button
-        onClick={() => router.push("/dashboard/projects")}
-        className="inline-flex items-center font-bold text-muted-foreground hover:text-primary mb-8 transition-colors group"
+        type="button"
+        onClick={() => {
+          if (typeof window !== "undefined" && window.history.length > 1) {
+            router.back();
+          } else {
+            router.push("/dashboard/projects");
+          }
+        }}
+        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-border bg-card text-xs font-semibold text-muted-foreground hover:text-foreground hover:border-primary/40 hover:-translate-x-0.5 transition-all mb-8 shadow-2xs group cursor-pointer"
       >
-        <div className="w-10 h-10 rounded-2xl border-2 border-border flex items-center justify-center mr-3 group-hover:bg-primary group-hover:text-primary-foreground transition-all shadow-[2px_2px_0px_var(--color-border)]">
-          <ArrowLeft className="h-5 w-5" />
-        </div>
-        KEMBALI KE DAFTAR PROJEK
+        <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
+        <span>Kembali</span>
       </button>
 
-      {/* Status Banner */}
-      <div className={`flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-2xl border-4 mb-8 ${statusBanner.bg}`}>
-        <div className="flex items-center gap-3 flex-1">
-          <span className={statusBanner.text}>{statusBanner.icon}</span>
+      {/* Modern Status Banner */}
+      <div className={`p-5 rounded-2xl border mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 backdrop-blur-sm ${statusBanner.bg}`}>
+        <div className="flex items-start sm:items-center gap-3.5">
+          <div className="p-2 rounded-xl bg-background/60 shadow-2xs shrink-0">
+            {statusBanner.icon}
+          </div>
           <div>
-            <p className={`text-sm font-black ${statusBanner.text}`}>{statusBanner.label}</p>
+            <h4 className="text-sm font-bold leading-tight">{statusBanner.title}</h4>
+            <p className="text-xs opacity-90 mt-0.5 leading-relaxed">{statusBanner.label}</p>
             {karya.status === "rejected" && karya.reject_reason && (
-              <p className="text-xs font-bold text-red-600 dark:text-red-400 mt-1">
-                Alasan: {karya.reject_reason}
+              <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 mt-1.5 p-2 rounded-lg bg-rose-500/10 border border-rose-500/20">
+                Catatan revisi: {karya.reject_reason}
               </p>
             )}
           </div>
         </div>
-        <div className="flex gap-2 mt-3 sm:mt-0">
+
+        <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-auto">
           {karya.status !== "approved" && (
             <Link
               href={`/submit/form?id=${karya.id}`}
-              className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-black border-2 border-border shadow-[2px_2px_0px_var(--color-border)] hover:-translate-y-0.5 transition-all text-center whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-[#ea580c] shadow-xs hover:shadow-md transition-all btn-shine whitespace-nowrap"
             >
-              ✏️ Edit
+              <span>Edit Karya</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           )}
           {karya.status === "approved" && (
             <Link
               href={`/project/${karya.id}`}
               target="_blank"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white text-sm font-black border-2 border-green-800 shadow-[2px_2px_0px_#14532d] hover:-translate-y-0.5 transition-all text-center whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 shadow-xs hover:shadow-md transition-all whitespace-nowrap"
             >
-              <ExternalLink className="w-4 h-4" /> Lihat Publik
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Lihat Halaman Publik</span>
             </Link>
           )}
         </div>
@@ -412,87 +428,114 @@ export default function ProjectDetailPage({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-8">
+          {/* Main Cover Image with Ambient Cinema Glow */}
+          <div className="relative">
+            {karya.image_url && (
+              <div
+                className="absolute -inset-2.5 sm:-inset-4 bg-cover bg-center rounded-3xl blur-2xl opacity-20 dark:opacity-35 -z-10 pointer-events-none transition-opacity"
+                style={{ backgroundImage: `url(${karya.image_url})` }}
+              />
+            )}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl overflow-hidden border border-border shadow-xs bg-card relative"
+            >
+              <div className="aspect-[16/9] relative bg-muted">
+                {karya.image_url ? (
+                  <img
+                    src={karya.image_url}
+                    alt={karya.title}
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <ProjectCoverPlaceholder id={karya.id} title={karya.title} />
+                )}
 
-          {/* Main Image dengan badge kategori di thumbnail */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-[2rem] overflow-hidden border-4 border-border shadow-[4px_4px_0px_var(--color-border)] bg-card"
-          >
-            <div className="aspect-[16/9] relative bg-muted">
-              {karya.image_url ? (
-                <img
-                  src={karya.image_url}
-                  alt={karya.title}
-                  className="object-cover w-full h-full"
-                />
-              ) : (
-                <ProjectCoverPlaceholder id={karya.id} title={karya.title} />
-              )}
-              {/* Badge kategori di kanan atas thumbnail */}
-              <div className="absolute top-4 right-4">
-                <StickerBadge variant="default" className="text-xs sm:text-sm shadow-[2px_2px_0px_rgba(0,0,0,0.3)]">
-                  {categoryLabel}
-                </StickerBadge>
+                {/* Subtle Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 pointer-events-none" />
+
+                {/* Badge kategori di kiri atas thumbnail */}
+                <div className="absolute top-4 left-4 z-10">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-background/90 backdrop-blur-md text-foreground border border-border/50 shadow-xs">
+                    {categoryLabel}
+                  </span>
+                </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
 
           {/* Project Details */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-card border-4 border-border shadow-[4px_4px_0px_var(--color-border)] rounded-[2rem] p-6 sm:p-10"
+            className="bg-card border border-border shadow-xs rounded-2xl p-6 sm:p-8"
           >
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-6 uppercase leading-tight bg-gradient-to-br from-slate-800 to-slate-500 dark:from-slate-100 dark:to-slate-400 bg-clip-text text-transparent drop-shadow-sm">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight mb-6 text-foreground leading-tight font-heading">
               {karya.title}
             </h1>
 
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-3 mb-8">
               {karya.live_url && (
-                <a href={karya.live_url} target="_blank" rel="noreferrer">
-                  <BouncyButton className="text-sm px-5 py-3">
-                    {linkConfig.icon}
-                    <span className="ml-2">{linkConfig.label.toUpperCase()}</span>
-                  </BouncyButton>
+                <a
+                  href={karya.live_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-[#ea580c] shadow-xs hover:shadow-lg hover:shadow-orange-500/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 btn-shine"
+                >
+                  {linkConfig.icon}
+                  <span>{linkConfig.label}</span>
                 </a>
               )}
               {karya.github_url && (
-                <a href={karya.github_url} target="_blank" rel="noreferrer">
-                  <BouncyButton variant="secondary" className="text-sm px-5 py-3">
-                    REPOSITORI GITHUB <Code className="w-4 h-4 ml-2" />
-                  </BouncyButton>
+                <a
+                  href={karya.github_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-card border border-border text-foreground font-semibold text-sm hover:bg-muted hover:border-primary/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 shadow-xs"
+                >
+                  <Code className="w-4 h-4 text-primary" />
+                  <span>Repositori GitHub</span>
                 </a>
               )}
+              <button
+                type="button"
+                onClick={handleShare}
+                className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-muted/60 border border-border text-muted-foreground hover:text-foreground font-semibold text-sm hover:bg-muted hover:border-primary/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 shadow-xs cursor-pointer"
+                title="Bagikan link karya"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>Bagikan</span>
+              </button>
             </div>
 
-            <div className="space-y-4 text-foreground font-medium">
-              <h3 className="text-xl font-black uppercase text-foreground flex items-center gap-2">
-                <span className="w-1 h-5 rounded-full bg-secondary block shrink-0" />
+            <div className="space-y-3 pt-2 text-foreground">
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                <span className="w-1.5 h-4 rounded-full bg-primary block shrink-0" />
                 {isResearch ? "Abstrak" : "Deskripsi Projek"}
               </h3>
-              <p className="leading-relaxed text-muted-foreground text-base sm:text-lg whitespace-pre-wrap">
+              <p className="leading-relaxed text-muted-foreground text-sm sm:text-base font-normal whitespace-pre-wrap">
                 {karya.description}
               </p>
             </div>
 
             {/* Tech Stack dengan logo */}
             {(karya.tech_stack ?? []).length > 0 && (
-              <div className="mt-8">
-                <h3 className="text-xl font-black uppercase text-foreground mb-4 flex items-center gap-2">
-                  <span className="w-1 h-5 rounded-full bg-secondary block shrink-0" />
+              <div className="mt-7">
+                <h3 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <span className="w-1 h-4 rounded-full bg-primary block shrink-0" />
                   {isResearch ? "Metodologi / Tools" : "Tools & Teknologi"}
                 </h3>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2">
                   {(karya.tech_stack ?? []).map((tech) => {
                     const iconUrl = getTechIconUrl(tech);
                     const isSimple = iconUrl?.startsWith("https://cdn.simpleicons.org") ?? false;
                     return (
                       <div
                         key={tech}
-                        className="flex items-center gap-2 rounded-xl bg-muted border-2 border-border px-3 py-2 text-sm font-bold text-foreground"
+                        className="flex items-center gap-2 rounded-lg bg-muted border border-border px-3 py-1.5 text-sm font-medium text-foreground"
                       >
                         {iconUrl ? (
                           <TechIcon url={iconUrl} tech={tech} isSimple={isSimple} />
@@ -509,22 +552,22 @@ export default function ProjectDetailPage({
 
             {/* Features / Temuan */}
             {features.length > 0 && (
-              <div className="mt-8">
-                <h3 className="text-xl font-black uppercase text-foreground mb-4 flex items-center gap-2">
-                  <span className="w-1 h-5 rounded-full bg-secondary block shrink-0" />
+              <div className="mt-7">
+                <h3 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <span className="w-1 h-4 rounded-full bg-primary block shrink-0" />
                   {isResearch ? "Poin Penemuan" : "Fitur Utama"}
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {features.map((feat: any, i: number) => (
                     <div
                       key={i}
-                      className="bg-muted rounded-2xl p-5 border-2 border-border shadow-[2px_2px_0px_var(--color-border)] hover:translate-y-[-2px] transition-transform"
+                      className="bg-muted rounded-xl p-4 border border-border hover:-translate-y-0.5 transition-transform duration-200"
                     >
-                      <div className="w-8 h-8 rounded-xl bg-primary/20 flex items-center justify-center mb-3">
-                        <span className="text-primary font-black text-sm">{i + 1}</span>
+                      <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center mb-2.5">
+                        <span className="text-primary font-semibold text-xs">{i + 1}</span>
                       </div>
-                      <h4 className="font-black text-foreground mb-2 text-sm">{feat.title || "Poin"}</h4>
-                      <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+                      <h4 className="font-semibold text-foreground mb-1.5 text-sm">{feat.title || "Poin"}</h4>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
                         {feat.description || feat.desc || ""}
                       </p>
                     </div>
@@ -535,22 +578,22 @@ export default function ProjectDetailPage({
 
             {/* Gallery & Documentation */}
             {gallery.length > 0 && (
-              <div className="mt-8">
-                <h3 className="text-xl font-black uppercase text-foreground mb-4 flex items-center gap-2">
-                  <span className="w-1 h-5 rounded-full bg-secondary block shrink-0" />
-                  Gallery & Documentation
+              <div className="mt-7">
+                <h3 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <span className="w-1 h-4 rounded-full bg-primary block shrink-0" />
+                  Gallery &amp; Documentation
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {gallery.map((item: any, i: number) => {
                     const imgUrl = typeof item === "string" ? item : item.url;
                     return (
                     <div
                       key={i}
-                      className="rounded-2xl overflow-hidden border-2 border-border shadow-[2px_2px_0px_var(--color-border)] bg-muted group"
+                      className="rounded-xl overflow-hidden border border-border shadow-sm bg-muted group"
                     >
                       <button
                         onClick={() => setSelectedImage(imgUrl)}
-                        className="overflow-hidden relative border-b-2 border-border w-full block text-left outline-none cursor-zoom-in"
+                        className="overflow-hidden relative w-full block text-left outline-none cursor-zoom-in"
                       >
                         <img
                           src={imgUrl}
@@ -558,14 +601,14 @@ export default function ProjectDetailPage({
                           className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center pointer-events-none">
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/20 backdrop-blur-sm rounded-full p-3">
-                            <Eye className="text-white w-5 h-5" />
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/20 backdrop-blur-sm rounded-full p-2.5">
+                            <Eye className="text-white w-4 h-4" />
                           </div>
                         </div>
                       </button>
                       {typeof item === "object" && item.caption && (
-                        <div className="p-4 bg-muted">
-                          <p className="text-xs font-bold text-muted-foreground border-l-4 border-secondary pl-3">
+                        <div className="p-3 bg-muted">
+                          <p className="text-xs text-muted-foreground border-l-2 border-primary pl-2.5">
                             {item.caption}
                           </p>
                         </div>
@@ -580,26 +623,26 @@ export default function ProjectDetailPage({
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-5">
           {/* Info Karya */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
-            className="rounded-[2rem] bg-card border-4 border-border p-6 shadow-[4px_4px_0px_var(--color-border)]"
+            className="rounded-xl bg-card border border-border p-5 shadow-sm"
           >
-            <h3 className="text-xs font-black uppercase mb-5 text-muted-foreground text-center">
+            <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-muted-foreground text-center">
               Info Karya
             </h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between py-2 border-b-2 border-border">
-                <span className="font-bold text-muted-foreground">Kategori</span>
-                <span className="font-black text-foreground">{categoryLabel}</span>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center justify-between py-2 border-b border-border">
+                <span className="text-muted-foreground">Kategori</span>
+                <span className="font-semibold text-foreground text-xs">{categoryLabel}</span>
               </div>
               {karya.created_at && (
-                <div className="flex items-center justify-between py-2 border-b-2 border-border">
-                  <span className="font-bold text-muted-foreground">Diunggah</span>
-                  <span className="font-black text-foreground">
+                <div className="flex items-center justify-between py-2 border-b border-border">
+                  <span className="text-muted-foreground">Diunggah</span>
+                  <span className="font-semibold text-foreground text-xs">
                     {new Date(karya.created_at).toLocaleDateString("id-ID", {
                       day: "numeric",
                       month: "short",
@@ -609,45 +652,44 @@ export default function ProjectDetailPage({
                 </div>
               )}
               <div className="flex items-center justify-between py-2">
-                <span className="font-bold text-muted-foreground">Views</span>
-                <span className="font-black text-foreground">{formatNumber(karya.views ?? 0)}</span>
+                <span className="text-muted-foreground">Views</span>
+                <span className="font-semibold text-foreground text-xs">{formatNumber(karya.views ?? 0)}</span>
               </div>
             </div>
 
-            <div className="mt-5 flex flex-col gap-3">
+            <div className="mt-4 flex flex-col gap-2.5">
               {karya.live_url && (
-                <a href={karya.live_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-3 rounded-2xl bg-primary text-primary-foreground border-2 border-border hover:opacity-90 transition-all font-bold text-sm shadow-[2px_2px_0px_var(--color-border)]">
+                <a href={karya.live_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-2.5 rounded-lg bg-primary text-white border border-primary hover:bg-[#ea580c] transition-all duration-200 font-medium text-sm shadow-sm">
                   {linkConfig.icon} {linkConfig.label}
                 </a>
               )}
               {karya.github_url && (
-                <a href={karya.github_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-3 rounded-2xl bg-muted border-2 border-border hover:bg-foreground hover:text-background hover:border-foreground transition-all font-bold text-sm shadow-[2px_2px_0px_var(--color-border)]">
+                <a href={karya.github_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-2.5 rounded-lg bg-muted border border-border hover:bg-card hover:border-foreground/30 transition-all duration-200 font-medium text-sm shadow-sm">
                   <Code className="w-4 h-4" /> Source Code
                 </a>
               )}
-              {/* Hilangkan Views dan Bagikan dari Private Preview karena belum tentu sudah tayang */}
             </div>
           </motion.div>
 
-          {/* Tim di Sidebar (foto besar) */}
+          {/* Tim di Sidebar */}
           {team.length > 0 && (
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
-              className="rounded-[2rem] bg-card border-4 border-border p-6 shadow-[4px_4px_0px_var(--color-border)]"
+              className="rounded-xl bg-card border border-border p-5 shadow-sm"
             >
-              <h3 className="text-xs font-black uppercase mb-5 text-muted-foreground text-center flex items-center justify-center gap-2">
-                <Users className="w-4 h-4" /> Tim Pembuat
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4 text-muted-foreground text-center flex items-center justify-center gap-2">
+                <Users className="w-3.5 h-3.5" /> Tim Pembuat
               </h3>
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2">
                 {team.map((member) => (
-                  <Link 
-                    href={`/student/${member.user_id || `temp-${member.name}`}`} 
+                  <Link
+                    href={`/student/${member.user_id || `temp-${member.name}`}`}
                     key={member.user_id || member.name}
                   >
-                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-muted border-2 border-border cursor-pointer hover:border-primary hover:translate-y-[-2px] transition-all group">
-                      <div className="w-10 h-10 rounded-xl overflow-hidden border-2 border-border shrink-0 group-hover:border-primary transition-colors">
+                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-muted border border-border cursor-pointer hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-200 group">
+                      <div className="w-9 h-9 rounded-lg overflow-hidden border border-border shrink-0 group-hover:border-primary/40 transition-colors">
                         {member.avatar ? (
                           <img
                             src={member.avatar}
@@ -655,14 +697,14 @@ export default function ProjectDetailPage({
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full bg-secondary text-white flex items-center justify-center text-sm font-black uppercase">
+                          <div className="w-full h-full bg-primary text-white flex items-center justify-center text-sm font-bold uppercase">
                             {member.name.charAt(0)}
                           </div>
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-black text-sm text-foreground truncate group-hover:text-primary transition-colors">{member.name}</p>
-                        <p className="text-[11px] text-muted-foreground font-medium">{member.role || "Project Lead"}</p>
+                        <p className="font-semibold text-sm text-foreground truncate group-hover:text-primary transition-colors duration-200">{member.name}</p>
+                        <p className="text-[11px] text-muted-foreground">{member.role || "Project Lead"}</p>
                       </div>
                     </div>
                   </Link>
@@ -681,10 +723,10 @@ export default function ProjectDetailPage({
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 bg-foreground text-background px-6 py-3 rounded-full font-bold shadow-[4px_4px_0px_var(--color-primary)] flex items-center gap-3"
+            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 bg-foreground text-background px-6 py-3 rounded-full font-semibold shadow-lg flex items-center gap-3 text-sm"
           >
-            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-              <Share2 className="w-4 h-4 text-primary" />
+            <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center">
+              <Share2 className="w-3.5 h-3.5 text-primary" />
             </div>
             Link berhasil disalin!
           </motion.div>
@@ -706,22 +748,22 @@ export default function ProjectDetailPage({
             
             {/* Image Container */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ type: "spring", bounce: 0.3 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", bounce: 0.2 }}
               className="relative z-10 max-w-5xl w-full max-h-[90vh] flex flex-col items-center justify-center"
             >
               <button
                 onClick={() => setSelectedImage(null)}
-                className="absolute -top-4 -right-4 sm:-top-6 sm:-right-6 w-10 h-10 rounded-xl bg-card border-2 border-border flex items-center justify-center text-foreground hover:bg-destructive hover:text-white transition-colors shadow-[4px_4px_0px_var(--color-border)] z-20"
+                className="absolute -top-4 -right-4 sm:-top-5 sm:-right-5 w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center text-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 transition-colors shadow-md z-20"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
               <img
                 src={selectedImage}
                 alt="Galeri Fullscreen"
-                className="w-full h-auto max-h-[85vh] object-contain rounded-2xl border-4 border-border shadow-[8px_8px_0px_var(--color-border)] bg-muted"
+                className="w-full h-auto max-h-[85vh] object-contain rounded-xl border border-border shadow-xl bg-muted"
               />
             </motion.div>
           </div>
@@ -730,3 +772,4 @@ export default function ProjectDetailPage({
     </div>
   );
 }
+

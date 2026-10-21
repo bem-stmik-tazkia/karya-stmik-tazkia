@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Mail, Folder, ChevronRight, MessageSquare, Users } from "lucide-react";
-import { Student } from "@/lib/feedData";
+import { Student } from "@/types/student";
 import { StickerBadge } from "@/components/ui/StickerBadge";
 import { getSkillColor } from "@/utils/skillColor";
 import { PREDEFINED_SKILLS } from "@/utils/skillOptions";
@@ -16,6 +16,13 @@ export interface MahasiswaCardProps {
   onMessageClick?: (student: Student) => void;
   isFollowing?: boolean;
   onFollowClick?: (e: React.MouseEvent) => void;
+  onToggleFollow?: (targetUserId: string) => void;
+  inClass?: string;
+  animationDelay?: number;
+  projects?: any[];
+  onFilterAngkatan?: (ang: number) => void;
+  onFilterStatus?: (status: string) => void;
+  onFilterSkill?: (skill: string) => void;
 }
 
 export default function MahasiswaCard({
@@ -26,8 +33,192 @@ export default function MahasiswaCard({
   onMessageClick,
   isFollowing = false,
   onFollowClick,
+  onToggleFollow,
+  inClass = "",
+  animationDelay = 0,
+  onFilterAngkatan,
+  onFilterStatus,
+  onFilterSkill,
 }: MahasiswaCardProps) {
   const [imgError, setImgError] = useState(false);
+  const [activeSkinId, setActiveSkinId] = useState<string>("classic");
+  const [customColors, setCustomColors] = useState<{ primary: string; secondary: string }>({
+    primary: "#38bdf8",
+    secondary: "#0f172a",
+  });
+
+  // Load and listen to active skin updates
+  useEffect(() => {
+    const readSkin = () => {
+      try {
+        // 1. Direct student property
+        const directSkin =
+          student.cardSkin ||
+          (student as any).skin_id ||
+          (student as any).card_skin;
+        if (directSkin) {
+          setActiveSkinId(directSkin);
+          return;
+        }
+
+        // 2. Specific student localStorage
+        const studentSpecificSkin =
+          (student.id ? localStorage.getItem(`tazkia_profile_skin_${student.id}`) : null) ||
+          (student.userId ? localStorage.getItem(`tazkia_profile_skin_${student.userId}`) : null);
+
+        if (studentSpecificSkin) {
+          setActiveSkinId(studentSpecificSkin);
+          if (studentSpecificSkin === "custom") {
+            const savedCustom =
+              (student.id ? localStorage.getItem(`tazkia_custom_skin_colors_${student.id}`) : null) ||
+              localStorage.getItem("tazkia_custom_skin_colors");
+            if (savedCustom) {
+              setCustomColors(JSON.parse(savedCustom));
+            }
+          }
+          return;
+        }
+
+        // 3. Fallback to classic
+        setActiveSkinId("classic");
+      } catch {
+        setActiveSkinId("classic");
+      }
+    };
+
+    readSkin();
+
+    const handleSkinUpdate = (e: any) => {
+      const detail = e?.detail;
+      if (
+        detail &&
+        detail.studentId &&
+        (detail.studentId === student.id || detail.studentId === student.userId)
+      ) {
+        if (detail.skinId) setActiveSkinId(detail.skinId);
+      } else {
+        readSkin();
+      }
+    };
+
+    window.addEventListener("tazkia_profile_skin_updated", handleSkinUpdate);
+    return () => {
+      window.removeEventListener("tazkia_profile_skin_updated", handleSkinUpdate);
+    };
+  }, [student.id, student.userId, student.cardSkin]);
+
+  const handleFollow = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onFollowClick) {
+      onFollowClick(e);
+    } else if (onToggleFollow && student.userId) {
+      onToggleFollow(student.userId);
+    }
+  };
+
+  // Visual theming based on active skin while preserving identical brutalist layout
+  const skinTheme = (() => {
+    switch (activeSkinId) {
+      case "bem2026":
+        return {
+          bannerBg: "bg-gradient-to-r from-[#071936] via-[#132a56] to-[#2e1f10]",
+          bannerBorder: "border-b-4 border-amber-500",
+          shimmerVia: "via-amber-300/35",
+          dotGridColor: "#f59e0b",
+          statusBadgeClass: "bg-amber-500 text-slate-950 font-bold border-2 border-amber-400",
+          statusBadgeStyle: undefined,
+          avatarBorder: "border-4 border-amber-500 shadow-[2px_2px_0px_#f59e0b] group-hover:border-amber-400",
+          avatarBorderStyle: undefined,
+          nameHover: "group-hover:text-amber-500",
+          followBtn: "bg-amber-500 text-slate-950 font-bold border-2 border-amber-600 hover:bg-amber-400",
+          followBtnStyle: undefined,
+          portfolioText: "text-amber-500",
+          portfolioStyle: undefined,
+        };
+      case "ristekA":
+      case "ristekQuantum":
+        return {
+          bannerBg: "bg-gradient-to-r from-[#071a3d] via-[#0b2866] to-[#0c2e6b]",
+          bannerBorder: "border-b-4 border-cyan-400",
+          shimmerVia: "via-cyan-300/35",
+          dotGridColor: "#00f0ff",
+          statusBadgeClass: "bg-cyan-400 text-slate-950 font-bold border-2 border-cyan-300",
+          statusBadgeStyle: undefined,
+          avatarBorder: "border-4 border-cyan-400 shadow-[2px_2px_0px_#00f0ff] group-hover:border-cyan-300",
+          avatarBorderStyle: undefined,
+          nameHover: "group-hover:text-cyan-400",
+          followBtn: "bg-cyan-400 text-slate-950 font-bold border-2 border-cyan-500 hover:bg-cyan-300",
+          followBtnStyle: undefined,
+          portfolioText: "text-cyan-400",
+          portfolioStyle: undefined,
+        };
+      case "ristekB":
+      case "ristekMecha":
+        return {
+          bannerBg: "bg-gradient-to-r from-[#071a3d] via-[#0b2866] to-[#0c2e6b]",
+          bannerBorder: "border-b-4 border-sky-400",
+          shimmerVia: "via-sky-300/35",
+          dotGridColor: "#38bdf8",
+          statusBadgeClass: "bg-sky-400 text-slate-950 font-bold border-2 border-sky-300",
+          statusBadgeStyle: undefined,
+          avatarBorder: "border-4 border-sky-400 shadow-[2px_2px_0px_#38bdf8] group-hover:border-sky-300",
+          avatarBorderStyle: undefined,
+          nameHover: "group-hover:text-sky-400",
+          followBtn: "bg-sky-400 text-slate-950 font-bold border-2 border-sky-500 hover:bg-sky-300",
+          followBtnStyle: undefined,
+          portfolioText: "text-sky-400",
+          portfolioStyle: undefined,
+        };
+      case "custom":
+        return {
+          bannerBg: "",
+          bannerStyle: {
+            background: `linear-gradient(135deg, ${customColors.secondary}, #0b1325)`,
+          },
+          bannerBorder: "border-b-4",
+          bannerBorderStyle: { borderColor: customColors.primary },
+          shimmerVia: "via-white/30",
+          dotGridColor: customColors.primary,
+          statusBadgeClass: "text-white font-bold border-2",
+          statusBadgeStyle: {
+            backgroundColor: customColors.primary,
+            borderColor: customColors.primary,
+          },
+          avatarBorder: "border-4",
+          avatarBorderStyle: {
+            borderColor: customColors.primary,
+            boxShadow: `2px 2px 0px ${customColors.primary}`,
+          },
+          nameHover: "group-hover:opacity-85",
+          followBtn: "text-white font-bold border-2",
+          followBtnStyle: {
+            backgroundColor: customColors.primary,
+            borderColor: customColors.primary,
+          },
+          portfolioText: "",
+          portfolioStyle: { color: customColors.primary },
+        };
+      case "classic":
+      case "standard":
+      default:
+        return {
+          bannerBg: "bg-primary",
+          bannerBorder: "border-b-4 border-border",
+          shimmerVia: "via-white/30",
+          dotGridColor: "#ffffff",
+          statusBadgeClass: "bg-secondary text-white font-bold border-2 border-border",
+          statusBadgeStyle: undefined,
+          avatarBorder: "border-4 border-border shadow-[2px_2px_0px_var(--color-border)] group-hover:border-primary",
+          avatarBorderStyle: undefined,
+          nameHover: "group-hover:text-primary",
+          followBtn: "bg-primary border-border text-primary-foreground hover:bg-primary/90",
+          followBtnStyle: undefined,
+          portfolioText: "text-primary",
+          portfolioStyle: undefined,
+        };
+    }
+  })();
 
   return (
     <div
@@ -35,14 +226,17 @@ export default function MahasiswaCard({
       className="card-3d overflow-hidden flex flex-col justify-between h-full bg-card group cursor-pointer"
     >
       {/* ── Banner Primary dengan Dot Pattern + Shimmer ── */}
-      <div className="relative h-20 sm:h-28 w-full bg-primary overflow-hidden p-3 border-b-4 border-border">
+      <div
+        className={`relative h-20 sm:h-28 w-full overflow-hidden p-3 ${skinTheme.bannerBg} ${skinTheme.bannerBorder}`}
+        style={skinTheme.bannerStyle || skinTheme.bannerBorderStyle}
+      >
         {/* Animated dot grid */}
         <motion.div
           animate={{ x: [0, -20], y: [0, -20] }}
           transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
           className="absolute inset-0 w-[150%] h-[150%] opacity-20 pointer-events-none"
           style={{
-            backgroundImage: "radial-gradient(circle at center, #ffffff 1px, transparent 1px)",
+            backgroundImage: `radial-gradient(circle at center, ${skinTheme.dotGridColor || "#ffffff"} 1px, transparent 1px)`,
             backgroundSize: "20px 20px",
           }}
         />
@@ -50,17 +244,36 @@ export default function MahasiswaCard({
         <motion.div
           animate={{ x: ["-100%", "300%"] }}
           transition={{ duration: 3, repeat: Infinity, repeatDelay: 1.5, ease: "easeInOut" }}
-          className="absolute top-0 bottom-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12 pointer-events-none"
+          className={`absolute top-0 bottom-0 left-0 w-1/3 bg-gradient-to-r from-transparent ${skinTheme.shimmerVia} to-transparent -skew-x-12 pointer-events-none`}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
 
         {/* Angkatan + Status badges (Keduanya di Banner atas) */}
         <div className="relative z-10 flex items-center justify-between gap-1 w-full">
-          <StickerBadge variant="warning" className="text-[10px] px-2 py-0.5 shrink-0">
-            Angkatan {student.angkatan}
-          </StickerBadge>
+          <div
+            onClick={(e) => {
+              if (onFilterAngkatan && student.angkatan) {
+                e.stopPropagation();
+                onFilterAngkatan(student.angkatan);
+              }
+            }}
+          >
+            <StickerBadge variant="warning" className="text-[10px] px-2 py-0.5 shrink-0">
+              Angkatan {student.angkatan}
+            </StickerBadge>
+          </div>
+
           {student.statusBadge && (
-            <span className="px-2.5 py-1 rounded-xl bg-secondary text-white text-[10px] font-bold border-2 border-border shrink-0 truncate">
+            <span
+              onClick={(e) => {
+                if (onFilterStatus) {
+                  e.stopPropagation();
+                  onFilterStatus(student.statusBadge!);
+                }
+              }}
+              className={`px-2.5 py-1 rounded-xl text-[10px] shrink-0 truncate ${skinTheme.statusBadgeClass}`}
+              style={skinTheme.statusBadgeStyle}
+            >
               {student.statusBadge}
             </span>
           )}
@@ -69,11 +282,14 @@ export default function MahasiswaCard({
 
       {/* ── Card Body ── */}
       <div className="px-4 pb-4 pt-0 relative flex-1 flex flex-col">
-
         {/* Avatar and Email button */}
         <div className="relative -mt-6 sm:-mt-8 mb-3 flex justify-between items-end">
-          <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl p-0.5 bg-card overflow-hidden border-4 border-border shadow-[2px_2px_0px_var(--color-border)] group-hover:border-primary transition-all duration-300 shrink-0">
+          <div
+            className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl p-0.5 bg-card overflow-hidden transition-all duration-300 shrink-0 ${skinTheme.avatarBorder}`}
+            style={skinTheme.avatarBorderStyle}
+          >
             {student.avatarUrl && !imgError ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={student.avatarUrl}
                 alt={student.name}
@@ -86,7 +302,7 @@ export default function MahasiswaCard({
               </div>
             )}
           </div>
-          
+
           <div className="block" onClick={(e) => e.stopPropagation()}>
             <a
               href={`mailto:${student.contactEmail}`}
@@ -101,7 +317,9 @@ export default function MahasiswaCard({
 
         {/* Name, Prodi */}
         <div className="mb-2">
-          <h3 className="text-base font-black text-foreground group-hover:text-primary transition-colors line-clamp-1 leading-snug">
+          <h3
+            className={`text-base font-black text-foreground transition-colors line-clamp-1 leading-snug ${skinTheme.nameHover}`}
+          >
             {student.name}
           </h3>
           <p className="text-xs font-semibold text-muted-foreground mt-0.5 line-clamp-1">
@@ -110,33 +328,42 @@ export default function MahasiswaCard({
         </div>
 
         {/* Skills */}
-        {student.skills && student.skills.filter(s => PREDEFINED_SKILLS.includes(s)).length > 0 && (
-          <div className="flex flex-wrap items-center gap-1 mb-3">
-            {(() => {
-              let displaySkills = student.skills.filter(s => PREDEFINED_SKILLS.includes(s));
-              if (searchQuery.trim() !== "") {
-                const query = searchQuery.toLowerCase();
-                const matchIdx = displaySkills.findIndex((s) => s.toLowerCase().includes(query));
-                if (matchIdx > 0) {
-                  const matched = displaySkills.splice(matchIdx, 1)[0];
-                  displaySkills.unshift(matched);
+        {student.skills &&
+          student.skills.filter((s) => PREDEFINED_SKILLS.includes(s)).length > 0 && (
+            <div className="flex flex-wrap items-center gap-1 mb-3">
+              {(() => {
+                const displaySkills = student.skills.filter((s) => PREDEFINED_SKILLS.includes(s));
+                if (searchQuery.trim() !== "") {
+                  const query = searchQuery.toLowerCase();
+                  const matchIdx = displaySkills.findIndex((s) => s.toLowerCase().includes(query));
+                  if (matchIdx > 0) {
+                    const matched = displaySkills.splice(matchIdx, 1)[0];
+                    displaySkills.unshift(matched);
+                  }
                 }
-              }
-              return (
-                <>
-                  <span className={`px-2 py-0.5 rounded-lg border text-[10px] font-bold max-w-[150px] truncate ${getSkillColor(displaySkills[0])}`}>
-                    {displaySkills[0]}
-                  </span>
-                  {displaySkills.length > 1 && (
-                    <span className="px-1.5 py-0.5 rounded-md bg-muted border border-border text-[10px] font-bold text-muted-foreground">
-                      +{displaySkills.length - 1}
+                return (
+                  <>
+                    <span
+                      onClick={(e) => {
+                        if (onFilterSkill) {
+                          e.stopPropagation();
+                          onFilterSkill(displaySkills[0]);
+                        }
+                      }}
+                      className={`px-2 py-0.5 rounded-lg border text-[10px] font-bold max-w-[150px] truncate ${getSkillColor(displaySkills[0])}`}
+                    >
+                      {displaySkills[0]}
                     </span>
-                  )}
-                </>
-              );
-            })()}
-          </div>
-        )}
+                    {displaySkills.length > 1 && (
+                      <span className="px-1.5 py-0.5 rounded-md bg-muted border border-border text-[10px] font-bold text-muted-foreground">
+                        +{displaySkills.length - 1}
+                      </span>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+          )}
 
         {/* Bio */}
         <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-3 flex-1">
@@ -144,15 +371,19 @@ export default function MahasiswaCard({
         </p>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-1.5 mb-3" onClick={(e) => e.stopPropagation()}>
-          {onFollowClick && (
+        <div
+          className="flex flex-wrap items-center gap-1.5 mb-3"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {(onFollowClick || onToggleFollow) && (
             <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onFollowClick(e); }}
+              onClick={handleFollow}
               className={`flex items-center gap-1.5 px-3 py-1.5 flex-1 justify-center rounded-xl text-[10px] font-bold border-2 transition-all shadow-[2px_2px_0px_var(--color-border)] ${
-                isFollowing 
-                  ? "bg-transparent border-border text-muted-foreground hover:bg-rose-500 hover:text-white hover:border-rose-500" 
-                  : "bg-primary border-border text-primary-foreground hover:bg-primary/90"
+                isFollowing
+                  ? "bg-transparent border-border text-muted-foreground hover:bg-rose-500 hover:text-white hover:border-rose-500"
+                  : skinTheme.followBtn
               }`}
+              style={!isFollowing ? skinTheme.followBtnStyle : undefined}
               title={isFollowing ? "Unfollow" : "Ikuti"}
             >
               <Users className="w-3 h-3" />
@@ -161,7 +392,11 @@ export default function MahasiswaCard({
           )}
           {onMessageClick && (
             <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMessageClick(student); }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onMessageClick(student);
+              }}
               className="flex items-center gap-1.5 px-3 py-1.5 flex-1 justify-center rounded-xl text-[10px] font-bold bg-secondary border-2 border-border text-secondary-foreground hover:bg-secondary/80 transition-all shadow-[2px_2px_0px_var(--color-border)]"
               title="Kirim Pesan"
             >
@@ -191,7 +426,10 @@ export default function MahasiswaCard({
             <Folder className="w-[13px] h-[13px] text-secondary shrink-0" />
             <span>{projectCount} Karya</span>
           </div>
-          <span className="flex items-center gap-0.5 text-xs font-black text-primary group-hover:translate-x-1 transition-transform uppercase shrink-0">
+          <span
+            className={`flex items-center gap-0.5 text-xs font-black uppercase shrink-0 group-hover:translate-x-1 transition-transform ${skinTheme.portfolioText}`}
+            style={skinTheme.portfolioStyle}
+          >
             <span>Lihat</span> Portofolio
             <ChevronRight className="w-[14px] h-[14px] shrink-0" />
           </span>

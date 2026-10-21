@@ -1,43 +1,57 @@
+"use client";
+
 import React from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
 
 export default function TermsPage() {
+  const router = useRouter();
+
+  const handleBack = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/");
+    }
+  };
+
   return (
-    <div className="container mx-auto px-4 py-20 flex flex-col items-center min-h-[80vh]">
+    <div className="container mx-auto px-4 py-16 flex flex-col items-center min-h-[80vh]">
       <div className="w-full max-w-3xl">
-        <Link
-          href="/login"
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors text-sm font-black mb-6 uppercase"
+        <button
+          type="button"
+          onClick={handleBack}
+          className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors text-xs font-semibold mb-6 cursor-pointer"
         >
-          <FiArrowLeft className="w-4 h-4" /> Kembali
-        </Link>
-        <div className="card-3d bg-card border-4 border-border p-8 md:p-12 rounded-3xl">
-          <h1 className="text-3xl md:text-5xl font-black text-foreground mb-4 uppercase tracking-tight" style={{ textShadow: "2px 2px 0px var(--color-border)" }}>
-            Syarat & Ketentuan
+          <FiArrowLeft className="w-4 h-4" />
+          <span>Kembali</span>
+        </button>
+        <div className="bg-card border border-border p-8 md:p-12 rounded-2xl shadow-xs">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground mb-3">
+            Syarat &amp; Ketentuan
           </h1>
-          <div className="w-20 h-2 bg-primary mb-8 rounded-full"></div>
+          <div className="w-12 h-1 bg-primary mb-8 rounded-full" />
           
-          <div className="space-y-6 text-muted-foreground font-medium leading-relaxed">
+          <div className="space-y-6 text-muted-foreground text-sm sm:text-base font-normal leading-relaxed">
             <section>
-              <h2 className="text-xl font-black text-foreground mb-2 uppercase">1. Penggunaan Layanan</h2>
+              <h2 className="text-base sm:text-lg font-bold text-foreground mb-2">1. Penggunaan Layanan</h2>
               <p>Platform KaryaTazkia khusus diperuntukkan bagi mahasiswa dan civitas akademika STMIK Tazkia. Anda wajib menggunakan email resmi kampus untuk dapat masuk dan mengunggah karya.</p>
             </section>
             
             <section>
-              <h2 className="text-xl font-black text-foreground mb-2 uppercase">2. Hak Cipta Karya</h2>
+              <h2 className="text-base sm:text-lg font-bold text-foreground mb-2">2. Hak Cipta Karya</h2>
               <p>Seluruh karya yang diunggah tetap menjadi hak milik intelektual kreator aslinya. KaryaTazkia hanya bertindak sebagai platform galeri (showcase) dan tidak mengklaim kepemilikan atas karya Anda.</p>
             </section>
             
             <section>
-              <h2 className="text-xl font-black text-foreground mb-2 uppercase">3. Konten yang Dilarang</h2>
+              <h2 className="text-base sm:text-lg font-bold text-foreground mb-2">3. Konten yang Dilarang</h2>
               <p>Dilarang keras mengunggah karya hasil plagiarisme, konten yang melanggar hukum, SARA, atau karya yang tidak sesuai dengan norma kesopanan dan etika akademik.</p>
             </section>
           </div>
           
-          <div className="mt-12 p-4 bg-accent/10 border-4 border-accent/20 rounded-xl">
-            <p className="text-sm font-bold text-accent-shadow">
-              Catatan: Halaman ini masih dalam tahap penyusunan dan merupakan draf sementara.
+          <div className="mt-10 p-4 bg-primary/5 border border-primary/20 rounded-xl">
+            <p className="text-xs sm:text-sm font-medium text-foreground">
+              Catatan: Syarat dan ketentuan ini merupakan panduan resmi civitas akademika STMIK Tazkia dalam menggunakan ekosistem digital kampus.
             </p>
           </div>
         </div>

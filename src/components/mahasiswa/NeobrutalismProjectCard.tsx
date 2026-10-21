@@ -1,15 +1,22 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { FiGithub, FiExternalLink, FiHeart, FiEye } from "react-icons/fi";
+import { useRouter } from "next/navigation";
+import { Heart, Eye } from "lucide-react";
 import { ProjectCoverPlaceholder } from "@/components/ui/ProjectCoverPlaceholder";
+import TechStackTags from "@/components/ui/TechStackTags";
+import { KARYA_CATEGORIES } from "@/types/karya";
+import { formatNumber, toggleKaryaLike } from "@/lib/data";
+import { getDeviceId } from "@/utils/identity";
+import { supabase } from "@/lib/supabase";
 
 export interface ProjectData {
   id: string;
   title: string;
   description: string;
   cover_image?: string;
+  image_url?: string;
   category?: string;
   tech_stack?: string[];
   tags?: string[];
@@ -19,60 +26,114 @@ export interface ProjectData {
   figma_url?: string;
   youtube_url?: string;
   likes_count?: number;
+  likes?: number;
   views_count?: number;
+  views?: number;
   pending_edits?: any;
   status?: string;
+  team?: Array<{ name: string; avatar?: string; user_id?: string; role?: string }>;
 }
 
-// Peta warna badge per-kategori, konsisten dengan ProjectCoverPlaceholder
-const CATEGORY_BADGE: Record<string, string> = {
-  Technology: "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-600",
-  Programming: "bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-600",
-  Research: "bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-600",
-  IoT: "bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-600",
-  Multimedia: "bg-pink-100 text-pink-700 border-pink-300 dark:bg-pink-900/30 dark:text-pink-300 dark:border-pink-600",
-};
+export function NeobrutalismProjectCard({
+  project,
+  authorProfile,
+}: {
+  project: ProjectData;
+  authorProfile?: any;
+}) {
+  const router = useRouter();
+  const coverUrl = project.cover_image || project.image_url;
+  const initialLikes = project.likes_count ?? project.likes ?? 0;
+  const initialViews = project.views_count ?? project.views ?? 0;
 
-const CATEGORY_LABEL: Record<string, string> = {
-  Technology: "Aplikasi Web",
-  Programming: "Aplikasi Mobile",
-  Research: "Riset & Jurnal",
-  IoT: "Proyek IoT",
-  Multimedia: "Desain & Multimedia",
-};
+  const [isLiked, setIsLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(initialLikes);
+  const [isLiking, setIsLiking] = useState(false);
 
-function getCategoryStyle(category?: string): string {
-  if (!category) return "bg-muted text-muted-foreground border-border";
-  const key = Object.keys(CATEGORY_BADGE).find(k => k.toLowerCase() === category.toLowerCase());
-  return key ? CATEGORY_BADGE[key] : "bg-muted text-muted-foreground border-border";
-}
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const likedSaved = localStorage.getItem(`liked_${project.id}`) === "true";
+      setIsLiked(likedSaved);
+    }
+  }, [project.id]);
 
-function getCategoryLabel(category?: string): string {
-  if (!category) return "";
-  const key = Object.keys(CATEGORY_LABEL).find(k => k.toLowerCase() === category.toLowerCase());
-  return key ? CATEGORY_LABEL[key] : category;
-}
+  useEffect(() => {
+    setLikesCount(project.likes_count ?? project.likes ?? 0);
+  }, [project.likes_count, project.likes]);
 
-export function NeobrutalismProjectCard({ project }: { project: ProjectData }) {
+  const handleToggleLike = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isLiking) return;
+
+    setIsLiking(true);
+    const wasLiked = isLiked;
+    const nextLiked = !wasLiked;
+
+    // Optimistic UI update
+    setIsLiked(nextLiked);
+    setLikesCount((prev) => Math.max(0, prev + (nextLiked ? 1 : -1)));
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const userId = session?.user?.id || null;
+      const deviceId = getDeviceId();
+      const actionToTake = wasLiked ? "unlike" : "like";
+
+      const confirmedLiked = await toggleKaryaLike(project.id, deviceId, userId, actionToTake);
+      setIsLiked(confirmedLiked);
+      if (confirmedLiked) {
+        localStorage.setItem(`liked_${project.id}`, "true");
+      } else {
+        localStorage.removeItem(`liked_${project.id}`);
+      }
+    } catch (err) {
+      console.error("Toggle like error:", err);
+      // Revert if error
+      setIsLiked(wasLiked);
+      setLikesCount((prev) => Math.max(0, prev + (wasLiked ? 1 : -1)));
+    } finally {
+      setIsLiking(false);
+    }
+  };
+
+  const categoryLabel =
+    KARYA_CATEGORIES.find(
+      (c) =>
+        c.value.toLowerCase() === (project.category || "").toLowerCase() ||
+        c.label.toLowerCase() === (project.category || "").toLowerCase()
+    )?.label ?? (project.category || "Karya");
+
+  const authorName =
+    project.team?.[0]?.name || authorProfile?.full_name || "Karya Tazkia";
+  const authorInitial = authorName.replace("[", "").charAt(0).toUpperCase();
+  const authorAvatar = project.team?.[0]?.avatar || authorProfile?.avatar_url;
+  const extraTeamCount = Math.max(0, (project.team?.length ?? 0) - 1);
+
   return (
-    <div 
+    <article
       onClick={(e) => {
-        // Find if the click is on an anchor or button inside
         const target = e.target as HTMLElement;
-        if (!target.closest('a') && !target.closest('button')) {
-          window.location.href = `/project/${project.id}`;
+        if (!target.closest("a") && !target.closest("button")) {
+          router.push(`/project/${project.id}`);
         }
       }}
-      className="card-3d bg-card border-4 border-border rounded-3xl overflow-hidden h-full flex flex-col group relative cursor-pointer"
+      className="kt-cardx relative rounded-[20px] border border-border bg-card overflow-hidden flex flex-col h-full group shadow-xs hover:border-[#FF8A2B] cursor-pointer"
     >
-      <div className="flex flex-col flex-1">
-        {/* Cover Image / Placeholder */}
-        <div className="relative w-full aspect-video bg-muted border-b-4 border-border overflow-hidden">
-          {project.cover_image ? (
+      {/* Cover Area with Hover Pill */}
+      <div className="aspect-[16/10] w-full overflow-hidden relative bg-muted group/cover">
+        <Link
+          href={`/project/${project.id}`}
+          className="block w-full h-full"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {coverUrl ? (
             <img
-              src={project.cover_image}
+              src={coverUrl}
               alt={project.title}
-              className="w-full h-full object-contain bg-muted dark:bg-card p-2 group-hover:scale-105 transition-transform duration-500"
+              className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500 ease-out"
             />
           ) : (
             <ProjectCoverPlaceholder
@@ -81,113 +142,121 @@ export function NeobrutalismProjectCard({ project }: { project: ProjectData }) {
               category={project.category}
             />
           )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-60 group-hover:opacity-30 transition-opacity" />
+        </Link>
 
-          {/* Category badge overlaid on cover */}
-          {project.category && (
-            <div className="absolute top-3 left-3 z-10">
-              <span
-                className={`font-black text-[10px] px-2.5 py-1 rounded-xl border-2 uppercase tracking-wide shadow-sm ${getCategoryStyle(project.category)}`}
-              >
-                {getCategoryLabel(project.category)}
-              </span>
-            </div>
-          )}
-        </div>
+        {/* Category Badge on top-left of cover */}
+        <span className="absolute top-3.5 left-3.5 z-10 px-3 py-1 rounded-full bg-card/90 backdrop-blur-md border border-border/70 text-foreground text-xs font-semibold shadow-xs">
+          {categoryLabel}
+        </span>
 
-        {/* Content */}
-        <div className="px-5 pt-5 flex-1 flex flex-col">
-          <div className="flex items-start justify-between gap-2 mb-1.5">
-            <h3 className="font-black text-lg text-foreground line-clamp-2 group-hover:text-primary transition-colors leading-snug">
+        {/* Status Badge (Pending / Pending Edits / Rejected) on top-right of cover */}
+        {project.status === "pending" ? (
+          <span className="absolute top-3.5 right-3.5 z-10 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/90 backdrop-blur-md text-white border border-blue-400/50 shadow-xs">
+            Menunggu (Baru)
+          </span>
+        ) : project.pending_edits ? (
+          <span className="absolute top-3.5 right-3.5 z-10 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/90 backdrop-blur-md text-white border border-amber-400/50 shadow-xs">
+            Menunggu (Edit)
+          </span>
+        ) : project.status === "rejected" ? (
+          <span className="absolute top-3.5 right-3.5 z-10 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/90 backdrop-blur-md text-white border border-rose-400/50 shadow-xs">
+            Ditolak
+          </span>
+        ) : null}
+
+        {/* Hover Slide-up 'Lihat detail' pill badge on bottom-right of cover */}
+        <Link
+          href={`/project/${project.id}`}
+          onClick={(e) => e.stopPropagation()}
+          className="kt-go hidden md:inline-flex absolute right-3.5 bottom-3.5 z-20 px-4 py-1.5 rounded-full bg-[#FF8A2B] text-[#1A0F05] text-xs sm:text-sm font-bold shadow-md hover:bg-[#ea580c] transition-colors"
+        >
+          Lihat detail
+        </Link>
+      </div>
+
+      {/* Card Content */}
+      <div className="p-5 sm:p-6 flex flex-col flex-1 justify-between">
+        <div>
+          <Link
+            href={`/project/${project.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="block group/title"
+          >
+            <h3 className="font-heading font-bold text-lg sm:text-xl text-foreground group-hover/title:text-[#FF8A2B] transition-colors line-clamp-1 mb-2">
               {project.title}
             </h3>
-            {project.status === "pending" ? (
-              <span className="shrink-0 bg-blue-100 text-blue-800 border-2 border-blue-800 text-[9px] font-black uppercase px-2 py-0.5 rounded-lg whitespace-nowrap">
-                Menunggu (Baru)
-              </span>
-            ) : project.pending_edits ? (
-              <span className="shrink-0 bg-yellow-100 text-yellow-800 border-2 border-yellow-800 text-[9px] font-black uppercase px-2 py-0.5 rounded-lg whitespace-nowrap">
-                Menunggu (Edit)
-              </span>
-            ) : project.status === "rejected" ? (
-              <span className="shrink-0 bg-red-100 text-red-800 border-2 border-red-800 text-[9px] font-black uppercase px-2 py-0.5 rounded-lg whitespace-nowrap">
-                Ditolak
-              </span>
-            ) : null}
-          </div>
-          <p className="text-sm font-medium text-muted-foreground line-clamp-2 mb-4 flex-1 leading-relaxed">
+          </Link>
+          <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 leading-relaxed mb-4 font-normal">
             {project.description}
           </p>
 
-          {/* Tech Stack */}
-          {project.tech_stack && project.tech_stack.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-4">
-              {project.tech_stack.slice(0, 4).map((tech, i) => (
-                <span key={i} className="px-2 py-0.5 bg-muted border-2 border-border rounded-lg text-[10px] font-black text-foreground">
-                  {tech}
-                </span>
-              ))}
-              {project.tech_stack.length > 4 && (
-                <span className="px-2 py-0.5 bg-muted border-2 border-border rounded-lg text-[10px] font-black text-muted-foreground">
-                  +{project.tech_stack.length - 4} lagi
-                </span>
+          {/* Colorful Tech Stack & Tool Chips */}
+          <TechStackTags
+            techs={project.tech_stack ?? []}
+            maxVisible={3}
+            className="mb-4"
+          />
+        </div>
+
+        {/* Card Footer */}
+        <div className="pt-3.5 border-t border-border flex items-center justify-between mt-auto">
+          {/* Author with initial circle avatar */}
+          <div className="flex items-center gap-2.5 min-w-0 max-w-[55%]">
+            <div className="w-[30px] h-[30px] rounded-full bg-[#FF8A2B] text-[#1A0F05] flex items-center justify-center font-bold text-xs shrink-0 select-none shadow-xs overflow-hidden">
+              {authorAvatar ? (
+                <img
+                  src={authorAvatar}
+                  alt={authorName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                authorInitial
               )}
             </div>
-          )}
-        </div>
-        {/* Footer: Stats + Links */}
-        <div className="px-5 pb-5 mt-auto">
-          <div className="flex items-center justify-between pt-3 border-t-2 border-border/50">
-          {/* Stats */}
-          <div className="flex gap-3 text-muted-foreground font-bold text-xs">
-            <div className="flex items-center gap-1 hover:text-red-500 transition-colors">
-              <FiHeart size={12} />
-              <span>{project.likes_count || 0}</span>
-            </div>
-            <div className="flex items-center gap-1 hover:text-primary transition-colors">
-              <FiEye size={12} />
-              <span>{project.views_count || 0}</span>
-            </div>
+            <span className="text-xs sm:text-sm font-medium text-foreground truncate">
+              {authorName}
+            </span>
+            {extraTeamCount > 0 && (
+              <span className="text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded-md font-semibold text-muted-foreground shrink-0">
+                +{extraTeamCount}
+              </span>
+            )}
           </div>
 
-          {/* Action Links */}
-          <div className="flex gap-1.5">
-            {project.github_url && (
-              <a
-                href={project.github_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-8 h-8 rounded-xl bg-muted border-2 border-border flex items-center justify-center text-foreground hover:-translate-y-0.5 hover:shadow-[2px_2px_0px_var(--color-border)] hover:bg-[#24292e] hover:text-white hover:border-[#24292e] transition-all"
-                title="Source Code"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-              >
-                <FiGithub size={13} />
-              </a>
-            )}
-            {project.demo_url ? (
-              <a
-                href={project.demo_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-8 h-8 rounded-xl bg-primary text-white border-2 border-border flex items-center justify-center hover:-translate-y-0.5 hover:shadow-[2px_2px_0px_var(--color-border)] transition-all"
-                title="Demo Langsung"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-              >
-                <FiExternalLink size={13} />
-              </a>
-            ) : (
-              <Link
-                href={`/project/${project.id}`}
-                className="w-8 h-8 rounded-xl bg-primary text-white border-2 border-border flex items-center justify-center hover:-translate-y-0.5 hover:shadow-[2px_2px_0px_var(--color-border)] transition-all"
-                title="Lihat Detail"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-              >
-                <FiExternalLink size={13} />
-              </Link>
-            )}
+          {/* Views & Like Button in Pill style */}
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
+              <Eye className="w-3.5 h-3.5" />
+              <span className="tabular-nums">
+                {formatNumber(initialViews)}
+              </span>
+            </span>
+
+            <button
+              type="button"
+              onClick={handleToggleLike}
+              aria-label="Sukai karya"
+              className={`inline-flex items-center gap-1.5 min-h-[34px] px-3 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+                isLiked
+                  ? "border-[#FF8A2B] bg-[#FF8A2B]/15 text-[#FF8A2B]"
+                  : "border-border bg-card text-muted-foreground hover:border-[#FF8A2B]/50 hover:text-foreground"
+              }`}
+            >
+              <Heart
+                className={`w-3.5 h-3.5 transition-transform active:scale-125 ${
+                  isLiked
+                    ? "fill-[#FF8A2B] text-[#FF8A2B]"
+                    : "text-muted-foreground"
+                }`}
+              />
+              <span className="font-mono tabular-nums">
+                {likesCount}
+              </span>
+            </button>
           </div>
         </div>
-        </div>
       </div>
-    </div>
+    </article>
   );
 }

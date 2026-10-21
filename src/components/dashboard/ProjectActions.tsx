@@ -73,11 +73,11 @@ export function ProjectActions({ projectId, isApproved, karyaObj }: ProjectActio
 
   return (
     <>
-      <div className="flex items-center justify-center gap-2">
+      <div className="flex items-center justify-center gap-1.5">
         {karyaObj && (
           <button
             onClick={() => setShowInfo(true)}
-            className="p-2.5 rounded-xl bg-purple-100 border-2 border-purple-600 shadow-[2px_2px_0px_#7e22ce] hover:-translate-y-0.5 active:translate-y-0 transition-all text-purple-700"
+            className="p-2 rounded-lg bg-muted text-muted-foreground hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 border border-border hover:border-purple-300 transition-colors shadow-xs"
             title="Lihat Feedback & Detail"
           >
             <Info className="w-4 h-4" />
@@ -86,7 +86,7 @@ export function ProjectActions({ projectId, isApproved, karyaObj }: ProjectActio
 
         <Link
           href={`/dashboard/projects/${projectId}`}
-          className="p-2.5 rounded-xl bg-card border-2 border-border shadow-[2px_2px_0px_var(--color-border)] hover:-translate-y-0.5 hover:bg-muted active:translate-y-0 transition-all text-foreground"
+          className="p-2 rounded-lg bg-card text-muted-foreground hover:text-foreground hover:bg-muted border border-border transition-colors shadow-xs"
           title="Preview Karya"
         >
           <Eye className="w-4 h-4" />
@@ -94,7 +94,7 @@ export function ProjectActions({ projectId, isApproved, karyaObj }: ProjectActio
 
         <Link
           href={`/submit/form?id=${projectId}`}
-          className="p-2.5 rounded-xl bg-orange-100 border-2 border-orange-500 shadow-[2px_2px_0px_#f97316] hover:-translate-y-0.5 active:translate-y-0 transition-all text-orange-600"
+          className="p-2 rounded-lg bg-card text-muted-foreground hover:text-primary hover:bg-primary/10 border border-border hover:border-primary/30 transition-colors shadow-xs"
           title="Edit Karya"
         >
           <Edit className="w-4 h-4" />
@@ -102,7 +102,7 @@ export function ProjectActions({ projectId, isApproved, karyaObj }: ProjectActio
 
         <button
           onClick={openConfirm}
-          className="p-2.5 rounded-xl bg-red-100 border-2 border-red-600 shadow-[2px_2px_0px_#dc2626] hover:-translate-y-0.5 active:translate-y-0 transition-all text-red-700"
+          className="p-2 rounded-lg bg-card text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 border border-border hover:border-red-200 transition-colors shadow-xs"
           title="Hapus Karya"
         >
           <Trash2 className="w-4 h-4" />
@@ -120,45 +120,45 @@ export function ProjectActions({ projectId, isApproved, karyaObj }: ProjectActio
               className="absolute inset-0 bg-background/80 backdrop-blur-sm"
             />
             <motion.div
-              initial={{ scale: 0.9, y: 20, opacity: 0 }}
+              initial={{ scale: 0.95, y: 16, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 20, opacity: 0 }}
-              transition={{ type: "spring", bounce: 0.4 }}
-              className="relative bg-card border-4 border-border rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-[8px_8px_0px_0px_var(--color-border)] z-10 flex flex-col items-center text-center"
+              exit={{ scale: 0.95, y: 16, opacity: 0 }}
+              transition={{ type: "spring", bounce: 0.3 }}
+              className="relative bg-card border border-border rounded-2xl p-6 sm:p-7 max-w-sm w-full shadow-2xl z-10 flex flex-col items-center text-center"
             >
-              <div className="w-14 h-14 rounded-2xl bg-red-100 border-4 border-red-600 text-red-600 flex items-center justify-center mb-4">
-                <Trash2 className="w-7 h-7" />
+              <div className="w-12 h-12 rounded-xl bg-red-500/10 text-red-600 flex items-center justify-center mb-4">
+                <Trash2 className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-black text-foreground mb-2 uppercase">Hapus Karya?</h3>
-              <p className="text-muted-foreground font-bold text-xs sm:text-sm mb-2 leading-relaxed">
-                Tindakan ini <span className="text-red-600 font-black">tidak bisa dibatalkan</span>. Karya akan dihapus secara permanen dari sistem.
+              <h3 className="text-lg font-bold text-foreground mb-1.5">Hapus Karya?</h3>
+              <p className="text-muted-foreground font-normal text-xs mb-3 leading-relaxed">
+                Tindakan ini <span className="text-red-600 font-semibold">tidak bisa dibatalkan</span>. Karya akan dihapus secara permanen dari sistem.
               </p>
               {/* Countdown warning */}
               {countdown > 0 ? (
-                <div className="w-full mb-5 px-4 py-3 bg-red-50 dark:bg-red-950/40 border-2 border-red-300 dark:border-red-700 rounded-xl flex items-center justify-center gap-2">
-                  <span className="text-red-600 dark:text-red-400 font-black text-sm">Baca dulu! Tombol aktif dalam</span>
-                  <span className="w-8 h-8 rounded-full bg-red-600 text-white font-black text-sm flex items-center justify-center shrink-0">{countdown}</span>
-                  <span className="text-red-600 dark:text-red-400 font-black text-sm">detik</span>
+                <div className="w-full mb-5 px-3.5 py-2.5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-xl flex items-center justify-center gap-2">
+                  <span className="text-red-600 dark:text-red-400 font-medium text-xs">Tombol aktif dalam</span>
+                  <span className="w-6 h-6 rounded-full bg-red-600 text-white font-bold text-xs flex items-center justify-center shrink-0">{countdown}</span>
+                  <span className="text-red-600 dark:text-red-400 font-medium text-xs">detik</span>
                 </div>
               ) : (
-                <div className="w-full mb-5 px-4 py-3 bg-orange-50 dark:bg-orange-950/40 border-2 border-orange-300 dark:border-orange-700 rounded-xl">
-                  <p className="text-orange-700 dark:text-orange-400 font-black text-xs">⚠️ Kamu sudah membaca peringatan ini. Tombol hapus sekarang aktif.</p>
+                <div className="w-full mb-5 px-3.5 py-2.5 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-xl">
+                  <p className="text-orange-700 dark:text-orange-400 font-medium text-xs">⚠️ Peringatan telah dibaca. Tombol hapus sekarang aktif.</p>
                 </div>
               )}
-              <div className="flex w-full gap-3">
+              <div className="flex w-full gap-2.5">
                 <button
                   onClick={closeConfirm}
                   disabled={isDeleting}
-                  className="flex-1 py-3 px-4 rounded-xl font-black text-sm text-foreground bg-muted border-2 border-border hover:bg-muted/80 transition-colors disabled:opacity-50"
+                  className="flex-1 py-2.5 px-4 rounded-xl font-semibold text-xs text-foreground bg-muted border border-border hover:bg-muted/80 transition-colors disabled:opacity-50"
                 >
                   Batal
                 </button>
                 <button
                   onClick={handleDelete}
                   disabled={isDeleting || countdown > 0}
-                  className="flex-1 py-3 px-4 rounded-xl font-black text-sm text-white bg-red-600 border-2 border-red-800 shadow-[3px_3px_0px_0px_#991b1b] hover:bg-red-700 hover:translate-y-0.5 active:translate-y-1 transition-all disabled:opacity-40 disabled:bg-red-300 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0 flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 px-4 rounded-xl font-semibold text-xs text-white bg-red-600 hover:bg-red-700 transition-all shadow-xs hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                 >
-                  {isDeleting ? "Menghapus..." : countdown > 0 ? `Hapus (${countdown})` : "Ya, Hapus Permanen"}
+                  {isDeleting ? "Menghapus..." : countdown > 0 ? `Hapus (${countdown})` : "Ya, Hapus"}
                 </button>
               </div>
             </motion.div>
@@ -175,74 +175,72 @@ export function ProjectActions({ projectId, isApproved, karyaObj }: ProjectActio
               className="absolute inset-0 bg-background/80 backdrop-blur-sm"
             />
             <motion.div
-              initial={{ scale: 0.9, y: 20, opacity: 0 }}
+              initial={{ scale: 0.95, y: 16, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 20, opacity: 0 }}
-              transition={{ type: "spring", bounce: 0.4 }}
-              className="relative bg-card border-4 border-border rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-[8px_8px_0px_0px_var(--color-border)] z-10"
+              exit={{ scale: 0.95, y: 16, opacity: 0 }}
+              transition={{ type: "spring", bounce: 0.3 }}
+              className="relative bg-card border border-border rounded-2xl p-6 sm:p-7 max-w-lg w-full shadow-2xl z-10"
             >
               <button
                 onClick={() => setShowInfo(false)}
-                className="absolute top-4 right-4 p-2 bg-muted hover:bg-red-100 hover:text-red-600 rounded-full transition-colors"
+                className="absolute top-4 right-4 p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                aria-label="Tutup"
               >
-                <XCircle className="w-6 h-6" />
+                <XCircle className="w-5 h-5" />
               </button>
 
-              <h3 className="text-xl font-black text-foreground mb-1 uppercase pr-10">{karyaObj.title}</h3>
-              <p className="text-xs font-bold text-muted-foreground mb-6 line-clamp-2">{karyaObj.description}</p>
+              <h3 className="text-lg font-bold text-foreground mb-1 pr-8">{karyaObj.title}</h3>
+              <p className="text-xs text-muted-foreground mb-5 line-clamp-2 font-normal">{karyaObj.description}</p>
 
-              <div className="space-y-4">
+              <div className="space-y-3.5">
                 {/* Status final */}
-                <div className={`p-4 rounded-2xl border-2 flex items-center gap-3 ${
+                <div className={`p-4 rounded-xl border flex items-center gap-3.5 ${
                   karyaObj.status === "approved"
-                    ? "bg-green-50 border-green-200"
+                    ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400"
                     : karyaObj.status === "rejected"
-                    ? "bg-red-50 border-red-200"
-                    : "bg-yellow-50 border-yellow-200"
+                    ? "bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400"
+                    : "bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400"
                 }`}>
                   <span className="text-2xl">
                     {karyaObj.status === "approved" ? "✅" : karyaObj.status === "rejected" ? "❌" : "⏳"}
                   </span>
                   <div>
-                    <p className={`text-sm font-black uppercase ${
-                      karyaObj.status === "approved" ? "text-green-700" :
-                      karyaObj.status === "rejected" ? "text-red-700" : "text-yellow-700"
-                    }`}>
+                    <p className="text-xs font-bold uppercase tracking-wide">
                       {karyaObj.status === "approved"
                         ? "Karya Anda Disetujui & Sudah Publik!"
                         : karyaObj.status === "rejected"
                         ? "Karya Anda Ditolak"
                         : "Karya Anda Sedang Dalam Proses Review"}
                     </p>
-                    <p className="text-xs font-bold text-muted-foreground mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5 font-normal">
                       {karyaObj.status === "approved"
                         ? "Karya Anda sudah bisa dilihat oleh publik di halaman Galeri."
                         : karyaObj.status === "rejected"
                         ? "Perbaiki karya Anda sesuai catatan di bawah, lalu kirim ulang."
-                        : "Harap tunggu, tim kami sedang memeriksa karya Anda."}
+                        : "Harap tunggu, tim kurator sedang memeriksa karya Anda."}
                     </p>
                   </div>
                 </div>
 
                 {/* Catatan penolakan — hanya ditampilkan kalau ada & ditolak */}
                 {karyaObj.status === "rejected" && karyaObj.reject_reason && (
-                  <div className="bg-orange-50 border-2 border-orange-200 p-4 rounded-2xl">
-                    <span className="text-xs font-black text-orange-800 uppercase block mb-1">📋 Catatan / Alasan Penolakan:</span>
-                    <p className="text-sm font-bold text-orange-700 whitespace-pre-line">{karyaObj.reject_reason}</p>
+                  <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-xl">
+                    <span className="text-xs font-semibold text-primary uppercase block mb-1">📋 Catatan / Alasan Penolakan:</span>
+                    <p className="text-xs text-foreground/90 font-medium whitespace-pre-line leading-relaxed">{karyaObj.reject_reason}</p>
                   </div>
                 )}
 
                 {karyaObj.status === "rejected" && (
-                  <p className="text-xs text-muted-foreground font-bold text-center">
+                  <p className="text-xs text-muted-foreground text-center font-normal">
                     Kamu bisa klik tombol ✏️ (Edit) untuk memperbaiki karya ini lalu kirim ulang.
                   </p>
                 )}
               </div>
 
-              <div className="mt-8 pt-4 border-t-2 border-border/50 text-center">
+              <div className="mt-6 pt-4 border-t border-border flex justify-end">
                 <button
                   onClick={() => setShowInfo(false)}
-                  className="px-6 py-2.5 rounded-xl font-black text-sm text-foreground bg-muted border-2 border-border hover:bg-muted/80 transition-colors"
+                  className="px-5 py-2 rounded-xl font-semibold text-xs text-foreground bg-muted border border-border hover:bg-muted/80 transition-colors"
                 >
                   Tutup
                 </button>

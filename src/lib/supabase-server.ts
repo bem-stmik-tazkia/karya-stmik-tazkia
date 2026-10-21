@@ -2,13 +2,22 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://pmrowiyvuqnxgzmlbfzx.supabase.co";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "placeholder-anon-key";
+const rawServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const hasValidServiceRoleKey = Boolean(
+  rawServiceKey &&
+  rawServiceKey.trim() !== "" &&
+  rawServiceKey !== "placeholder-service-key"
+);
+
 // Digunakan untuk route yang butuh Auth/Cookies (membuat halaman jadi Dynamic)
 export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {
@@ -33,12 +42,13 @@ export async function createClient() {
 // Digunakan khusus untuk mengambil data publik (seperti di homepage) 
 // agar halaman tetap bisa di-cache/ISR tanpa harus bergantung pada cookies user.
 export const supabaseServer = createSupabaseClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  supabaseUrl,
+  supabaseAnonKey
 );
 
 // Digunakan khusus untuk server-side operasi yang membutuhkan admin privilege
-export const supabaseAdmin = createSupabaseClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Bernilai null jika SUPABASE_SERVICE_ROLE_KEY belum dikonfigurasi, agar fallback berjalan semestinya
+export const supabaseAdmin = hasValidServiceRoleKey
+  ? createSupabaseClient(supabaseUrl, rawServiceKey!)
+  : null;
+

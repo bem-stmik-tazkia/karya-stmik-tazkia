@@ -1,8 +1,10 @@
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { AdminLogoutButton } from "@/components/admin/AdminLogoutButton";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { AdminNav } from "@/components/admin/AdminNav";
+import { Shield, Home } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -24,35 +26,46 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b-4 border-border bg-card">
-        <div className="container mx-auto px-4 py-4 max-w-7xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="border-b border-border bg-card/90 backdrop-blur-md sticky top-0 z-40 shadow-xs">
+        <div className="container mx-auto px-4 py-3.5 max-w-7xl flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-4 sm:gap-6">
-            <div>
-              <h1 className="text-xl font-black uppercase text-foreground flex items-center gap-2">
-                🛡️ Admin Panel
-              </h1>
-              <p className="text-xs text-muted-foreground font-bold">
-                Role: <span className="text-primary uppercase">{adminRecord.role}</span>
-              </p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs">
+                <Shield className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-base font-heading font-extrabold tracking-tight text-foreground">
+                    Admin Panel
+                  </h1>
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                    {adminRecord.role || "Admin"}
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground font-medium">
+                  Karya STMIK Tazkia
+                </p>
+              </div>
             </div>
-            <div className="hidden sm:block h-8 w-[2px] bg-border" />
+            <div className="hidden sm:block h-7 w-px bg-border" />
             <AdminNav />
           </div>
 
-          <nav className="flex items-center gap-3 text-sm font-black">
-            <a
+          <nav className="flex items-center gap-2.5">
+            <Link
               href="/"
-              className="px-3 py-1.5 rounded-xl bg-muted text-muted-foreground hover:text-foreground text-xs uppercase font-extrabold border-2 border-border hover:bg-muted/80 transition-all"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card text-muted-foreground hover:text-foreground hover:bg-muted text-xs font-semibold border border-border shadow-xs transition-all"
             >
-              Beranda Utama
-            </a>
+              <Home className="w-3.5 h-3.5" />
+              <span>Beranda Utama</span>
+            </Link>
             <ThemeToggle />
             <AdminLogoutButton />
           </nav>
         </div>
-      </div>
-      {children}
+      </header>
+      <main>{children}</main>
     </div>
   );
 }

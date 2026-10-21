@@ -131,12 +131,12 @@ export function NotificationBell() {
           setOpen(!open);
           if (!open) fetchNotifications();
         }}
-        className="relative p-2 rounded-xl border-2 border-border bg-card shadow-[2px_2px_0px_var(--color-border)] hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_var(--color-border)] transition-all"
+        className="relative p-2 rounded-lg border border-border bg-card shadow-xs hover:bg-muted hover:border-primary/30 transition-all"
         title="Notifikasi"
       >
         <Bell className="w-5 h-5 text-foreground" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center px-1 border-2 border-card animate-in zoom-in duration-200">
+          <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-primary text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 border-2 border-card animate-in zoom-in duration-200">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -144,14 +144,14 @@ export function NotificationBell() {
 
       {/* Notification Panel */}
       {open && (
-        <div className="fixed left-4 right-4 sm:absolute sm:left-auto sm:right-0 top-20 sm:top-[calc(100%+10px)] w-auto sm:w-96 bg-card border-4 border-border rounded-2xl shadow-[8px_8px_0px_var(--color-border)] overflow-hidden z-[100] animate-in fade-in slide-in-from-top-4 zoom-in-95 duration-200">
+        <div className="fixed left-4 right-4 sm:absolute sm:left-auto sm:right-0 top-18 sm:top-[calc(100%+8px)] w-auto sm:w-96 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 zoom-in-95 duration-150">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b-4 border-border bg-muted/50">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/40">
             <div className="flex items-center gap-2">
               <Bell className="w-4 h-4 text-primary" />
-              <span className="font-black text-sm uppercase">Notifikasi</span>
+              <span className="font-semibold text-sm text-foreground">Notifikasi</span>
               {unreadCount > 0 && (
-                <span className="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
+                <span className="bg-primary/10 text-primary text-[10px] font-semibold px-2 py-0.5 rounded-full border border-primary/20">
                   {unreadCount} baru
                 </span>
               )}
@@ -160,7 +160,7 @@ export function NotificationBell() {
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}
-                  className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors px-2 py-1 rounded-lg hover:bg-muted"
+                  className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-muted"
                   title="Tandai semua sudah dibaca"
                 >
                   <CheckCheck className="w-3.5 h-3.5" />
@@ -170,7 +170,7 @@ export function NotificationBell() {
               {notifications.length > 0 && (
                 <button
                   onClick={clearAll}
-                  className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground hover:text-red-500 transition-colors px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30"
+                  className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground hover:text-red-500 transition-colors px-2 py-1 rounded-md hover:bg-red-50 dark:hover:bg-red-950/30"
                   title="Bersihkan semua notifikasi"
                 >
                   <Trash className="w-3.5 h-3.5" />
@@ -179,7 +179,7 @@ export function NotificationBell() {
               )}
               <button
                 onClick={() => setOpen(false)}
-                className="p-1 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                className="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -190,19 +190,19 @@ export function NotificationBell() {
           <div className="max-h-[420px] overflow-y-auto">
             {loading ? (
               <div className="p-8 flex flex-col items-center gap-3 text-muted-foreground">
-                <Bell className="w-8 h-8 animate-pulse" />
-                <p className="text-sm font-bold">Memuat...</p>
+                <Bell className="w-7 h-7 animate-pulse text-primary" />
+                <p className="text-xs font-medium">Memuat...</p>
               </div>
             ) : notifications.length === 0 ? (
               <div className="p-8 flex flex-col items-center gap-3 text-muted-foreground">
-                <div className="w-14 h-14 rounded-2xl bg-muted border-2 border-border flex items-center justify-center">
-                  <Bell className="w-7 h-7" />
+                <div className="w-12 h-12 rounded-xl bg-muted border border-border flex items-center justify-center">
+                  <Bell className="w-6 h-6 text-muted-foreground/60" />
                 </div>
-                <p className="text-sm font-bold text-center">Belum ada notifikasi</p>
-                <p className="text-xs text-center">Kamu akan mendapat notifikasi saat status karya berubah.</p>
+                <p className="text-xs font-semibold text-foreground">Belum ada notifikasi</p>
+                <p className="text-[11px] text-center text-muted-foreground">Kamu akan mendapat notifikasi saat status karya berubah.</p>
               </div>
             ) : (
-              <div className="divide-y-2 divide-border/30">
+              <div className="divide-y divide-border/60">
                 {notifications.map((notif) => (
                   <div
                     key={notif.id}
@@ -221,27 +221,27 @@ export function NotificationBell() {
                     <div className="pt-0.5">{NOTIF_ICON[notif.type] ?? NOTIF_ICON.info}</div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <p className={`text-sm font-black leading-tight ${!notif.is_read ? "text-foreground" : "text-muted-foreground"}`}>
+                        <p className={`text-xs font-semibold leading-tight ${!notif.is_read ? "text-foreground" : "text-muted-foreground"}`}>
                           {notif.title}
                         </p>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
                           {!notif.is_read && (
-                            <span className="w-2 h-2 bg-primary rounded-full shrink-0 mt-1" />
+                            <span className="w-1.5 h-1.5 bg-primary rounded-full shrink-0 mt-1" />
                           )}
                           <button
                             onClick={(e) => { e.stopPropagation(); deleteNotif(notif.id); }}
                             className="flex items-center gap-1 p-1 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors"
                             title="Hapus notifikasi ini"
                           >
-                            <span className="text-[9px] font-black uppercase">Hapus</span> <Trash className="w-3.5 h-3.5" />
+                            <Trash className="w-3 h-3" />
                           </button>
                         </div>
                       </div>
-                      <p className="text-xs font-bold text-muted-foreground mt-1 leading-relaxed">
+                      <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed font-normal">
                         {notif.message}
                       </p>
                       <div className="flex items-center justify-between mt-2">
-                        <span className="text-[10px] font-bold text-muted-foreground flex items-center gap-1">
+                        <span className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium">
                           <Clock className="w-3 h-3" />
                           {formatDistanceToNow(new Date(notif.created_at), {
                             addSuffix: true,
@@ -252,7 +252,7 @@ export function NotificationBell() {
                           <Link
                             href={`/dashboard/projects/${notif.karya_id}`}
                             onClick={() => setOpen(false)}
-                            className="text-[10px] font-black text-primary hover:underline"
+                            className="text-[10px] font-semibold text-primary hover:underline"
                           >
                             Lihat Karya →
                           </Link>

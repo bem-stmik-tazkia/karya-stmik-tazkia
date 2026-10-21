@@ -68,26 +68,75 @@ export function getTechTagColor(tech: string): string {
                                  return "bg-teal-100 text-teal-800 border-teal-300 dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-700";
   if (t.includes("gemini"))     return "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700";
 
-  // ── Tools / Research ─────────────────────────────────────────────────────
-  if (t.includes("figma"))      return "bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700";
-  if (t.includes("canva"))      return "bg-teal-100 text-teal-700 border-teal-300 dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-700";
-  if (t.includes("arduino"))    return "bg-teal-100 text-teal-800 border-teal-300 dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-700";
-  if (t.includes("raspberry"))  return "bg-red-100 text-red-800 border-red-300 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700";
+  // ── Tools / Research & Metodologi ─────────────────────────────────────────
+  if (t.includes("figma"))      return "bg-purple-50 text-purple-700 border-purple-300 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800";
+  if (t.includes("canva"))      return "bg-teal-50 text-teal-700 border-teal-300 dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-800";
+  if (t.includes("arduino"))    return "bg-teal-50 text-teal-800 border-teal-300 dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-800";
+  if (t.includes("raspberry"))  return "bg-red-50 text-red-700 border-red-300 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800";
   if (t.includes("excel") || t.includes("google sheet"))
-                                 return "bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700";
-  if (t.includes("spss") || t.includes("kuantitatif") || t.includes("statistik"))
-                                 return "bg-indigo-100 text-indigo-800 border-indigo-300 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-700";
-  if (t.includes("scholar") || t.includes("jurnal") || t.includes("literatur"))
-                                 return "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700";
-  if (t.includes("git"))        return "bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700";
-  if (t.includes("tailwind"))   return "bg-cyan-100 text-cyan-700 border-cyan-300 dark:bg-cyan-900/30 dark:text-cyan-300 dark:border-cyan-700";
-  if (t.includes("html"))       return "bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700";
-  if (t.includes("css"))        return "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700";
-  if (t.includes("node"))       return "bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700";
-  if (t.includes("postman"))    return "bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700";
-  if (t.includes("android"))    return "bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700";
+                                 return "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800";
+  if (t.includes("google doc")) return "bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800";
+  if (t.includes("scholar"))    return "bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800";
+  if (t.includes("kuantitatif")) return "bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800";
+  if (t.includes("kualitatif")) return "bg-purple-50 text-purple-700 border-purple-300 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800";
+  if (t.includes("literatur") || t.includes("studi literatur"))
+                                 return "bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800";
+  if (t.includes("yuridis"))    return "bg-teal-50 text-teal-700 border-teal-300 dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-800";
+  if (t.includes("maqashid") || t.includes("syariah"))
+                                 return "bg-orange-50 text-orange-700 border-orange-300 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800";
+  if (t.includes("mendeley"))   return "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800";
+  if (t.includes("zotero"))     return "bg-red-50 text-red-700 border-red-300 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800";
+  if (t.includes("spss") || t.includes("statistik"))
+                                 return "bg-indigo-50 text-indigo-700 border-indigo-300 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800";
+  if (t.includes("git"))        return "bg-orange-50 text-orange-700 border-orange-300 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800";
+  if (t.includes("tailwind"))   return "bg-cyan-50 text-cyan-700 border-cyan-300 dark:bg-cyan-950/40 dark:text-cyan-300 dark:border-cyan-800";
+  if (t.includes("html"))       return "bg-orange-50 text-orange-700 border-orange-300 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800";
+  if (t.includes("css"))        return "bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800";
+  if (t.includes("node"))       return "bg-green-50 text-green-700 border-green-300 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800";
+  if (t.includes("postman"))    return "bg-orange-50 text-orange-700 border-orange-300 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800";
+  if (t.includes("android"))    return "bg-green-50 text-green-800 border-green-300 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800";
   if (t.includes("ios") || t.includes("xcode"))
                                  return "bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-800/50 dark:text-gray-300 dark:border-gray-600";
+
+  // ── Predefined Roles & Skills ─────────────────────────────────────────────
+  if (t === "frontend developer" || t.includes("frontend"))
+                                 return "bg-cyan-100 text-cyan-800 border-cyan-300 dark:bg-cyan-950/50 dark:text-cyan-300 dark:border-cyan-700";
+  if (t === "backend developer" || t.includes("backend"))
+                                 return "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-700";
+  if (t === "fullstack developer" || t.includes("fullstack"))
+                                 return "bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-700";
+  if (t === "mobile developer" || t.includes("mobile"))
+                                 return "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-700";
+  if (t.includes("ui/ux") || t.includes("ux designer"))
+                                 return "bg-pink-100 text-pink-800 border-pink-300 dark:bg-pink-950/50 dark:text-pink-300 dark:border-pink-700";
+  if (t === "data analyst")
+                                 return "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-700";
+  if (t === "data scientist")
+                                 return "bg-indigo-100 text-indigo-800 border-indigo-300 dark:bg-indigo-950/50 dark:text-indigo-300 dark:border-indigo-700";
+  if (t.includes("cyber security") || t.includes("security"))
+                                 return "bg-red-100 text-red-800 border-red-300 dark:bg-red-950/50 dark:text-red-300 dark:border-red-700";
+  if (t.includes("devops"))
+                                 return "bg-sky-100 text-sky-800 border-sky-300 dark:bg-sky-950/50 dark:text-sky-300 dark:border-sky-700";
+  if (t.includes("system administrator") || t.includes("sysadmin"))
+                                 return "bg-slate-100 text-slate-800 border-slate-300 dark:bg-slate-800/60 dark:text-slate-300 dark:border-slate-700";
+  if (t.includes("cloud engineer") || t === "cloud")
+                                 return "bg-teal-100 text-teal-800 border-teal-300 dark:bg-teal-950/50 dark:text-teal-300 dark:border-teal-700";
+  if (t.includes("machine learning") || t.includes("ml engineer"))
+                                 return "bg-violet-100 text-violet-800 border-violet-300 dark:bg-violet-950/50 dark:text-violet-300 dark:border-violet-700";
+  if (t.includes("game developer") || t.includes("game dev"))
+                                 return "bg-lime-100 text-lime-800 border-lime-300 dark:bg-lime-950/50 dark:text-lime-300 dark:border-lime-700";
+  if (t.includes("product manager"))
+                                 return "bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-950/50 dark:text-yellow-300 dark:border-yellow-700";
+  if (t.includes("quality assurance") || t.includes("qa"))
+                                 return "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-700";
+  if (t.includes("network engineer") || t.includes("network"))
+                                 return "bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-700";
+  if (t.includes("it support"))
+                                 return "bg-zinc-100 text-zinc-800 border-zinc-300 dark:bg-zinc-800/60 dark:text-zinc-300 dark:border-zinc-700";
+  if (t.includes("graphic designer") || t.includes("graphic"))
+                                 return "bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-950/50 dark:text-rose-300 dark:border-rose-700";
+  if (t.includes("digital marketing") || t.includes("marketing"))
+                                 return "bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-950/50 dark:text-orange-300 dark:border-orange-700";
 
   // ── Fallback — hash sederhana dari nama untuk konsistensi warna ───────────
   const colors = [

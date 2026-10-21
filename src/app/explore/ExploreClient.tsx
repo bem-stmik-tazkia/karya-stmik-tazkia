@@ -15,20 +15,29 @@ import {
   X,
   Eye,
   Heart,
-  ExternalLink,
   ChevronLeft,
   ChevronRight,
   RotateCcw,
-  Loader2,
   UploadCloud,
+  ArrowUpDown,
 } from "lucide-react";
 
-import { StickerBadge } from "@/components/ui/StickerBadge";
 import { formatNumber } from "@/lib/data";
-import TechStackTags from "@/components/ui/TechStackTags";
-import { RankBadge } from "@/components/ui/RankBadge";
+import { CuratorMedalBadge } from "@/components/home/CuratorMedalBadge";
 import { SkeletonProjectCard } from "@/components/ui/Skeleton";
 import { ProjectCoverPlaceholder } from "@/components/ui/ProjectCoverPlaceholder";
+import TechStackTags from "@/components/ui/TechStackTags";
+
+const POPULAR_TAGS = [
+  "Next.js",
+  "Flutter",
+  "Python AI",
+  "IoT",
+  "Figma",
+  "Laravel",
+  "Riset",
+];
+
 function ExploreContent() {
   const { user } = useAuth();
   const router = useRouter();
@@ -41,6 +50,7 @@ function ExploreContent() {
   const qParam = searchParams.get("q") || "";
   const [searchQuery, setSearchQuery] = useState(qParam);
   const [activeCategory, setActiveCategory] = useState(categoryParam);
+  const [sortBy, setSortBy] = useState<"newest" | "likes" | "views" | "az">("newest");
   const [currentPage, setCurrentPage] = useState(1);
   const [likedKarya, setLikedKarya] = useState<Record<string, boolean>>({});
   const pathname = usePathname();
@@ -57,7 +67,7 @@ function ExploreContent() {
     const params = new URLSearchParams();
     if (query) params.set("q", query);
     if (category && category !== "All") params.set("category", category);
-    
+
     const newUrl = `${pathname}?${params.toString()}`;
     router.replace(newUrl, { scroll: false });
   };
@@ -69,7 +79,9 @@ function ExploreContent() {
       const data = await getKarya();
 
       // Cek session dulu untuk tahu identity
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       const userId = session?.user?.id || null;
       const deviceId = getDeviceId();
 
@@ -112,8 +124,6 @@ function ExploreContent() {
     return () => window.removeEventListener("focus", handleFocus);
   }, []);
 
-
-
   const [isLiking, setIsLiking] = useState<Record<string, boolean>>({});
 
   const toggleLike = async (e: React.MouseEvent, id: string) => {
@@ -122,34 +132,45 @@ function ExploreContent() {
 
     if (isLiking[id]) return;
 
-
     // Set isLiking SEBELUM optimistic update agar tidak bisa di-spam
-    setIsLiking(prev => ({ ...prev, [id]: true }));
+    setIsLiking((prev) => ({ ...prev, [id]: true }));
 
     const wasLiked = likedKarya[id];
     // Optimistic update
     setLikedKarya((prev) => ({ ...prev, [id]: !wasLiked }));
-    setKarya((prev) => prev.map(k => k.id === id ? { ...k, likes: Math.max(0, (k.likes ?? 0) + (wasLiked ? -1 : 1)) } : k));
+    setKarya((prev) =>
+      prev.map((k) =>
+        k.id === id
+          ? { ...k, likes: Math.max(0, (k.likes ?? 0) + (wasLiked ? -1 : 1)) }
+          : k
+      )
+    );
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       const userId = session?.user?.id || null;
       const deviceId = getDeviceId();
 
-      const actionToTake = wasLiked ? 'unlike' : 'like';
+      const actionToTake = wasLiked ? "unlike" : "like";
       const isNowLiked = await toggleKaryaLike(id, deviceId, userId, actionToTake);
 
       // Konfirmasi state dari server
       setLikedKarya((prev) => ({ ...prev, [id]: isNowLiked }));
 
-      // Jika server state berbeda dari optimistic (misal 409 sudah liked),
-      // revert count agar tidak meleset
       if (isNowLiked === wasLiked) {
-        setKarya((prev) => prev.map(k => k.id === id ? { ...k, likes: Math.max(0, (k.likes ?? 0) + (wasLiked ? 1 : -1)) } : k));
+        setKarya((prev) =>
+          prev.map((k) =>
+            k.id === id
+              ? { ...k, likes: Math.max(0, (k.likes ?? 0) + (wasLiked ? 1 : -1)) }
+              : k
+          )
+        );
       }
 
       if (isNowLiked) {
-        localStorage.setItem(`liked_${id}`, 'true');
+        localStorage.setItem(`liked_${id}`, "true");
       } else {
         localStorage.removeItem(`liked_${id}`);
       }
@@ -157,15 +178,35 @@ function ExploreContent() {
       console.error(err);
       // Revert jika error
       setLikedKarya((prev) => ({ ...prev, [id]: wasLiked }));
-      setKarya((prev) => prev.map(k => k.id === id ? { ...k, likes: Math.max(0, (k.likes ?? 0) + (wasLiked ? 1 : -1)) } : k));
+      setKarya((prev) =>
+        prev.map((k) =>
+          k.id === id
+            ? { ...k, likes: Math.max(0, (k.likes ?? 0) + (wasLiked ? 1 : -1)) }
+            : k
+        )
+      );
     } finally {
-      setIsLiking(prev => ({ ...prev, [id]: false }));
+      setIsLiking((prev) => ({ ...prev, [id]: false }));
     }
   };
 
+  // Hitung jumlah karya per kategori untuk badge count
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = { All: karya.length };
+    karya.forEach((k) => {
+      counts[k.category] = (counts[k.category] || 0) + 1;
+    });
+    return counts;
+  }, [karya]);
+
+  // Sorotan 3 Karya Terbaik (Curator Spotlight)
+  const spotlightKarya = useMemo(() => {
+    if (karya.length === 0) return [];
+    return karya.slice(0, 3);
+  }, [karya]);
 
   const filteredKarya = useMemo(() => {
-    return karya.filter((item) => {
+    let result = karya.filter((item) => {
       const matchesSearch =
         item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -179,9 +220,20 @@ function ExploreContent() {
 
       return matchesSearch && matchesCategory;
     });
-  }, [karya, searchQuery, activeCategory]);
 
-  // Pagination
+    // Urutkan karya
+    if (sortBy === "likes") {
+      result = [...result].sort((a, b) => (b.likes ?? 0) - (a.likes ?? 0));
+    } else if (sortBy === "views") {
+      result = [...result].sort((a, b) => (b.views ?? 0) - (a.views ?? 0));
+    } else if (sortBy === "az") {
+      result = [...result].sort((a, b) => a.title.localeCompare(b.title));
+    }
+
+    return result;
+  }, [karya, searchQuery, activeCategory, sortBy]);
+
+  // Pagination (6 items per page persis seperti mockup)
   const ITEMS_PER_PAGE = 6;
   const totalPages = Math.ceil(filteredKarya.length / ITEMS_PER_PAGE) || 1;
   const paginatedKarya = useMemo(() => {
@@ -192,68 +244,260 @@ function ExploreContent() {
   const handleResetFilters = () => {
     setSearchQuery("");
     setActiveCategory("All");
+    setSortBy("newest");
     setCurrentPage(1);
     updateURL("", "All");
   };
 
-  return (
-    <div className="container mx-auto px-4 md:px-6 py-12 max-w-7xl">
-      {/* Page Title Header */}
-      <div className="mb-12 text-center">
-        <motion.div
-           initial={{ scale: 0, y: 20 }}
-           animate={{ scale: 1, y: 0 }}
-           transition={{ type: "spring", bounce: 0.6 }}
-           className="w-32 h-32 sm:w-40 sm:h-40 mx-auto -mb-2 relative z-10 pointer-events-none"
-        >
-          
-        </motion.div>
-        <motion.h1
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: "spring", bounce: 0.5, delay: 0.1 }}
-          className="text-2xl sm:text-5xl md:text-6xl font-black tracking-tight mb-3 uppercase"
-          style={{ textShadow: "2px 2px 0px var(--color-border)" }}
-        >
-          Eksplorasi <span className="text-primary">Portofolio Karya</span>
-        </motion.h1>
-        <motion.p
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: "spring", bounce: 0.5, delay: 0.2 }}
-          className="text-base sm:text-xl font-bold text-muted-foreground max-w-2xl mx-auto"
-        >
-          Temukan berbagai hasil karya inovatif, riset, dan proyek teknologi
-          terbaik ciptaan mahasiswa STMIK Tazkia.
-        </motion.p>
-        <motion.div
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: "spring", bounce: 0.5, delay: 0.3 }}
-          className="mt-8 flex justify-center"
-        >
-          <button
-            onClick={() => {
-              if (!user) {
-                router.push("/login");
-              } else {
-                router.push("/submit");
-              }
-            }}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-secondary text-white border-4 border-border rounded-xl font-black shadow-[4px_4px_0px_var(--color-border)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_var(--color-border)] active:translate-y-1 active:shadow-none transition-all uppercase"
-          >
-            <UploadCloud className="w-5 h-5" />
-            Upload Karya Anda
-          </button>
-        </motion.div>
-      </div>
+  const handleSelectTag = (tag: string) => {
+    setSearchQuery(tag);
+    setCurrentPage(1);
+    updateURL(tag, activeCategory);
+  };
 
-      {/* Category Filter */}
-      <div className="mb-10 max-w-5xl mx-auto relative px-2">
-        <div className="absolute top-12 left-8 right-8 h-0 border-b-4 border-border/50 border-dashed hidden md:block" />
-        <div className="flex items-center gap-3 overflow-x-auto px-4 py-3 md:justify-between no-scrollbar scroll-smooth">
-          {KARYA_CATEGORIES.map((cat, index) => {
+  return (
+    <div className="w-full min-h-screen bg-background text-foreground transition-colors selection:bg-[#FF8A2B] selection:text-[#0B1F4A]">
+      {/* ── HERO SECTION (#atas) Sesuai Mockup Galeri.dc.html ── */}
+      <section
+        id="atas"
+        className="w-full border-b border-border bg-slate-50/70 dark:bg-[#0F192D]/70 transition-colors"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 sm:pt-18 pb-10 sm:pb-14 flex flex-col md:flex-row md:items-end justify-between gap-8 sm:gap-12">
+          <div className="max-w-2xl">
+            <h1 className="font-heading font-extrabold text-3xl sm:text-5xl lg:text-6xl tracking-tight leading-[1.05] text-foreground mb-4">
+              Eksplorasi karya{" "}
+              <span className="text-[#FF8A2B] dark:text-[#FF8A2B]">STMIK Tazkia</span>
+            </h1>
+            <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-xl">
+              Proyek sistem informasi, mobile apps, riset ilmiah, dan karya multimedia ciptaan mahasiswa STMIK Tazkia.
+            </p>
+          </div>
+
+          <Link
+            href={user ? "/submit" : "/login"}
+            className="inline-flex items-center gap-2.5 h-[52px] sm:h-[56px] px-7 sm:px-8 rounded-full bg-[#FF8A2B] text-[#1A0F05] font-bold text-sm sm:text-base shadow-[0_5px_0_#B35A12] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-[0_2px_0_#B35A12] transition-all shrink-0 self-start md:self-auto cursor-pointer"
+          >
+            <UploadCloud className="w-5 h-5 stroke-[2.2]" />
+            <span>Upload karya anda</span>
+          </Link>
+        </div>
+
+        {/* Search Input & Quick Filter Chips */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 sm:pb-12">
+          <div className="relative max-w-3xl">
+            <label htmlFor="cari" className="sr-only">
+              Cari karya
+            </label>
+            <Search className="w-5 h-5 text-muted-foreground absolute left-5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              id="cari"
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+                updateURL(e.target.value, activeCategory);
+              }}
+              placeholder="Cari judul, deskripsi, atau teknologi (React, Flutter, Python...)"
+              className="w-full h-[54px] sm:h-[58px] rounded-full border border-border bg-card pl-13 pr-12 text-sm sm:text-base text-foreground placeholder:text-muted-foreground/75 focus:outline-none focus:ring-2 focus:ring-[#FF8A2B]/40 focus:border-[#FF8A2B] shadow-xs transition-all"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setCurrentPage(1);
+                  updateURL("", activeCategory);
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                aria-label="Hapus pencarian"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Quick Filter Tag Chips */}
+          <div className="flex flex-wrap items-center gap-2 mt-4 max-w-3xl">
+            <span className="font-mono text-xs font-bold text-muted-foreground mr-1">
+              POPULER
+            </span>
+            {POPULAR_TAGS.map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => handleSelectTag(tag)}
+                className={`min-h-[34px] sm:min-h-[36px] px-3.5 sm:px-4 py-1 rounded-full text-xs sm:text-sm font-medium border transition-all cursor-pointer ${
+                  searchQuery.toLowerCase() === tag.toLowerCase()
+                    ? "bg-[#FF8A2B] text-[#1A0F05] border-[#FF8A2B] font-semibold shadow-xs"
+                    : "bg-card border-border text-foreground hover:border-[#FF8A2B]/60 hover:bg-muted/40"
+                }`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── KARYA TERBAIK / SOROTAN PILIHAN KURATOR (Sesuai Mockup Galeri.dc.html) ── */}
+      {!loading && !searchQuery && activeCategory === "All" && spotlightKarya.length >= 3 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 sm:pt-16 pb-2">
+          <div className="font-mono text-xs sm:text-sm font-bold text-[#FF8A2B] tracking-wider uppercase mb-1">
+            KARYA TERBAIK
+          </div>
+          <h2 className="font-heading font-extrabold text-2xl sm:text-3xl lg:text-4xl tracking-tight text-foreground mb-6 sm:mb-8">
+            Sorotan pilihan kurator
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
+            {spotlightKarya.map((item, idx) => {
+              const rank = (idx + 1) as 1 | 2 | 3;
+              const isLiked = likedKarya[item.id];
+              const likesCount = item.likes ?? 0;
+              const categoryLabel =
+                KARYA_CATEGORIES.find((c) => c.value === item.category)?.label ??
+                item.category;
+
+              const authorName = item.team?.[0]?.name || "Karya Tazkia";
+              const authorInitial = authorName.replace("[", "").charAt(0).toUpperCase();
+              const extraTeamCount = Math.max(0, (item.team?.length ?? 0) - 1);
+
+              return (
+                <article
+                  key={`spotlight-${item.id}`}
+                  className="kt-cardx relative rounded-[20px] border border-border bg-card overflow-hidden flex flex-col group h-full shadow-xs hover:border-[#FF8A2B]"
+                >
+                  {/* Cover Area with Hover Pill */}
+                  <div className="aspect-[16/10] w-full overflow-hidden relative bg-muted group/cover">
+                    <Link href={`/project/${item.id}`} className="block w-full h-full">
+                      {item.image_url ? (
+                        <img
+                          src={item.image_url}
+                          alt={item.title}
+                          className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500 ease-out"
+                        />
+                      ) : (
+                        <ProjectCoverPlaceholder
+                          id={item.id}
+                          title={item.title}
+                          category={item.category}
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-60 group-hover:opacity-30 transition-opacity" />
+                    </Link>
+
+                    {/* Rosette Medal Ribbon Badge Top-Left */}
+                    <div className="absolute top-3.5 left-3.5 z-20 pointer-events-none">
+                      <CuratorMedalBadge rank={rank} delayIndex={idx} size={18} />
+                    </div>
+
+                    {/* Category Badge Top-Right */}
+                    <span className="absolute top-3.5 right-3.5 z-10 px-3 py-1 rounded-full bg-card/90 backdrop-blur-md border border-border/70 text-foreground text-xs font-semibold shadow-xs">
+                      {categoryLabel}
+                    </span>
+
+                    {/* Hover Slide-up 'Lihat detail' pill button on bottom-right of cover */}
+                    <Link
+                      href={`/project/${item.id}`}
+                      className="kt-go hidden md:inline-flex absolute right-3.5 bottom-3.5 z-20 px-4 py-1.5 rounded-full bg-[#FF8A2B] text-[#1A0F05] text-xs sm:text-sm font-bold shadow-md hover:bg-[#ea580c] transition-colors"
+                    >
+                      Lihat detail
+                    </Link>
+                  </div>
+
+                  {/* Card Content - Identik dengan Card Bawah */}
+                  <div className="p-5 sm:p-6 flex flex-col flex-1 justify-between">
+                    <div>
+                      <Link
+                        href={`/project/${item.id}`}
+                        className="block group/title"
+                      >
+                        <h3 className="font-heading font-bold text-lg sm:text-xl text-foreground group-hover/title:text-[#FF8A2B] transition-colors line-clamp-1 mb-2">
+                          {item.title}
+                        </h3>
+                      </Link>
+                      <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 leading-relaxed mb-4 font-normal">
+                        {item.description}
+                      </p>
+
+                      {/* Colorful Tech Stack & Tool Chips */}
+                      <TechStackTags
+                        techs={item.tech_stack ?? []}
+                        maxVisible={3}
+                        className="mb-4"
+                      />
+                    </div>
+
+                    {/* Card Footer */}
+                    <div className="pt-3.5 border-t border-border flex items-center justify-between mt-auto">
+                      {/* Author with initial circle avatar */}
+                      <div className="flex items-center gap-2.5 min-w-0 max-w-[55%]">
+                        <div className="w-[30px] h-[30px] rounded-full bg-[#FF8A2B] text-[#1A0F05] flex items-center justify-center font-bold text-xs shrink-0 select-none shadow-xs">
+                          {authorInitial}
+                        </div>
+                        <span className="text-xs sm:text-sm font-medium text-foreground truncate">
+                          {authorName}
+                        </span>
+                        {extraTeamCount > 0 && (
+                          <span className="text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded-md font-semibold text-muted-foreground shrink-0">
+                            +{extraTeamCount}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Views & Like Button in Pill style */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
+                          <Eye className="w-3.5 h-3.5" />
+                          <span className="tabular-nums">
+                            {formatNumber(item.views ?? 0)}
+                          </span>
+                        </span>
+
+                        <button
+                          onClick={(e) => toggleLike(e, item.id)}
+                          aria-label="Sukai karya"
+                          className={`inline-flex items-center gap-1.5 min-h-[34px] px-3 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+                            isLiked
+                              ? "border-[#FF8A2B] bg-[#FF8A2B]/15 text-[#FF8A2B]"
+                              : "border-border bg-card text-muted-foreground hover:border-[#FF8A2B]/50 hover:text-foreground"
+                          }`}
+                        >
+                          <Heart
+                            className={`w-3.5 h-3.5 transition-transform active:scale-125 ${
+                              isLiked
+                                ? "fill-[#FF8A2B] text-[#FF8A2B]"
+                                : "text-muted-foreground"
+                            }`}
+                          />
+                          <span className="font-mono tabular-nums">
+                            {likesCount}
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* ── SEMUA KARYA SECTION (#galeri) Sesuai Mockup ── */}
+      <section
+        id="galeri"
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16"
+      >
+        <h2 className="font-heading font-extrabold text-2xl sm:text-3xl lg:text-4xl tracking-tight text-foreground mb-6">
+          Semua karya
+        </h2>
+
+        {/* Category Filter Pills with Live Item Counts */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 mb-8">
+          {KARYA_CATEGORIES.map((cat) => {
             const isActive = activeCategory === cat.value;
+            const count = categoryCounts[cat.value] ?? 0;
             return (
               <button
                 key={cat.value}
@@ -262,93 +506,97 @@ function ExploreContent() {
                   setCurrentPage(1);
                   updateURL(searchQuery, cat.value);
                 }}
-                className="relative group flex flex-col items-center gap-2 outline-none shrink-0 py-2 px-1"
+                className={`min-h-[44px] px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  isActive
+                    ? "bg-[#FF8A2B] text-[#1A0F05] border border-[#FF8A2B] font-bold shadow-xs"
+                    : "bg-card border border-border text-foreground hover:border-[#FF8A2B]/50 hover:bg-muted/40"
+                }`}
               >
-                <div
-                  className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl border-4 flex items-center justify-center font-black text-xs sm:text-sm transition-all duration-200 ${isActive
-                    ? "bg-primary border-border text-primary-foreground scale-105 shadow-[4px_4px_0px_var(--color-border)] -translate-y-1"
-                    : "bg-card border-border text-foreground shadow-[2px_2px_0px_var(--color-border)] hover:-translate-y-1 hover:shadow-[4px_4px_0px_var(--color-border)]"
-                    }`}
-                >
-                  {index + 1}
-                </div>
+                <span>{cat.label}</span>
                 <span
-                  className={`font-black uppercase text-[10px] sm:text-xs tracking-wide text-center leading-tight max-w-[70px] ${isActive
-                    ? "text-primary"
-                    : "text-muted-foreground group-hover:text-foreground"
-                    }`}
+                  className={`font-mono text-xs ml-0.5 px-1.5 py-0.5 rounded-full ${
+                    isActive
+                      ? "bg-black/15 text-[#1A0F05]"
+                      : "bg-muted text-muted-foreground"
+                  }`}
                 >
-                  {cat.label}
+                  {count}
                 </span>
               </button>
             );
           })}
         </div>
-      </div>
 
-      {/* Search Bar */}
-      <div className="flex justify-center mb-6">
-        <div className="relative w-full max-w-xl">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground font-black pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Cari berdasarkan judul, deskripsi, atau tech stack..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-              updateURL(e.target.value, activeCategory);
-            }}
-            className="h-14 w-full rounded-2xl border-4 border-border bg-card pl-12 pr-10 py-2 font-bold text-sm sm:text-base focus:outline-none focus:translate-x-[2px] focus:translate-y-[2px] shadow-[4px_4px_0px_var(--color-border)] transition-all"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => {
-                setSearchQuery("");
-                setCurrentPage(1);
-                updateURL("", activeCategory);
-              }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground bg-muted rounded-xl p-1 border-2 border-border"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-      </div>
+        {/* Results Info Bar & Sort Dropdown */}
+        {!loading && (
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 pb-4 border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="text-sm sm:text-base text-muted-foreground">
+                Menampilkan{" "}
+                <strong className="text-foreground font-bold">
+                  {filteredKarya.length}
+                </strong>{" "}
+                karya
+              </div>
 
-      {!loading && filteredKarya.length > 0 && (
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8 flex justify-center"
-        >
-          <div className="bg-secondary/10 text-secondary border-2 border-secondary/30 px-4 py-1.5 rounded-full font-black text-xs sm:text-sm uppercase tracking-wide">
-            Ditemukan {filteredKarya.length} Karya
+              {(searchQuery || activeCategory !== "All") && (
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="inline-flex items-center gap-1 text-xs sm:text-sm text-[#FF8A2B] hover:underline font-semibold cursor-pointer ml-2"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Reset Filter</span>
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 self-end sm:self-auto">
+              <label
+                htmlFor="urut"
+                className="text-xs sm:text-sm text-muted-foreground font-medium"
+              >
+                Urutkan
+              </label>
+              <select
+                id="urut"
+                value={sortBy}
+                onChange={(e) => {
+                  setSortBy(e.target.value as any);
+                  setCurrentPage(1);
+                }}
+                className="min-h-[40px] px-3.5 py-1.5 rounded-xl border border-border bg-card text-foreground text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#FF8A2B]/30 focus:border-[#FF8A2B] outline-none cursor-pointer transition-all shadow-2xs"
+              >
+                <option value="newest">Terbaru</option>
+                <option value="views">Terpopuler</option>
+                <option value="likes">Paling disukai</option>
+                <option value="az">Nama (A - Z)</option>
+              </select>
+            </div>
           </div>
-        </motion.div>
-      )}
+        )}
 
-      {/* Projects Grid */}
-      <AnimatePresence mode="wait">
-        {loading ? (
-          <motion.div 
-            key="skeleton"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            {[1, 2, 3, 4, 5, 6].map(i => (
-              <SkeletonProjectCard key={i} />
-            ))}
-          </motion.div>
-        ) : filteredKarya.length > 0 ? (
-          <>
+        {/* Projects Grid */}
+        <AnimatePresence mode="wait">
+          {loading ? (
             <motion.div
-              key="content"
-              layout
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              key="skeleton"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7"
             >
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <SkeletonProjectCard key={i} />
+              ))}
+            </motion.div>
+          ) : filteredKarya.length > 0 ? (
+            <>
+              <motion.div
+                key="content"
+                layout
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7"
+              >
                 {paginatedKarya.map((item) => {
                   const isLiked = likedKarya[item.id];
                   const likesCount = item.likes ?? 0;
@@ -356,181 +604,218 @@ function ExploreContent() {
                     KARYA_CATEGORIES.find((c) => c.value === item.category)?.label ??
                     item.category;
 
-                  const originalIndex = karya.findIndex(k => k.id === item.id);
-                  const rank = originalIndex !== -1 && originalIndex < 3 ? originalIndex + 1 : 0;
+                  const authorName = item.team?.[0]?.name || "Karya Tazkia";
+                  const authorInitial = authorName.replace("[", "").charAt(0).toUpperCase();
+                  const extraTeamCount = Math.max(0, (item.team?.length ?? 0) - 1);
 
                   return (
                     <motion.div
                       layout
-                      initial={{ opacity: 0, scale: 0.9 }}
+                      initial={{ opacity: 0, scale: 0.98 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ type: "spring", bounce: 0.4 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      transition={{ duration: 0.2 }}
                       key={item.id}
-                      className="h-full relative"
+                      className="h-full"
                     >
-                      <Link href={`/project/${item.id}`} className="block h-full relative">
-                        {rank > 0 && <RankBadge rank={rank} />}
-                        <div className="card-3d overflow-hidden flex flex-col h-full bg-card group">
-                          {/* Cover Image */}
-                          <div className="aspect-[16/10] w-full overflow-hidden relative border-b-4 border-border bg-muted">
+                      <article className="kt-cardx relative rounded-[20px] border border-border bg-card overflow-hidden flex flex-col h-full group shadow-xs hover:border-[#FF8A2B]">
+                        {/* Cover Area with Hover Pill */}
+                        <div className="aspect-[16/10] w-full overflow-hidden relative bg-muted group/cover">
+                          <Link
+                            href={`/project/${item.id}`}
+                            className="block w-full h-full"
+                          >
                             {item.image_url ? (
                               <img
                                 src={item.image_url}
                                 alt={item.title}
-                                className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                                className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500 ease-out"
                               />
                             ) : (
-                              <ProjectCoverPlaceholder id={item.id} title={item.title} />
+                              <ProjectCoverPlaceholder
+                                id={item.id}
+                                title={item.title}
+                                category={item.category}
+                              />
                             )}
-                            <div className="absolute top-3 left-3 flex flex-wrap items-start gap-2">
-                              <StickerBadge variant="default" className="text-xs">
-                                {categoryLabel}
-                              </StickerBadge>
-                            </div>
-                          </div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-60 group-hover:opacity-30 transition-opacity" />
+                          </Link>
 
-                          {/* Card Details */}
-                          <div className="p-6 flex flex-col flex-grow justify-between">
-                            <div>
-                              <h3 className="text-xl font-black text-foreground group-hover:text-primary transition-colors line-clamp-1 mb-2">
+                          {/* Category Badge on top-left of cover */}
+                          <span className="absolute top-3.5 left-3.5 z-10 px-3 py-1 rounded-full bg-card/90 backdrop-blur-md border border-border/70 text-foreground text-xs font-semibold shadow-xs">
+                            {categoryLabel}
+                          </span>
+
+                          {/* Hover Slide-up 'Lihat detail' pill badge on bottom-right of cover */}
+                          <Link
+                            href={`/project/${item.id}`}
+                            className="kt-go hidden md:inline-flex absolute right-3.5 bottom-3.5 z-20 px-4 py-1.5 rounded-full bg-[#FF8A2B] text-[#1A0F05] text-xs sm:text-sm font-bold shadow-md hover:bg-[#ea580c] transition-colors"
+                          >
+                            Lihat detail
+                          </Link>
+                        </div>
+
+                        {/* Card Content */}
+                        <div className="p-5 sm:p-6 flex flex-col flex-1 justify-between">
+                          <div>
+                            <Link
+                              href={`/project/${item.id}`}
+                              className="block group/title"
+                            >
+                              <h3 className="font-heading font-bold text-lg sm:text-xl text-foreground group-hover/title:text-[#FF8A2B] transition-colors line-clamp-1 mb-2">
                                 {item.title}
                               </h3>
-                              <p className="text-sm font-medium text-muted-foreground line-clamp-2 leading-relaxed mb-4">
-                                {item.description}
-                              </p>
+                            </Link>
+                            <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 leading-relaxed mb-4 font-normal">
+                              {item.description}
+                            </p>
 
-                              {/* Tech Stack Tags */}
-                              <TechStackTags techs={item.tech_stack ?? []} maxVisible={3} className="mb-4" />
+                            {/* Colorful Tech Stack & Tool Chips */}
+                            <TechStackTags
+                              techs={item.tech_stack ?? []}
+                              maxVisible={3}
+                              className="mb-4"
+                            />
+                          </div>
+
+                          {/* Card Footer */}
+                          <div className="pt-3.5 border-t border-border flex items-center justify-between mt-auto">
+                            {/* Author with initial circle avatar */}
+                            <div className="flex items-center gap-2.5 min-w-0 max-w-[55%]">
+                              <div className="w-[30px] h-[30px] rounded-full bg-[#FF8A2B] text-[#1A0F05] flex items-center justify-center font-bold text-xs shrink-0 select-none shadow-xs">
+                                {authorInitial}
+                              </div>
+                              <span className="text-xs sm:text-sm font-medium text-foreground truncate">
+                                {authorName}
+                              </span>
+                              {extraTeamCount > 0 && (
+                                <span className="text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded-md font-semibold text-muted-foreground shrink-0">
+                                  +{extraTeamCount}
+                                </span>
+                              )}
                             </div>
 
-                            {/* Footer Info: Links & Stats */}
-                            <div className="pt-4 border-t-2 border-border flex items-center justify-between mt-auto">
-                              <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground max-w-[60%]">
-                                {item.team && item.team.length > 0 ? (
-                                  <>
-                                    <div className="w-7 h-7 rounded-full overflow-hidden bg-muted border-2 border-border shrink-0 shadow-sm">
-                                      {item.team[0].avatar ? (
-                                        <img src={item.team[0].avatar} alt={item.team[0].name} className="w-full h-full object-cover" />
-                                      ) : (
-                                        <div className="w-full h-full bg-secondary text-white flex items-center justify-center text-[11px] font-black uppercase">
-                                          {item.team[0].name.charAt(0)}
-                                        </div>
-                                      )}
-                                    </div>
-                                    <span className="truncate">{item.team[0].name}</span>
-                                    {item.team.length > 1 && (
-                                      <span className="text-[10px] bg-muted-foreground/20 px-1.5 py-0.5 rounded-md">+{item.team.length - 1}</span>
-                                    )}
-                                  </>
-                                ) : (
-                                  <>
-                                    <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[11px] font-black shrink-0 shadow-sm">
-                                      K
-                                    </div>
-                                    <span className="truncate">Karya Tazkia</span>
-                                  </>
-                                )}
-                              </div>
-
-                              <div className="flex items-center gap-3 text-xs font-black text-muted-foreground">
-                                <span className="flex items-center gap-1">
-                                  <Eye className="w-4 h-4 text-primary" />
+                            {/* Views & Like Button in Pill style */}
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
+                                <Eye className="w-3.5 h-3.5" />
+                                <span className="tabular-nums">
                                   {formatNumber(item.views ?? 0)}
                                 </span>
-                                <button
-                                  type="button"
-                                  onClick={(e) => toggleLike(e, item.id)}
-                                  className={`flex items-center gap-1 transition-colors cursor-pointer ${
-                                    isLiked ? "text-red-500 font-black" : "text-muted-foreground hover:text-red-500"
+                              </span>
+
+                              <button
+                                onClick={(e) => toggleLike(e, item.id)}
+                                aria-label="Sukai karya"
+                                className={`inline-flex items-center gap-1.5 min-h-[34px] px-3 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+                                  isLiked
+                                    ? "border-[#FF8A2B] bg-[#FF8A2B]/15 text-[#FF8A2B]"
+                                    : "border-border bg-card text-muted-foreground hover:border-[#FF8A2B]/50 hover:text-foreground"
+                                }`}
+                              >
+                                <Heart
+                                  className={`w-3.5 h-3.5 transition-transform active:scale-125 ${
+                                    isLiked
+                                      ? "fill-[#FF8A2B] text-[#FF8A2B]"
+                                      : "text-muted-foreground"
                                   }`}
-                                  title={isLiked ? "Batal suka" : "Sukai"}
-                                >
-                                  <Heart
-                                    className={`w-4 h-4 transition-transform active:scale-125 ${
-                                      isLiked ? "fill-red-500 text-red-500" : ""
-                                    }`}
-                                  />
-                                  {formatNumber(likesCount)}
-                                </button>
-                              </div>
+                                />
+                                <span className="font-mono tabular-nums">
+                                  {likesCount}
+                                </span>
+                              </button>
                             </div>
                           </div>
                         </div>
-                      </Link>
+                      </article>
                     </motion.div>
                   );
                 })}
               </motion.div>
 
-              {/* Pagination */}
+              {/* ── Pagination in Pill Button Shape ── */}
               {totalPages > 1 && (
-                <div className="mt-12 flex justify-center items-center gap-2">
+                <div
+                  className="mt-12 flex justify-center items-center gap-2"
+                  role="navigation"
+                  aria-label="Halaman"
+                >
                   <button
                     onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                     disabled={currentPage === 1}
-                    className="flex items-center gap-1 px-4 py-2 rounded-xl bg-card border-2 border-border text-xs font-black uppercase disabled:opacity-40 hover:bg-muted transition-all"
+                    className="flex items-center gap-1 min-h-[44px] px-4 rounded-full bg-card border border-border text-xs sm:text-sm font-semibold text-foreground disabled:opacity-40 hover:bg-muted transition-all cursor-pointer shadow-xs"
                   >
-                    <ChevronLeft className="w-4 h-4" /> Sebelumnya
+                    <ChevronLeft className="w-4 h-4" />
+                    <span>Sebelumnya</span>
                   </button>
+
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`w-10 h-10 rounded-xl border-2 border-border text-xs font-black transition-all ${currentPage === page
-                        ? "bg-primary text-primary-foreground shadow-[2px_2px_0px_var(--color-border)]"
-                        : "bg-card text-foreground hover:bg-muted"
-                        }`}
+                      className={`min-w-[44px] min-h-[44px] rounded-full border text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center justify-center ${
+                        currentPage === page
+                          ? "bg-[#FF8A2B] text-[#1A0F05] border-[#FF8A2B] font-bold shadow-xs"
+                          : "bg-card border-border text-foreground hover:bg-muted"
+                      }`}
                     >
                       {page}
                     </button>
                   ))}
+
                   <button
                     onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className="flex items-center gap-1 px-4 py-2 rounded-xl bg-card border-2 border-border text-xs font-black uppercase disabled:opacity-40 hover:bg-muted transition-all"
+                    className="flex items-center gap-1 min-h-[44px] px-4 rounded-full bg-card border border-border text-xs sm:text-sm font-semibold text-foreground disabled:opacity-40 hover:bg-muted transition-all cursor-pointer shadow-xs"
                   >
-                    Berikutnya <ChevronRight className="w-4 h-4" />
+                    <span>Berikutnya</span>
+                    <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
               )}
             </>
           ) : (
+            /* ── Empty State Sesuai Mockup ── */
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              className="card-3d bg-card border-4 border-border rounded-3xl p-10 text-center max-w-lg mx-auto my-12"
+              className="border border-dashed border-border rounded-[20px] p-10 sm:p-14 text-center max-w-lg mx-auto my-12 bg-card/40"
             >
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4 border-2 border-border">
-                <Search className="w-8 h-8" />
+              <div className="w-12 h-12 rounded-full bg-[#FF8A2B]/10 text-[#FF8A2B] flex items-center justify-center mx-auto mb-4">
+                <Search className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-black uppercase text-foreground mb-2">
-                Karya Tidak Ditemukan
+              <h3 className="text-base sm:text-lg font-bold text-foreground mb-2 font-heading">
+                Belum ada karya yang cocok
               </h3>
-              <p className="text-muted-foreground font-medium text-sm mb-6">
-                Tidak ada karya yang sesuai dengan pencarian atau kategori yang
-                dipilih.
+              <p className="text-muted-foreground text-xs sm:text-sm mb-6 leading-relaxed">
+                Coba pilih kategori lain atau gunakan kata kunci pencarian yang berbeda.
               </p>
               <button
                 onClick={handleResetFilters}
-                className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-black uppercase border-2 border-border shadow-[2px_2px_0px_var(--color-border)] hover:bg-secondary/90 transition-all"
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#FF8A2B] text-[#1A0F05] text-xs sm:text-sm font-bold shadow-xs hover:bg-[#ea580c] transition-all cursor-pointer"
               >
-                <RotateCcw className="w-4 h-4" /> RESET FILTER
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Reset Pencarian</span>
               </button>
             </motion.div>
           )}
         </AnimatePresence>
+      </section>
     </div>
   );
 }
 
 export default function ExploreClient() {
   return (
-    <Suspense fallback={
-      <div className="container max-w-6xl mx-auto px-4 sm:px-6 mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[1, 2, 3, 4, 5, 6].map(i => <SkeletonProjectCard key={i} />)}
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <SkeletonProjectCard key={i} />
+          ))}
+        </div>
+      }
+    >
       <ExploreContent />
     </Suspense>
   );

@@ -27,18 +27,19 @@ export default function CompleteProfileModal({ userId, onClose, onSuccess }: Com
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isInitialMount = useRef(true);
 
-  // Load from localStorage on mount
+  // Load from sessionStorage on mount (survives refresh)
   useEffect(() => {
-    const saved = localStorage.getItem(`profile_draft_${userId}`);
-    if (saved) {
-      try {
+    try {
+      const saved = sessionStorage.getItem(`profile_draft_${userId}`) || localStorage.getItem(`profile_draft_${userId}`);
+      if (saved) {
         const parsed = JSON.parse(saved);
         setFormData(parsed);
-      } catch (e) {}
-    }
+      }
+      localStorage.removeItem(`profile_draft_${userId}`);
+    } catch (e) {}
   }, [userId]);
 
-  // Auto-save to localStorage with debounce
+  // Auto-save to sessionStorage with debounce
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
@@ -47,7 +48,9 @@ export default function CompleteProfileModal({ userId, onClose, onSuccess }: Com
     
     setIsSaving(true);
     const handler = setTimeout(() => {
-      localStorage.setItem(`profile_draft_${userId}`, JSON.stringify(formData));
+      try {
+        sessionStorage.setItem(`profile_draft_${userId}`, JSON.stringify(formData));
+      } catch (e) {}
       setIsSaving(false);
       setShowDraftBadge(true);
       setTimeout(() => setShowDraftBadge(false), 2000);
@@ -88,7 +91,10 @@ export default function CompleteProfileModal({ userId, onClose, onSuccess }: Com
       if (error) throw error;
       
       // Hapus draft setelah berhasil
-      localStorage.removeItem(`profile_draft_${userId}`);
+      try {
+        sessionStorage.removeItem(`profile_draft_${userId}`);
+        localStorage.removeItem(`profile_draft_${userId}`);
+      } catch (e) {}
       toast.success("Profil berhasil dilengkapi!");
       onSuccess();
     } catch (err: any) {
@@ -110,43 +116,43 @@ export default function CompleteProfileModal({ userId, onClose, onSuccess }: Com
         />
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          initial={{ opacity: 0, scale: 0.95, y: 16 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          transition={{ type: "spring", bounce: 0.4 }}
-          className="relative w-full max-w-md bg-card border-4 border-border rounded-3xl shadow-[8px_8px_0px_var(--color-border)] p-6 md:p-8 z-10 overflow-hidden"
+          exit={{ opacity: 0, scale: 0.95, y: 16 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+          className="relative w-full max-w-md bg-card border border-border rounded-2xl shadow-xl p-6 sm:p-7 z-10 overflow-hidden"
         >
           {/* Header */}
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-2xl bg-secondary/10 border-2 border-secondary/30 flex items-center justify-center text-secondary">
-              <UserPlus className="w-6 h-6" />
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+              <UserPlus className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-black uppercase text-foreground">
+              <h2 className="text-lg font-bold text-foreground tracking-tight">
                 Lengkapi Profil
               </h2>
-              <p className="text-xs font-bold text-muted-foreground">
-                Mari buat profilmu lebih profesional!
+              <p className="text-xs text-muted-foreground font-normal">
+                Mari buat profilmu lebih lengkap dan profesional
               </p>
             </div>
           </div>
           
-          <div className="mt-4 mb-6 p-3 bg-primary/10 border-2 border-primary/20 rounded-xl flex items-start gap-2">
+          <div className="mt-4 mb-5 p-3.5 bg-primary/5 border border-primary/20 rounded-xl flex items-start gap-2.5">
             <AlertCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-            <p className="text-xs font-bold text-primary-shadow">
-              Program Studi dan Angkatan perlu diisi agar portofoliomu dapat ditemukan dengan mudah oleh mahasiswa lain.
+            <p className="text-xs font-normal text-muted-foreground leading-relaxed">
+              Program Studi dan Angkatan perlu diisi agar portofoliomu dapat ditemukan dengan mudah oleh mahasiswa dan mitra industri.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 relative">
             <div>
-              <label className="block text-xs font-black text-foreground uppercase mb-1.5">
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
                 Program Studi <span className="text-primary">*</span>
               </label>
               <select
                 value={formData.prodi}
                 onChange={(e) => setFormData(prev => ({ ...prev, prodi: e.target.value }))}
-                className="w-full h-12 px-4 rounded-xl border-2 border-border bg-muted/50 text-sm font-bold text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
+                className="w-full h-11 px-3.5 rounded-xl border border-border bg-background text-sm font-medium text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
               >
                 <option value="" disabled>Pilih Program Studi...</option>
                 {PRODI_OPTIONS.map(opt => (
@@ -156,7 +162,7 @@ export default function CompleteProfileModal({ userId, onClose, onSuccess }: Com
             </div>
 
             <div>
-              <label className="block text-xs font-black text-foreground uppercase mb-1.5">
+              <label className="block text-xs font-semibold text-foreground mb-1.5">
                 Tahun Angkatan <span className="text-primary">*</span>
               </label>
               <input
@@ -166,28 +172,28 @@ export default function CompleteProfileModal({ userId, onClose, onSuccess }: Com
                 value={formData.angkatan}
                 onChange={(e) => setFormData(prev => ({ ...prev, angkatan: e.target.value }))}
                 placeholder="Contoh: 2023"
-                className="w-full h-12 px-4 rounded-xl border-2 border-border bg-muted/50 text-sm font-bold text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                className="w-full h-11 px-3.5 rounded-xl border border-border bg-background text-sm font-medium text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
               />
             </div>
 
-            {/* Sticker Badge Indicator */}
-            <div className="h-6 flex items-center justify-end">
+            {/* Indicator */}
+            <div className="h-5 flex items-center justify-end">
               <AnimatePresence>
                 {isSaving ? (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="flex items-center gap-1.5 text-[10px] font-black text-muted-foreground uppercase"
+                    className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground"
                   >
                     <Loader2 className="w-3 h-3 animate-spin" /> Menyimpan draf...
                   </motion.div>
                 ) : showDraftBadge ? (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.8, y: 5 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.8, y: -5 }}
-                    className="flex items-center gap-1 px-2 py-1 rounded-md bg-secondary text-white border-2 border-secondary-shadow shadow-[2px_2px_0px_var(--color-secondary-shadow)] text-[10px] font-black uppercase rotate-2 origin-bottom-right"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[11px] font-medium"
                   >
                     <Check className="w-3 h-3" /> Draft tersimpan
                   </motion.div>
@@ -195,18 +201,24 @@ export default function CompleteProfileModal({ userId, onClose, onSuccess }: Com
               </AnimatePresence>
             </div>
 
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-2.5 pt-2">
               <button
                 type="button"
-                onClick={onClose}
-                className="flex-1 py-3.5 rounded-xl border-2 border-border bg-card text-foreground font-black text-xs uppercase hover:bg-muted transition-all active:translate-y-1"
+                onClick={() => {
+                  try {
+                    sessionStorage.removeItem(`profile_draft_${userId}`);
+                    localStorage.removeItem(`profile_draft_${userId}`);
+                  } catch (e) {}
+                  onClose();
+                }}
+                className="flex-1 py-2.5 rounded-xl border border-border bg-card text-foreground font-semibold text-xs hover:bg-muted transition-all"
               >
                 Isi Nanti
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting || !formData.prodi || !formData.angkatan}
-                className="flex-[2] py-3.5 rounded-xl border-2 border-primary-shadow bg-primary text-primary-foreground font-black text-xs uppercase shadow-[4px_4px_0px_var(--color-primary-shadow)] hover:shadow-[2px_2px_0px_var(--color-primary-shadow)] hover:translate-y-0.5 active:translate-y-1 active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-[2] py-2.5 rounded-xl bg-primary text-white font-semibold text-xs hover:bg-[#ea580c] shadow-xs hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <><Loader2 className="w-4 h-4 animate-spin" /> Menyimpan...</>

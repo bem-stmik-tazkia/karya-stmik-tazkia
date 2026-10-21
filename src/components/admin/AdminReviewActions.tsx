@@ -211,9 +211,9 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
           <button
             onClick={() => setShowDetailModal(true)}
             title="Lihat Detail Penuh"
-            className="p-2 rounded-lg bg-purple-100 border-2 border-purple-600 text-purple-700 hover:-translate-y-0.5 active:translate-y-0 transition-all shadow-[2px_2px_0px_#7e22ce]"
+            className="w-8 h-8 rounded-xl bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted hover:border-border/80 flex items-center justify-center transition-all shadow-xs cursor-pointer"
           >
-            <FiEye size={16} />
+            <FiEye className="w-3.5 h-3.5" />
           </button>
         )}
 
@@ -222,9 +222,9 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
           onClick={() => toggleConfirm("approve")}
           disabled={isPending || currentStatus === "approved"}
           title="Setujui Manual"
-          className="p-2 rounded-lg bg-green-100 border-2 border-green-600 text-green-700 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-[2px_2px_0px_#15803d]"
+          className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white flex items-center justify-center transition-all disabled:opacity-30 disabled:pointer-events-none shadow-xs cursor-pointer"
         >
-          <FiCheck size={16} />
+          <FiCheck className="w-3.5 h-3.5" />
         </button>
 
         {/* Tombol Tolak Manual */}
@@ -232,20 +232,19 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
           onClick={() => toggleConfirm("reject")}
           disabled={isPending || currentStatus === "rejected"}
           title="Tolak Manual"
-          className="p-2 rounded-lg bg-orange-100 border-2 border-orange-600 text-orange-700 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-[2px_2px_0px_#c2410c]"
+          className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 hover:bg-amber-600 hover:text-white flex items-center justify-center transition-all disabled:opacity-30 disabled:pointer-events-none shadow-xs cursor-pointer"
         >
-          <FiX size={16} />
+          <FiX className="w-3.5 h-3.5" />
         </button>
-
 
         {/* Tombol Hapus Permanen */}
         <button
           onClick={() => toggleConfirm("delete")}
           disabled={isPending}
           title="Hapus Karya"
-          className="p-2 rounded-lg bg-red-100 border-2 border-red-600 text-red-700 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-[2px_2px_0px_#b91c1c]"
+          className="w-8 h-8 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 hover:bg-rose-600 hover:text-white flex items-center justify-center transition-all disabled:opacity-30 disabled:pointer-events-none shadow-xs cursor-pointer"
         >
-          <FiTrash2 size={16} />
+          <FiTrash2 className="w-3.5 h-3.5" />
         </button>
       </div>
 
@@ -254,13 +253,13 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
       {/* 1. Konfirmasi Setujui */}
       {activeConfirm === "approve" && (
         <div className="flex flex-col gap-1.5 mt-1">
-          <p className="text-[10px] font-bold text-green-700 leading-tight text-center">
+          <p className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 leading-tight text-center">
             Setujui dan publikasikan karya ini?
           </p>
           <button
             onClick={handleApprove}
             disabled={isPending}
-            className="text-xs font-black text-white bg-green-600 border-2 border-green-800 rounded-lg py-1.5 hover:bg-green-700 transition-colors disabled:opacity-50"
+            className="text-xs font-semibold text-white bg-emerald-600 rounded-lg py-1.5 hover:bg-emerald-700 transition-colors disabled:opacity-50 shadow-xs"
           >
             {isPending ? "Menyimpan..." : "Ya, Setujui"}
           </button>
@@ -275,13 +274,13 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
             placeholder="Alasan penolakan..."
-            className="text-xs border-2 border-orange-300 rounded-lg px-2 py-1.5 bg-background text-foreground font-bold focus:outline-none focus:border-orange-500"
+            className="text-xs border border-border rounded-lg px-2.5 py-1.5 bg-background text-foreground font-medium focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
             onKeyDown={(e) => e.key === "Enter" && handleReject()}
           />
           <button
             onClick={handleReject}
             disabled={isPending}
-            className="text-xs font-black text-white bg-orange-600 border-2 border-orange-800 rounded-lg py-1.5 hover:bg-orange-700 transition-colors disabled:opacity-50"
+            className="text-xs font-semibold text-white bg-orange-600 rounded-lg py-1.5 hover:bg-orange-700 transition-colors disabled:opacity-50 shadow-xs"
           >
             {isPending ? "Menyimpan..." : "Konfirmasi Tolak"}
           </button>
@@ -291,13 +290,13 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
       {/* 4. Konfirmasi Hapus */}
       {activeConfirm === "delete" && (
         <div className="flex flex-col gap-1.5 mt-1">
-          <p className="text-[10px] font-bold text-red-600 leading-tight text-center">
-            Yakin ingin menghapus permanen? Data tidak bisa dikembalikan.
+          <p className="text-[11px] font-medium text-rose-600 dark:text-rose-400 leading-tight text-center">
+            Hapus permanen karya ini?
           </p>
           <button
             onClick={handleDelete}
             disabled={isPending}
-            className="text-xs font-black text-white bg-red-600 border-2 border-red-800 rounded-lg py-1.5 hover:bg-red-700 transition-colors disabled:opacity-50"
+            className="text-xs font-semibold text-white bg-rose-600 rounded-lg py-1.5 hover:bg-rose-700 transition-colors disabled:opacity-50 shadow-xs"
           >
             {isPending ? "Menghapus..." : "Ya, Hapus Permanen"}
           </button>
@@ -306,35 +305,35 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
 
       {/* --- MODAL DETAIL KARYA --- */}
       {showDetailModal && karyaObj && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-card w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl border-4 border-border shadow-[8px_8px_0px_var(--color-border)] p-6 relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-card w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl border border-border shadow-2xl p-6 relative">
             <button
               onClick={() => setShowDetailModal(false)}
-              className="absolute top-4 right-4 p-2 bg-muted hover:bg-red-100 hover:text-red-600 rounded-full transition-colors"
+              className="absolute top-4 right-4 p-2 bg-muted hover:bg-rose-500/10 hover:text-rose-500 rounded-full transition-colors"
             >
-              <FiXCircle size={24} />
+              <FiXCircle size={20} />
             </button>
             
-            <h2 className="text-2xl font-black uppercase pr-10 mb-2">{karyaObj.title}</h2>
+            <h2 className="text-xl sm:text-2xl font-bold pr-10 mb-2">{karyaObj.title}</h2>
             <div className="flex gap-2 mb-6">
-              <span className="bg-secondary/10 text-secondary border-2 border-secondary/30 px-3 py-1 rounded-xl text-xs font-black uppercase">
+              <span className="bg-secondary/10 text-secondary border border-secondary/20 px-3 py-1 rounded-full text-xs font-semibold">
                 {karyaObj.category}
               </span>
-              <span className={`px-3 py-1 rounded-xl text-xs font-black uppercase border-2 ${
-                karyaObj.status === 'approved' ? 'bg-green-100 text-green-700 border-green-700' :
-                karyaObj.status === 'rejected' ? 'bg-red-100 text-red-700 border-red-700' :
-                'bg-yellow-100 text-yellow-800 border-yellow-700'
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${
+                karyaObj.status === 'approved' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' :
+                karyaObj.status === 'rejected' ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20' :
+                'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
               }`}>
                 {karyaObj.status === 'approved' ? 'Publik' : karyaObj.status === 'rejected' ? 'Ditolak' : 'Menunggu'}
               </span>
             </div>
             
             {karyaObj.pending_edits && (
-              <div className={`mb-6 p-4 rounded-r-xl border-l-4 ${karyaObj.pending_edits.type === "delete" ? "bg-red-50 border-red-500" : "bg-yellow-50 border-yellow-500"}`}>
-                <h3 className={`text-sm font-black uppercase flex items-center gap-2 mb-1 ${karyaObj.pending_edits.type === "delete" ? "text-red-800" : "text-yellow-800"}`}>
+              <div className={`mb-6 p-4 rounded-xl border-l-4 ${karyaObj.pending_edits.type === "delete" ? "bg-rose-500/10 border-rose-500" : "bg-amber-500/10 border-amber-500"}`}>
+                <h3 className={`text-sm font-semibold flex items-center gap-2 mb-1 ${karyaObj.pending_edits.type === "delete" ? "text-rose-600" : "text-amber-600"}`}>
                   ⚠️ {karyaObj.pending_edits.type === "delete" ? "Terdapat Pengajuan Penghapusan Karya" : "Terdapat Pengajuan Perubahan (Edit)"}
                 </h3>
-                <p className={`text-xs font-bold ${karyaObj.pending_edits.type === "delete" ? "text-red-700" : "text-yellow-700"}`}>
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   {karyaObj.pending_edits.type === "delete"
                     ? "Mahasiswa mengajukan penghapusan untuk karya ini. Klik setujui untuk menghapus permanen, atau tolak untuk membatalkan pengajuan hapus."
                     : "Mahasiswa mengubah detail karya ini. Klik setujui untuk memperbarui ke versi edit (otomatis mengganti data utama), atau tolak untuk membuang perubahan ini dan tetap menampilkan versi lama. Data di bawah ini adalah data asli."}
@@ -343,7 +342,7 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
             )}
 
             {karyaObj.image_url && (
-              <div className="w-full h-48 md:h-64 mb-6 rounded-2xl overflow-hidden border-4 border-border bg-muted">
+              <div className="w-full h-48 md:h-64 mb-6 rounded-xl overflow-hidden border border-border bg-muted">
                 <img src={karyaObj.image_url} alt="Cover" className="w-full h-full object-cover" />
               </div>
             )}
@@ -434,48 +433,48 @@ export function AdminReviewActions({ karyaId, currentStatus, aiStatus, karyaObj 
               </div>
 
               <div className="space-y-4">
-                <div className="bg-blue-50 border-2 border-blue-200 p-4 rounded-2xl">
-                  <h3 className="text-sm font-black text-blue-800 uppercase mb-2 flex items-center gap-2">
-                    <FiCpu /> Hasil Review AI
+                <div className="bg-muted/40 border border-border p-4 rounded-2xl">
+                  <h3 className="text-sm font-heading font-extrabold text-foreground uppercase mb-2 flex items-center gap-2">
+                    <FiCpu className="text-primary" /> Hasil Review AI
                   </h3>
                   
                   <div className="mb-3">
-                    <span className="text-xs font-black text-muted-foreground uppercase">Skor AI: </span>
+                    <span className="text-xs font-bold text-muted-foreground uppercase">Skor AI: </span>
                     {karyaObj.ai_review_score != null ? (
-                      <span className={`text-lg font-black ${
-                        karyaObj.ai_review_score >= 70 ? "text-green-600" :
-                        karyaObj.ai_review_score >= 40 ? "text-yellow-600" : "text-red-600"
+                      <span className={`text-lg font-heading font-extrabold ${
+                        karyaObj.ai_review_score >= 70 ? "text-emerald-600 dark:text-emerald-400" :
+                        karyaObj.ai_review_score >= 40 ? "text-amber-600 dark:text-amber-400" : "text-rose-600 dark:text-rose-400"
                       }`}>
                         {karyaObj.ai_review_score}/100
                       </span>
                     ) : (
-                      <span className="text-sm font-bold text-gray-500">Belum Dinilai</span>
+                      <span className="text-sm font-semibold text-muted-foreground">Belum Dinilai</span>
                     )}
                   </div>
                   
                   <div>
-                    <span className="text-xs font-black text-muted-foreground uppercase block mb-1">Alasan / Feedback AI:</span>
-                    <p className="text-sm font-bold text-gray-700 whitespace-pre-line bg-white/50 p-3 rounded-xl border border-blue-100">
+                    <span className="text-xs font-bold text-muted-foreground uppercase block mb-1">Catatan / Feedback AI:</span>
+                    <p className="text-sm text-foreground whitespace-pre-line bg-card p-3 rounded-xl border border-border/80">
                       {karyaObj.ai_review_reason || "Tidak ada feedback."}
                     </p>
                   </div>
                 </div>
                 
                 {karyaObj.reject_reason && (
-                  <div className="bg-red-50 border-2 border-red-200 p-3 rounded-xl">
-                    <span className="text-xs font-black text-red-800 uppercase block mb-1">Alasan Penolakan Admin:</span>
-                    <p className="text-sm font-bold text-red-600">{karyaObj.reject_reason}</p>
+                  <div className="bg-rose-500/10 border border-rose-500/20 p-3.5 rounded-xl">
+                    <span className="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase block mb-1">Alasan Penolakan Admin:</span>
+                    <p className="text-sm font-medium text-rose-700 dark:text-rose-300">{karyaObj.reject_reason}</p>
                   </div>
                 )}
               </div>
             </div>
             
             {/* Action Buttons inside Modal */}
-            <div className="mt-8 pt-4 border-t-2 border-border/50 flex gap-3 justify-end">
-              <button onClick={() => { setShowDetailModal(false); toggleConfirm("approve"); }} className="px-4 py-2 bg-green-100 text-green-700 font-black text-sm rounded-xl hover:bg-green-200 transition-colors">
+            <div className="mt-8 pt-4 border-t border-border flex gap-3 justify-end">
+              <button onClick={() => { setShowDetailModal(false); toggleConfirm("approve"); }} className="px-4 py-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-xs sm:text-sm rounded-xl hover:bg-emerald-500 hover:text-white transition-all shadow-xs">
                 Setujui
               </button>
-              <button onClick={() => { setShowDetailModal(false); toggleConfirm("reject"); }} className="px-4 py-2 bg-orange-100 text-orange-700 font-black text-sm rounded-xl hover:bg-orange-200 transition-colors">
+              <button onClick={() => { setShowDetailModal(false); toggleConfirm("reject"); }} className="px-4 py-2 bg-orange-500/10 text-orange-600 dark:text-orange-400 font-semibold text-xs sm:text-sm rounded-xl hover:bg-orange-500 hover:text-white transition-all shadow-xs">
                 Tolak
               </button>
             </div>

@@ -1,35 +1,42 @@
 -- ============================================================
--- Migration: Fix Like Spam — Gunakan karya_likes_log (sudah ada)
+-- Migration: Fix Like Spam & Atomic Views — Menggunakan karya_likes_log
 -- Deskripsi:
---   1. Hapus tabel karya_likes yang baru dibuat (duplikat)
---   2. Tambah unique constraint di karya_likes_log untuk mencegah spam
---   3. Buat RPC increment_likes untuk atomic update likes
+--   1. Bersihkan duplikat likes lama jika ada
+--   2. Pasang UNIQUE constraint di karya_likes_log (mencegah spam like)
+--   3. Buat RPC increment_likes & increment_karya_view (atomic & fast)
 -- Jalankan di Supabase SQL Editor
 -- ============================================================
 
--- ─── 1. Hapus tabel karya_likes yang baru (duplikat) ─────────────────────────
-DROP TABLE IF EXISTS public.karya_likes;
+-- ─── 1. Bersihkan duplikat log lama jika ada (agar UNIQUE tidak error) ───────
+DELETE FROM public.karya_likes_log a
+USING public.karya_likes_log b
+WHERE a.id < b.id 
+  AND a.karya_id = b.karya_id 
+  AND (
+    (a.user_id IS NOT NULL AND a.user_id = b.user_id)
+    OR (a.device_id IS NOT NULL AND a.device_id = b.device_id)
+  );
 
--- ─── 2. Tambah unique constraint di karya_likes_log ──────────────────────────
--- Cegah satu user_id like karya yang sama dua kali
+-- ─── 2. Tambah UNIQUE constraint di karya_likes_log ──────────────────────────
+-- Cegah satu user_id menyukai karya yang sama lebih dari 1 kali
 ALTER TABLE public.karya_likes_log
   DROP CONSTRAINT IF EXISTS karya_likes_log_karya_user_unique;
 ALTER TABLE public.karya_likes_log
   ADD CONSTRAINT karya_likes_log_karya_user_unique
   UNIQUE (karya_id, user_id);
 
--- Cegah satu device_id like karya yang sama dua kali (untuk anonymous)
+-- Cegah satu device_id menyukai karya yang sama lebih dari 1 kali (tamu/anonymous)
 ALTER TABLE public.karya_likes_log
   DROP CONSTRAINT IF EXISTS karya_likes_log_karya_device_unique;
 ALTER TABLE public.karya_likes_log
   ADD CONSTRAINT karya_likes_log_karya_device_unique
   UNIQUE (karya_id, device_id);
 
--- Index untuk performa query cek like status
+-- Index untuk mempercepat query cek like
 CREATE INDEX IF NOT EXISTS idx_karya_likes_log_karya_id ON public.karya_likes_log(karya_id);
 CREATE INDEX IF NOT EXISTS idx_karya_likes_log_device_id ON public.karya_likes_log(device_id);
 
--- RLS policies untuk karya_likes_log agar select/insert/delete diizinkan
+-- ─── 3. RLS policies untuk karya_likes_log ────────────────────────────────────
 ALTER TABLE public.karya_likes_log ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "karya_likes_log_select_all" ON public.karya_likes_log;
@@ -47,8 +54,7 @@ CREATE POLICY "karya_likes_log_delete_all"
   ON public.karya_likes_log FOR DELETE
   USING (true);
 
--- ─── 3. RPC increment_likes (atomic, mencegah race condition) ────────────────
-
+-- ─── 4. RPC increment_likes (atomic, anti race condition) ─────────────────────
 CREATE OR REPLACE FUNCTION public.increment_likes(karya_id uuid, delta integer)
 RETURNS void
 LANGUAGE plpgsql
@@ -61,11 +67,10 @@ BEGIN
 END;
 $$;
 
--- Berikan akses RPC ke authenticated user dan anon
 GRANT EXECUTE ON FUNCTION public.increment_likes(uuid, integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.increment_likes(uuid, integer) TO anon;
 
--- ─── 4. RPC increment_karya_view (atomic update views, aman untuk anon/HP) ──
+-- ─── 5. RPC increment_karya_view (atomic views counter) ──────────────────────
 CREATE OR REPLACE FUNCTION public.increment_karya_view(karya_id uuid)
 RETURNS void
 LANGUAGE plpgsql
@@ -78,7 +83,6 @@ BEGIN
 END;
 $$;
 
--- Handle juga signature alternatif p_karya_id
 CREATE OR REPLACE FUNCTION public.increment_karya_view(
   p_karya_id uuid,
   p_device_id text DEFAULT NULL,
@@ -99,4 +103,3 @@ GRANT EXECUTE ON FUNCTION public.increment_karya_view(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.increment_karya_view(uuid) TO anon;
 GRANT EXECUTE ON FUNCTION public.increment_karya_view(uuid, text, uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.increment_karya_view(uuid, text, uuid) TO anon;
-

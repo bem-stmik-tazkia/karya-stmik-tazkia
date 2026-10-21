@@ -172,9 +172,9 @@ export default function AdminMaintenancePage() {
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="card-3d bg-card border-4 border-border rounded-3xl p-16 text-center">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="font-bold text-muted-foreground text-sm">Memuat pengaturan...</p>
+        <div className="bg-card border border-border rounded-2xl p-16 text-center shadow-xs">
+          <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="font-medium text-muted-foreground text-sm">Memuat pengaturan...</p>
         </div>
       </div>
     );
@@ -185,14 +185,14 @@ export default function AdminMaintenancePage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-4 mb-8 flex-wrap">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-primary text-primary-foreground border-4 border-border shadow-[4px_4px_0px_0px_var(--color-border)] flex items-center justify-center">
-            <Wrench className="w-6 h-6" />
+          <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shadow-xs">
+            <Wrench className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-foreground uppercase tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
               Maintenance Mode
             </h1>
-            <p className="text-xs sm:text-sm font-bold text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground font-normal">
               Kelola mode pemeliharaan sistem Karya Tazkia.
             </p>
           </div>
@@ -200,10 +200,10 @@ export default function AdminMaintenancePage() {
 
         <button
           onClick={fetchSettings}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-muted text-muted-foreground font-black text-xs uppercase border-2 border-border hover:bg-muted/80 transition-all"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-card text-muted-foreground font-semibold text-xs border border-border hover:bg-muted hover:text-foreground transition-all shadow-xs"
         >
           <RefreshCw className="w-3.5 h-3.5" />
-          Refresh
+          <span>Refresh</span>
         </button>
       </div>
 
@@ -214,46 +214,46 @@ export default function AdminMaintenancePage() {
           initial={{ opacity: 0, y: -10, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 10, scale: 0.98 }}
-          className={`mb-6 p-5 rounded-3xl border-4 flex items-center gap-4 ${
+          className={`mb-6 p-4 rounded-xl border flex items-center gap-3.5 ${
             state.active
-              ? "bg-red-50 dark:bg-red-950/30 border-red-400 dark:border-red-600"
-              : "bg-green-50 dark:bg-green-950/30 border-green-400 dark:border-green-600"
+              ? "bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400"
+              : "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
           }`}
         >
           {state.active ? (
             <>
-              <div className="w-10 h-10 rounded-2xl bg-red-500 text-white border-2 border-red-700 flex items-center justify-center shrink-0">
-                <AlertTriangle className="w-5 h-5" />
+              <div className="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-4 h-4" />
               </div>
               <div className="flex-1">
-                <p className="font-black text-red-700 dark:text-red-400 text-sm uppercase">
+                <p className="font-bold text-sm">
                   🔒 Maintenance Mode Sedang AKTIF
                 </p>
-                <p className="text-xs font-bold text-red-600/70 dark:text-red-400/60 mt-0.5">
-                  Semua pengunjung akan diredirect ke halaman maintenance.
+                <p className="text-xs text-rose-600/80 dark:text-rose-400/80 mt-0.5 font-normal">
+                  Semua pengunjung akan dialihkan ke halaman pemeliharaan.
                 </p>
               </div>
               <motion.div
-                className="w-3 h-3 rounded-full bg-red-500"
+                className="w-2.5 h-2.5 rounded-full bg-rose-500"
                 animate={{ scale: [1, 1.3, 1], opacity: [1, 0.5, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               />
             </>
           ) : (
             <>
-              <div className="w-10 h-10 rounded-2xl bg-green-500 text-white border-2 border-green-700 flex items-center justify-center shrink-0">
-                <CheckCircle2 className="w-5 h-5" />
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-4 h-4" />
               </div>
               <div className="flex-1">
-                <p className="font-black text-green-700 dark:text-green-400 text-sm uppercase">
+                <p className="font-bold text-sm">
                   🟢 Situs Berjalan Normal
                 </p>
-                <p className="text-xs font-bold text-green-600/70 dark:text-green-400/60 mt-0.5">
-                  Pengunjung dapat mengakses semua halaman.
+                <p className="text-xs text-emerald-600/80 dark:text-emerald-400/80 mt-0.5 font-normal">
+                  Pengunjung dapat mengakses semua fitur dan halaman website.
                 </p>
               </div>
               <motion.div
-                className="w-3 h-3 rounded-full bg-green-500"
+                className="w-2.5 h-2.5 rounded-full bg-emerald-500"
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
               />
@@ -263,27 +263,27 @@ export default function AdminMaintenancePage() {
       </AnimatePresence>
 
       {/* Main Toggle Card */}
-      <div className="card-3d bg-card border-4 border-border rounded-3xl p-6 sm:p-8 mb-6">
+      <div className="bg-card border border-border rounded-2xl p-6 sm:p-7 mb-6 shadow-xs">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div
-              className={`w-14 h-14 rounded-2xl border-4 border-border shadow-[4px_4px_0px_0px_var(--color-border)] flex items-center justify-center transition-all ${
+              className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
                 state.active
-                  ? "bg-red-500 text-white"
-                  : "bg-green-500 text-white"
+                  ? "bg-rose-500/10 text-rose-500 border border-rose-500/20"
+                  : "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
               }`}
             >
-              {state.active ? <PowerOff className="w-7 h-7" /> : <Power className="w-7 h-7" />}
+              {state.active ? <PowerOff className="w-6 h-6" /> : <Power className="w-6 h-6" />}
             </div>
             <div>
-              <h2 className="text-lg font-black text-foreground uppercase">
-                Toggle Maintenance
+              <h2 className="text-base font-bold text-foreground">
+                Sakelar Maintenance
               </h2>
-              <p className="text-xs font-bold text-muted-foreground">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Status saat ini:{" "}
                 <span
-                  className={`font-black uppercase ${
-                    state.active ? "text-red-500" : "text-green-500"
+                  className={`font-semibold ${
+                    state.active ? "text-rose-500" : "text-emerald-500"
                   }`}
                 >
                   {state.active ? "AKTIF" : "NONAKTIF"}
@@ -292,48 +292,48 @@ export default function AdminMaintenancePage() {
             </div>
           </div>
 
-          <motion.button
+          <button
             onClick={toggleMaintenance}
             disabled={isToggling}
-            className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-black uppercase text-sm border-4 border-border shadow-[4px_4px_0px_0px_var(--color-border)] hover:shadow-[2px_2px_0px_0px_var(--color-border)] hover:translate-y-0.5 transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
+            className={`inline-flex items-center gap-2.5 px-6 py-3 rounded-xl font-semibold text-xs sm:text-sm shadow-xs hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed ${
               state.active
-                ? "bg-green-500 text-white"
-                : "bg-red-500 text-white"
+                ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-500/20"
+                : "bg-rose-600 text-white hover:bg-rose-700 shadow-rose-500/20"
             }`}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
           >
             {isToggling ? (
-              <RefreshCw className="w-5 h-5 animate-spin" />
+              <RefreshCw className="w-4 h-4 animate-spin" />
             ) : state.active ? (
-              <Power className="w-5 h-5" />
+              <Power className="w-4 h-4" />
             ) : (
-              <PowerOff className="w-5 h-5" />
+              <PowerOff className="w-4 h-4" />
             )}
-            {isToggling
-              ? "Memproses..."
-              : state.active
-              ? "Nonaktifkan Maintenance"
-              : "Aktifkan Maintenance"}
-          </motion.button>
+            <span>
+              {isToggling
+                ? "Memproses..."
+                : state.active
+                ? "Nonaktifkan Maintenance"
+                : "Aktifkan Maintenance"}
+            </span>
+          </button>
         </div>
       </div>
 
       {/* Settings Form */}
-      <div className="card-3d bg-card border-4 border-border rounded-3xl p-6 sm:p-8 mb-6">
-        <div className="flex items-center gap-3 mb-6 pb-5 border-b-2 border-border">
-          <div className="w-9 h-9 rounded-xl bg-secondary text-secondary-foreground border-2 border-border flex items-center justify-center">
+      <div className="bg-card border border-border rounded-2xl p-6 sm:p-7 mb-6 shadow-xs">
+        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border">
+          <div className="w-8 h-8 rounded-xl bg-secondary/10 text-secondary border border-secondary/20 flex items-center justify-center">
             <MessageSquare className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-base font-black text-foreground uppercase">Pengaturan Pesan</h2>
-            <p className="text-xs font-bold text-muted-foreground">Pesan yang ditampilkan ke pengunjung.</p>
+            <h2 className="text-base font-bold text-foreground">Pengaturan Pesan</h2>
+            <p className="text-xs text-muted-foreground">Pesan yang ditampilkan ke pengunjung.</p>
           </div>
         </div>
 
         {/* Message */}
         <div className="mb-6">
-          <label className="block text-xs font-black text-muted-foreground uppercase tracking-widest mb-2">
+          <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             Pesan Maintenance *
           </label>
           <textarea
@@ -341,16 +341,16 @@ export default function AdminMaintenancePage() {
             onChange={(e) => updateField("message", e.target.value)}
             rows={3}
             placeholder="Tulis pesan untuk pengunjung..."
-            className="w-full px-4 py-3 rounded-2xl border-3 border-border bg-background font-bold text-sm outline-none focus:border-primary transition-all resize-none"
+            className="w-full px-4 py-3 rounded-xl border border-border bg-background font-medium text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none shadow-2xs"
           />
           {/* Quick templates */}
           <div className="flex flex-wrap gap-2 mt-2">
-            <span className="text-[10px] font-black text-muted-foreground uppercase">Template:</span>
+            <span className="text-[11px] font-medium text-muted-foreground">Template:</span>
             {DEFAULT_MESSAGES.map((msg, i) => (
               <button
                 key={i}
                 onClick={() => updateField("message", msg)}
-                className="text-[10px] font-black text-primary hover:underline underline-offset-2 decoration-primary/40"
+                className="text-[11px] font-semibold text-primary hover:underline underline-offset-2"
               >
                 Template {i + 1}
               </button>
@@ -360,8 +360,8 @@ export default function AdminMaintenancePage() {
 
         {/* End Time */}
         <div className="mb-6">
-          <label className="block text-xs font-black text-muted-foreground uppercase tracking-widest mb-2 flex items-center gap-1.5">
-            <Clock className="w-3 h-3" />
+          <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5" />
             Estimasi Durasi (Opsional)
           </label>
           
@@ -373,10 +373,10 @@ export default function AdminMaintenancePage() {
                   const label = hours < 24 ? `${hours} Jam` : `${hours / 24} Hari`;
                   updateField("endTime", label);
                 }}
-                className={`px-4 py-2 rounded-xl border-3 border-border font-bold text-sm transition-all shadow-[2px_2px_0px_0px_var(--color-border)] active:translate-y-0 active:shadow-none ${
+                className={`px-3.5 py-1.5 rounded-xl border text-xs font-medium transition-all shadow-2xs ${
                   state.endTime === (hours < 24 ? `${hours} Jam` : `${hours / 24} Hari`)
-                    ? "bg-primary text-primary-foreground translate-y-0 shadow-none"
-                    : "bg-card hover:bg-muted hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_var(--color-border)]"
+                    ? "bg-primary text-white border-primary"
+                    : "bg-card border-border text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
               >
                 {hours < 24 ? `${hours} Jam` : `${hours / 24} Hari`}
@@ -385,14 +385,14 @@ export default function AdminMaintenancePage() {
           </div>
 
           {state.endTime && (
-            <div className="flex items-center justify-between p-4 rounded-2xl border-3 border-secondary/30 bg-secondary/10">
-              <p className="text-sm font-bold text-secondary-foreground flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Estimasi Waktu: <span className="font-black">{state.endTime}</span>
+            <div className="flex items-center justify-between p-3.5 rounded-xl border border-secondary/20 bg-secondary/5">
+              <p className="text-xs sm:text-sm font-medium text-foreground flex items-center gap-2">
+                <Clock className="w-4 h-4 text-primary" />
+                Estimasi Waktu: <span className="font-bold">{state.endTime}</span>
               </p>
               <button
                 onClick={() => updateField("endTime", "")}
-                className="px-3 py-1.5 rounded-lg bg-destructive text-destructive-foreground font-black text-[10px] uppercase hover:bg-destructive/90 shadow-[2px_2px_0px_var(--color-border)] active:translate-y-0.5 active:shadow-none transition-all"
+                className="px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 font-semibold text-[11px] hover:bg-rose-500 hover:text-white transition-all"
               >
                 Hapus
               </button>
@@ -400,72 +400,66 @@ export default function AdminMaintenancePage() {
           )}
           <div className="flex items-center gap-1.5 mt-2 text-muted-foreground">
             <Info className="w-3 h-3" />
-            <p className="text-[10px] font-bold">
-              Klik tombol di atas untuk mengatur durasi. Ini hanya akan menampilkan teks estimasi (misal: "Sekitar 2 Jam") agar tim tidak terbebani timer hitung mundur.
+            <p className="text-[11px] font-normal">
+              Klik tombol di atas untuk mengatur durasi estimasi (misal: "Sekitar 2 Jam") agar pengunjung tahu perkiraan selesai.
             </p>
           </div>
         </div>
 
         {/* Save button */}
         <div className="flex items-center gap-3 flex-wrap">
-          <motion.button
+          <button
             onClick={saveSettings}
             disabled={isSaving || !isDirty}
-            className="flex items-center gap-2.5 px-6 py-3 rounded-2xl bg-secondary text-secondary-foreground font-black uppercase text-sm border-4 border-border shadow-[4px_4px_0px_0px_var(--color-border)] hover:shadow-[2px_2px_0px_0px_var(--color-border)] hover:translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-semibold text-xs sm:text-sm shadow-xs hover:bg-[#ea580c] hover:shadow-md hover:shadow-orange-500/20 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSaving ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
             ) : (
               <Save className="w-4 h-4" />
             )}
-            {isSaving ? "Menyimpan..." : "Simpan Pengaturan"}
-          </motion.button>
+            <span>{isSaving ? "Menyimpan..." : "Simpan Pengaturan"}</span>
+          </button>
 
           {isDirty && (
-            <motion.span
-              initial={{ opacity: 0, x: -5 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="text-xs font-bold text-accent flex items-center gap-1"
-            >
-              <AlertTriangle className="w-3 h-3" />
+            <span className="text-xs font-medium text-amber-500 flex items-center gap-1">
+              <AlertTriangle className="w-3.5 h-3.5" />
               Ada perubahan yang belum disimpan
-            </motion.span>
+            </span>
           )}
         </div>
       </div>
 
       {/* Announcement Settings Form */}
-      <div className="card-3d bg-card border-4 border-border rounded-3xl p-6 sm:p-8 mb-6">
-        <div className="flex items-center gap-3 mb-6 pb-5 border-b-2 border-border">
-          <div className="w-9 h-9 rounded-xl bg-accent text-accent-foreground border-2 border-border flex items-center justify-center">
+      <div className="bg-card border border-border rounded-2xl p-6 sm:p-7 mb-6 shadow-xs">
+        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border">
+          <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center">
             <MessageSquare className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-base font-black text-foreground uppercase">Pengumuman Setelah Maintenance</h2>
-            <p className="text-xs font-bold text-muted-foreground">Banner pemberitahuan yang muncul di semua halaman.</p>
+            <h2 className="text-base font-bold text-foreground">Pengumuman Setelah Maintenance</h2>
+            <p className="text-xs text-muted-foreground">Banner pemberitahuan yang muncul di semua halaman.</p>
           </div>
         </div>
 
         {/* Toggle Announcement */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 p-4 rounded-2xl border-3 border-border bg-muted/30">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 p-4 rounded-xl border border-border bg-muted/20">
           <div>
-            <h3 className="font-black text-sm uppercase">Status Banner</h3>
-            <p className="text-xs font-bold text-muted-foreground">Aktifkan untuk menampilkan banner pengumuman.</p>
+            <h3 className="font-semibold text-sm">Status Banner</h3>
+            <p className="text-xs text-muted-foreground">Aktifkan untuk menampilkan banner pengumuman.</p>
           </div>
           <button
             onClick={() => updateField("announcementActive", !state.announcementActive)}
-            className={`relative inline-flex h-8 w-14 shrink-0 cursor-pointer items-center justify-center rounded-full border-4 border-border transition-colors duration-200 ease-in-out ${
-              state.announcementActive ? 'bg-green-500' : 'bg-muted'
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border border-border transition-colors duration-200 ease-in-out ${
+              state.announcementActive ? 'bg-primary' : 'bg-muted'
             }`}
             role="switch"
             aria-checked={state.announcementActive}
           >
             <span className="sr-only">Toggle banner pengumuman</span>
             <span
-              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white border-2 border-border shadow-sm ring-0 transition duration-200 ease-in-out ${
-                state.announcementActive ? 'translate-x-3' : '-translate-x-3'
+              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                state.announcementActive ? 'translate-x-6' : 'translate-x-1'
               }`}
             />
           </button>
@@ -474,7 +468,7 @@ export default function AdminMaintenancePage() {
         {/* Announcement Message & Version */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="md:col-span-3">
-            <label className="block text-xs font-black text-muted-foreground uppercase tracking-widest mb-2">
+            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
               Isi Pengumuman *
             </label>
             <textarea
@@ -482,11 +476,11 @@ export default function AdminMaintenancePage() {
               onChange={(e) => updateField("announcementMessage", e.target.value)}
               rows={2}
               placeholder="Tulis pengumuman baru..."
-              className="w-full px-4 py-3 rounded-2xl border-3 border-border bg-background font-bold text-sm outline-none focus:border-accent transition-all resize-none"
+              className="w-full px-4 py-2.5 rounded-xl border border-border bg-background font-medium text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none shadow-2xs"
             />
           </div>
           <div>
-            <label className="block text-xs font-black text-muted-foreground uppercase tracking-widest mb-2">
+            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
               Versi *
             </label>
             <input
@@ -494,15 +488,15 @@ export default function AdminMaintenancePage() {
               value={state.appVersion}
               onChange={(e) => updateField("appVersion", e.target.value)}
               placeholder="v1.2.0"
-              className="w-full px-4 py-3 rounded-2xl border-3 border-border bg-background font-bold text-sm outline-none focus:border-secondary transition-all"
+              className="w-full px-4 py-2.5 rounded-xl border border-border bg-background font-medium text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-2xs"
             />
           </div>
         </div>
 
         <div className="flex items-center gap-1.5 text-muted-foreground">
           <Info className="w-3 h-3" />
-          <p className="text-[10px] font-bold">
-            Gunakan tombol "Simpan Pengaturan" di atas untuk menyimpan perubahan pengumuman.
+          <p className="text-[11px] font-normal">
+            Gunakan tombol "Simpan Pengaturan" di atas untuk menyimpan perubahan banner pengumuman.
           </p>
         </div>
       </div>
@@ -510,43 +504,43 @@ export default function AdminMaintenancePage() {
       {/* Preview & Info Section */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Preview button */}
-        <div className="card-3d bg-card border-4 border-border rounded-3xl p-5">
+        <div className="bg-card border border-border rounded-2xl p-5 shadow-xs">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-xl bg-accent text-accent-foreground border-2 border-border flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center">
               <Eye className="w-4 h-4" />
             </div>
-            <h3 className="text-sm font-black text-foreground uppercase">Preview Halaman</h3>
+            <h3 className="text-sm font-bold text-foreground">Pratinjau Halaman</h3>
           </div>
-          <p className="text-xs font-bold text-muted-foreground mb-4">
+          <p className="text-xs text-muted-foreground mb-4">
             Lihat tampilan halaman maintenance yang akan dilihat pengunjung.
           </p>
           <a
             href="/maintenance"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-muted text-foreground font-black text-xs uppercase border-2 border-border hover:bg-muted/80 transition-all"
+            className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-card border border-border text-foreground font-semibold text-xs hover:bg-muted/70 hover:border-primary/40 transition-all shadow-2xs"
           >
-            <Globe className="w-3.5 h-3.5" />
-            Buka Halaman Maintenance
+            <Globe className="w-3.5 h-3.5 text-primary" />
+            <span>Buka Halaman Maintenance</span>
           </a>
         </div>
 
         {/* Info card */}
-        <div className="card-3d bg-card border-4 border-border rounded-3xl p-5">
+        <div className="bg-card border border-border rounded-2xl p-5 shadow-xs">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-xl bg-primary text-primary-foreground border-2 border-border flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-secondary/10 text-secondary border border-secondary/20 flex items-center justify-center">
               <Info className="w-4 h-4" />
             </div>
-            <h3 className="text-sm font-black text-foreground uppercase">Cara Kerja</h3>
+            <h3 className="text-sm font-bold text-foreground">Informasi Sistem</h3>
           </div>
           <ul className="space-y-2">
             {[
-              { icon: "🔒", text: "Aktifkan untuk redirect semua pengunjung ke halaman maintenance" },
-              { icon: "🛡️", text: "Admin dan halaman /admin tetap dapat diakses" },
-              { icon: "⏱️", text: "Set estimasi waktu untuk tampilkan countdown timer" },
-              { icon: "💾", text: "Simpan pengaturan sebelum mengaktifkan untuk memperbarui pesan" },
+              { icon: "🔒", text: "Aktifkan sakelar untuk redirect semua pengunjung ke halaman maintenance" },
+              { icon: "🛡️", text: "Admin dan rute /admin tetap dapat diakses tanpa hambatan" },
+              { icon: "⏱️", text: "Tentukan estimasi waktu agar pengunjung mendapat kejelasan durasi" },
+              { icon: "💾", text: "Simpan pengaturan sebelum mengaktifkan untuk memperbarui data" },
             ].map((item, i) => (
-              <li key={i} className="flex items-start gap-2 text-xs font-bold text-muted-foreground">
+              <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
                 <span>{item.icon}</span>
                 <span>{item.text}</span>
               </li>

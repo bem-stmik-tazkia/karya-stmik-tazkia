@@ -48,32 +48,37 @@ export function AnnouncementBanner() {
           initial={{ height: 0, opacity: 0 }}
           animate={{ height: "auto", opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
-          className="bg-primary text-primary-foreground border-b-4 border-primary-shadow relative overflow-hidden z-50"
+          className="bg-gradient-to-r from-[#091530] via-[#0F2559] to-[#091530] text-white relative overflow-hidden z-50 shadow-[0_2px_16px_rgba(255,138,43,0.18)]"
         >
-          <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <motion.div
-                animate={{ rotate: [0, -15, 15, -15, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3 }}
-                className="bg-primary-foreground/20 p-2 rounded-xl border-2 border-primary-foreground/30 hidden sm:block"
-              >
-                <BellRing className="w-4 h-4 text-primary-foreground" />
-              </motion.div>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
-                <span className="inline-flex px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground font-black text-[10px] uppercase tracking-wider self-start sm:self-auto shadow-sm">
-                  {version}
+          {/* Subtle Orange Laser Accent Line at the bottom */}
+          <div className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#FF8A2B] to-transparent opacity-90" />
+
+          {/* Centered Content Container */}
+          <div className="max-w-[1200px] mx-auto px-8 sm:px-12 py-2 relative flex items-center justify-center">
+            {/* Center Content: Pill + Message */}
+            <div className="flex items-center justify-center gap-2 sm:gap-2.5 min-w-0 max-w-full text-center">
+              {/* Vibrant Glowing Beacon Pill */}
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#FF8A2B] to-[#EA580C] text-white font-mono text-[10px] font-black tracking-wide shrink-0 shadow-sm shadow-orange-500/40 ring-1 ring-white/20">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-85" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" />
                 </span>
-                <p className="font-bold text-xs sm:text-sm leading-tight text-primary-foreground/90">
-                  {message}
-                </p>
-              </div>
+                {version}
+              </span>
+
+              {/* Message */}
+              <p className="font-semibold text-[11px] sm:text-xs text-white/95 dark:text-[#F2F5FA] truncate leading-tight tracking-tight drop-shadow-xs">
+                {message}
+              </p>
             </div>
+
+            {/* Dismiss Button pinned to the right edge */}
             <button
               onClick={handleDismiss}
-              className="p-1.5 hover:bg-primary-foreground/20 rounded-lg transition-colors border-2 border-transparent hover:border-primary-foreground/30"
+              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition-colors shrink-0 cursor-pointer"
               aria-label="Tutup pemberitahuan"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         </motion.div>
@@ -81,3 +86,4 @@ export function AnnouncementBanner() {
     </AnimatePresence>
   );
 }
+

@@ -35,10 +35,10 @@ export function AdminNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition-all border-2 ${
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all border ${
               isActive
-                ? "bg-primary text-primary-foreground border-border shadow-[2px_2px_0px_0px_var(--color-border)]"
-                : "bg-muted/50 text-muted-foreground border-transparent hover:border-border hover:bg-muted hover:text-foreground"
+                ? "bg-primary text-white border-primary shadow-xs"
+                : "bg-card text-muted-foreground border-border hover:border-primary/30 hover:bg-muted/70 hover:text-foreground"
             }`}
           >
             <Icon className="w-4 h-4" />

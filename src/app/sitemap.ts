@@ -4,11 +4,10 @@ import { getKarya, getMahasiswaProfiles } from '@/lib/data';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://karya.stmik.tazkia.ac.id';
 
-  // Rute statis yang ingin diindeks (exclude admin, inbox, auth, submit)
+  // Rute statis yang ingin diindeks (exclude admin, auth, submit)
   const staticPaths = [
     '',
     '/explore',
-    '/feed',
     '/karya',
     '/mahasiswa',
     '/project',

@@ -7,35 +7,38 @@ interface ProjectCoverPlaceholderProps {
 }
 
 // Peta kategori → warna + ikon yang khas
-const CATEGORY_CONFIG: Record<string, { gradient: string; iconBg: string; label: string; icons: any[] }> = {
+const CATEGORY_CONFIG: Record<
+  string,
+  { gradient: string; iconBg: string; label: string; icons: any[] }
+> = {
   Technology: {
-    gradient: "from-blue-600 via-blue-500 to-indigo-600",
-    iconBg: "bg-blue-400/30",
-    label: "Web",
+    gradient: "from-[#0B1A38] via-[#122A5E] to-[#081226]",
+    iconBg: "bg-blue-500/20 text-[#60A5FA] border-blue-400/40",
+    label: "Website",
     icons: [Monitor, Globe, Code2],
   },
   Programming: {
-    gradient: "from-emerald-500 via-green-500 to-teal-600",
-    iconBg: "bg-emerald-400/30",
-    label: "Mobile",
+    gradient: "from-[#071F24] via-[#0E3A42] to-[#051518]",
+    iconBg: "bg-emerald-500/20 text-[#34D399] border-emerald-400/40",
+    label: "Mobile Apps",
     icons: [Smartphone, Layers, Code2],
   },
   Research: {
-    gradient: "from-amber-500 via-orange-500 to-orange-600",
-    iconBg: "bg-amber-400/30",
-    label: "Riset",
+    gradient: "from-[#19102E] via-[#2A1B4D] to-[#0E091C]",
+    iconBg: "bg-violet-500/20 text-[#A78BFA] border-violet-400/40",
+    label: "Riset / Jurnal",
     icons: [BookOpen, Fingerprint, Layers],
   },
   IoT: {
-    gradient: "from-purple-600 via-violet-500 to-purple-600",
-    iconBg: "bg-purple-400/30",
-    label: "IoT",
+    gradient: "from-[#081C33] via-[#0F325C] to-[#051221]",
+    iconBg: "bg-cyan-500/20 text-[#38BDF8] border-cyan-400/40",
+    label: "IoT & Robotika",
     icons: [Cpu, Rocket, Layers],
   },
   Multimedia: {
-    gradient: "from-pink-500 via-rose-500 to-pink-600",
-    iconBg: "bg-pink-400/30",
-    label: "Kreatif",
+    gradient: "from-[#291424] via-[#421F3A] to-[#170A14]",
+    iconBg: "bg-orange-500/20 text-[#FB923C] border-orange-400/40",
+    label: "Desain & Lainnya",
     icons: [Palette, Layers, Rocket],
   },
 };

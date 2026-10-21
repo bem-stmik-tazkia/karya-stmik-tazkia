@@ -256,49 +256,49 @@ export default function AdminMasterPage() {
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
-        <div className="w-12 h-12 rounded-2xl bg-secondary text-secondary-foreground border-4 border-border shadow-[4px_4px_0px_0px_var(--color-border)] flex items-center justify-center">
-          <Building2 className="w-6 h-6" />
+        <div className="w-11 h-11 rounded-xl bg-secondary/10 text-secondary border border-secondary/20 flex items-center justify-center shadow-xs">
+          <Building2 className="w-5 h-5" />
         </div>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-foreground uppercase tracking-tight">Kelola Data Master</h1>
-          <p className="text-xs sm:text-sm font-bold text-muted-foreground">Pengaturan Jurusan/Prodi dan Angkatan Mahasiswa STMIK Tazkia.</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">Kelola Data Master</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground font-normal">Pengaturan Jurusan/Prodi dan Angkatan Mahasiswa STMIK Tazkia.</p>
         </div>
       </div>
 
       {/* Tabs & Search */}
-      <div className="card-3d bg-card border-4 border-border rounded-3xl p-4 sm:p-6 mb-8">
+      <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 mb-8 shadow-xs">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-2 bg-muted p-1.5 rounded-2xl border-2 border-border">
+          <div className="flex items-center gap-1.5 bg-muted/60 p-1.5 rounded-xl border border-border">
             <button
               onClick={() => { setActiveTab("prodi"); setSearchQuery(""); setEditingProdi(null); setEditingAngkatan(null); }}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm uppercase transition-all ${activeTab === "prodi"
-                  ? "bg-primary text-primary-foreground border-2 border-border shadow-[3px_3px_0px_0px_var(--color-border)]"
-                  : "text-muted-foreground hover:text-foreground border-2 border-transparent"}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all ${activeTab === "prodi"
+                  ? "bg-primary text-white shadow-xs"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
             >
-              <Building2 className="w-4 h-4" /> Program Studi ({prodiList.length})
+              <Building2 className="w-4 h-4" /> <span>Program Studi ({prodiList.length})</span>
             </button>
             <button
               onClick={() => { setActiveTab("angkatan"); setSearchQuery(""); setEditingProdi(null); setEditingAngkatan(null); }}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm uppercase transition-all ${activeTab === "angkatan"
-                  ? "bg-secondary text-secondary-foreground border-2 border-border shadow-[3px_3px_0px_0px_var(--color-border)]"
-                  : "text-muted-foreground hover:text-foreground border-2 border-transparent"}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all ${activeTab === "angkatan"
+                  ? "bg-secondary text-secondary-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
             >
-              <Calendar className="w-4 h-4" /> Angkatan ({angkatanList.length})
+              <Calendar className="w-4 h-4" /> <span>Angkatan ({angkatanList.length})</span>
             </button>
             <button
               onClick={() => { setActiveTab("telegram"); setSearchQuery(""); setEditingProdi(null); setEditingAngkatan(null); }}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm uppercase transition-all ${activeTab === "telegram"
-                  ? "bg-blue-600 text-white border-2 border-border shadow-[3px_3px_0px_0px_var(--color-border)]"
-                  : "text-muted-foreground hover:text-foreground border-2 border-transparent"}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all ${activeTab === "telegram"
+                  ? "bg-blue-600 text-white shadow-xs"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
             >
-              <Send className="w-4 h-4" /> Telegram
+              <Send className="w-4 h-4" /> <span>Telegram</span>
             </button>
           </div>
           <div className={`relative flex-1 sm:max-w-xs ${activeTab === "telegram" ? "hidden" : ""}`}>
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={`Cari ${activeTab === "prodi" ? "jurusan..." : "angkatan..."}`}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border-2 border-border bg-background font-bold text-xs sm:text-sm outline-none focus:border-primary transition-all"
+              className="w-full pl-9 pr-8 py-2 rounded-xl border border-border bg-background font-medium text-xs sm:text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-2xs"
             />
             {searchQuery && (
               <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
@@ -310,37 +310,37 @@ export default function AdminMasterPage() {
       </div>
 
       {loading ? (
-        <div className="card-3d bg-card border-4 border-border rounded-3xl p-16 text-center">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="font-bold text-muted-foreground text-sm">Memuat data...</p>
+        <div className="bg-card border border-border rounded-2xl p-16 text-center shadow-xs">
+          <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="font-medium text-muted-foreground text-sm">Memuat data...</p>
         </div>
       ) : (
         <>
           {/* ---- PRODI TAB ---- */}
           {activeTab === "prodi" && (
-            <div className="card-3d bg-card border-4 border-border rounded-3xl p-6 sm:p-8">
-              <form onSubmit={handleAddProdi} className="flex gap-3 mb-6 pb-6 border-b-2 border-border">
+            <div className="bg-card border border-border rounded-2xl p-6 sm:p-7 shadow-xs">
+              <form onSubmit={handleAddProdi} className="flex gap-3 mb-6 pb-6 border-b border-border">
                 <input type="text" value={newProdi} onChange={(e) => setNewProdi(e.target.value)}
                   placeholder="Tambah Program Studi baru, mis: Teknik Informatika..."
                   disabled={isSubmitting}
-                  className="flex-1 px-4 py-3 rounded-xl border-3 border-border bg-background font-bold text-sm outline-none focus:border-primary transition-all disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-border bg-background font-medium text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all disabled:opacity-50 shadow-2xs"
                 />
                 <button type="submit" disabled={!newProdi.trim() || isSubmitting}
-                  className="flex items-center gap-2 px-5 py-3 rounded-xl bg-primary text-primary-foreground font-black text-sm border-3 border-border shadow-[3px_3px_0px_0px_var(--color-border)] hover:translate-y-0.5 transition-all disabled:opacity-50 shrink-0">
-                  <Plus className="w-4 h-4 stroke-[3]" />
-                  <span className="hidden sm:block">Tambah</span>
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm shadow-xs hover:bg-[#ea580c] transition-all disabled:opacity-50 shrink-0">
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Tambah</span>
                 </button>
               </form>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {filteredProdi.length === 0 ? (
-                  <div className="col-span-full text-center py-8 text-muted-foreground font-bold text-sm">
+                  <div className="col-span-full text-center py-8 text-muted-foreground font-medium text-sm">
                     <GraduationCap className="w-10 h-10 mx-auto mb-2 opacity-30" />
                     {searchQuery ? "Tidak ada hasil pencarian" : "Belum ada Program Studi"}
                   </div>
                 ) : filteredProdi.map((item, idx) => (
                   <motion.div key={item} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}
-                    className="p-4 rounded-2xl bg-muted border-2 border-border group hover:border-primary transition-all"
+                    className="p-3.5 rounded-xl bg-muted/40 border border-border group hover:border-primary/40 transition-all shadow-2xs"
                   >
                     {editingProdi === item ? (
                       // Inline Edit Mode
@@ -351,10 +351,10 @@ export default function AdminMasterPage() {
                           onChange={(e) => setEditProdiValue(e.target.value)}
                           onKeyDown={(e) => { if (e.key === "Enter") handleSaveEditProdi(item); if (e.key === "Escape") setEditingProdi(null); }}
                           autoFocus
-                          className="flex-1 px-3 py-1.5 rounded-lg border-2 border-primary bg-background font-bold text-sm outline-none"
+                          className="flex-1 px-2.5 py-1.5 rounded-lg border border-primary bg-background font-medium text-sm outline-none focus:ring-1 focus:ring-primary"
                         />
                         <button onClick={() => handleSaveEditProdi(item)} disabled={isSubmitting}
-                          className="p-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
+                          className="p-1.5 rounded-lg bg-primary text-white hover:bg-[#ea580c] transition-colors disabled:opacity-50 shadow-xs">
                           <Check className="w-4 h-4" />
                         </button>
                         <button onClick={() => setEditingProdi(null)}
@@ -365,19 +365,19 @@ export default function AdminMasterPage() {
                     ) : (
                       // Display Mode
                       <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-xl bg-primary/10 border-2 border-primary text-primary flex items-center justify-center font-black text-xs shrink-0">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-xs shrink-0">
                             {item.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
                           </div>
-                          <span className="font-bold text-sm text-foreground">{item}</span>
+                          <span className="font-semibold text-sm text-foreground">{item}</span>
                         </div>
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
                           <button onClick={() => startEditProdi(item)}
-                            className="p-1.5 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all">
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all">
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
                           <button onClick={() => setDeleteItem({ type: "prodi", value: item })}
-                            className="p-1.5 rounded-xl text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-all">
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-all">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
@@ -391,36 +391,36 @@ export default function AdminMasterPage() {
 
           {/* ---- ANGKATAN TAB ---- */}
           {activeTab === "angkatan" && (
-            <div className="card-3d bg-card border-4 border-border rounded-3xl p-6 sm:p-8">
+            <div className="bg-card border border-border rounded-2xl p-6 sm:p-7 shadow-xs">
               {/* Add Form */}
-              <form onSubmit={handleAddAngkatan} className="mb-6 pb-6 border-b-2 border-border space-y-3">
+              <form onSubmit={handleAddAngkatan} className="mb-6 pb-6 border-b border-border space-y-3">
                 <div className="flex gap-3 flex-wrap sm:flex-nowrap">
                   <div className="flex flex-col gap-1 w-36 shrink-0">
-                    <label className="text-[10px] font-black uppercase text-muted-foreground tracking-wide">Angkatan Ke-*</label>
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wide">Angkatan Ke-*</label>
                     <input type="number" min="1" value={newAngkatanNum} onChange={(e) => setNewAngkatanNum(e.target.value)}
                       placeholder="1, 2, 3..." disabled={isSubmitting}
-                      className="w-full px-4 py-3 rounded-xl border-3 border-border bg-background font-bold text-sm outline-none focus:border-secondary transition-all disabled:opacity-50"
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background font-medium text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all disabled:opacity-50 shadow-2xs"
                     />
                   </div>
                   <div className="flex flex-col gap-1 flex-1">
-                    <label className="text-[10px] font-black uppercase text-muted-foreground tracking-wide">Tahun (Opsional)</label>
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground tracking-wide">Tahun (Opsional)</label>
                     <input type="text" value={newAngkatanYear} onChange={(e) => setNewAngkatanYear(e.target.value)}
                       placeholder="mis: 2024, 2025..." disabled={isSubmitting}
-                      className="w-full px-4 py-3 rounded-xl border-3 border-border bg-background font-bold text-sm outline-none focus:border-secondary transition-all disabled:opacity-50"
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background font-medium text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all disabled:opacity-50 shadow-2xs"
                     />
                   </div>
                   <div className="flex flex-col gap-1 shrink-0 justify-end">
                     <button type="submit" disabled={!newAngkatanNum.trim() || isSubmitting}
-                      className="flex items-center gap-2 px-5 py-3 rounded-xl bg-secondary text-secondary-foreground font-black text-sm border-3 border-border shadow-[3px_3px_0px_0px_var(--color-border)] hover:translate-y-0.5 transition-all disabled:opacity-50">
-                      <Plus className="w-4 h-4 stroke-[3]" />
+                      className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-secondary text-secondary-foreground font-semibold text-sm shadow-xs hover:bg-[#1e293b] transition-all disabled:opacity-50">
+                      <Plus className="w-4 h-4" />
                       <span>Tambah</span>
                     </button>
                   </div>
                 </div>
                 {composedLabel && (
-                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary/10 border-2 border-secondary/30">
-                    <span className="text-xs font-black text-muted-foreground uppercase">Preview:</span>
-                    <span className="text-sm font-black text-secondary">{composedLabel}</span>
+                  <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-secondary/5 border border-secondary/20">
+                    <span className="text-xs font-semibold text-muted-foreground">Pratinjau:</span>
+                    <span className="text-xs sm:text-sm font-bold text-foreground">{composedLabel}</span>
                   </div>
                 )}
               </form>
@@ -428,59 +428,59 @@ export default function AdminMasterPage() {
               {/* List */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {filteredAngkatan.length === 0 ? (
-                  <div className="col-span-full text-center py-8 text-muted-foreground font-bold text-sm">
+                  <div className="col-span-full text-center py-8 text-muted-foreground font-medium text-sm">
                     <Calendar className="w-10 h-10 mx-auto mb-2 opacity-30" />
                     {searchQuery ? "Tidak ada hasil pencarian" : "Belum ada Angkatan"}
                   </div>
                 ) : filteredAngkatan.map((item, idx) => (
                   <motion.div key={item.value} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}
-                    className="p-4 rounded-2xl bg-muted border-2 border-border group hover:border-secondary transition-all"
+                    className="p-3.5 rounded-xl bg-muted/40 border border-border group hover:border-secondary/40 transition-all shadow-2xs"
                   >
                     {editingAngkatan === item.value ? (
                       // Inline Edit Mode
                       <div className="space-y-2">
                         <div className="flex gap-2">
                           <div className="flex flex-col gap-1 w-24 shrink-0">
-                            <label className="text-[9px] font-black uppercase text-muted-foreground">Angkatan</label>
+                            <label className="text-[9px] font-semibold uppercase text-muted-foreground">Angkatan</label>
                             <input type="number" value={editAngkatanNum} onChange={(e) => setEditAngkatanNum(e.target.value)}
                               autoFocus
-                              className="w-full px-2 py-1.5 rounded-lg border-2 border-secondary bg-background font-bold text-sm outline-none"
+                              className="w-full px-2.5 py-1.5 rounded-lg border border-primary bg-background font-medium text-sm outline-none focus:ring-1 focus:ring-primary"
                             />
                           </div>
                           <div className="flex flex-col gap-1 flex-1">
-                            <label className="text-[9px] font-black uppercase text-muted-foreground">Tahun</label>
+                            <label className="text-[9px] font-semibold uppercase text-muted-foreground">Tahun</label>
                             <input type="text" value={editAngkatanYear} onChange={(e) => setEditAngkatanYear(e.target.value)}
                               placeholder="2024"
                               onKeyDown={(e) => { if (e.key === "Enter") handleSaveEditAngkatan(item.value); if (e.key === "Escape") setEditingAngkatan(null); }}
-                              className="w-full px-2 py-1.5 rounded-lg border-2 border-secondary bg-background font-bold text-sm outline-none"
+                              className="w-full px-2.5 py-1.5 rounded-lg border border-primary bg-background font-medium text-sm outline-none focus:ring-1 focus:ring-primary"
                             />
                           </div>
                         </div>
                         <div className="flex gap-2">
                           <button onClick={() => handleSaveEditAngkatan(item.value)} disabled={isSubmitting}
-                            className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-secondary text-secondary-foreground font-black text-xs transition-colors disabled:opacity-50">
+                            className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-secondary text-secondary-foreground font-semibold text-xs transition-colors disabled:opacity-50 shadow-xs">
                             <Check className="w-3.5 h-3.5" /> Simpan
                           </button>
                           <button onClick={() => setEditingAngkatan(null)}
-                            className="px-3 py-1.5 rounded-lg bg-muted border border-border text-muted-foreground font-black text-xs hover:bg-muted/80 transition-colors">
+                            className="px-3 py-1.5 rounded-lg bg-muted border border-border text-muted-foreground font-medium text-xs hover:bg-muted/80 transition-colors">
                             Batal
                           </button>
                         </div>
                       </div>
                     ) : (
                       // Display Mode
-                      <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 rounded-2xl bg-secondary/10 border-2 border-secondary text-secondary flex items-center justify-center font-black text-base shrink-0">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-secondary/10 border border-secondary/20 text-secondary flex items-center justify-center font-bold text-sm shrink-0">
                           #{item.value}
                         </div>
-                        <span className="font-bold text-sm text-foreground flex-1 leading-tight">{item.label}</span>
+                        <span className="font-semibold text-sm text-foreground flex-1 leading-tight">{item.label}</span>
                         <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-all shrink-0">
                           <button onClick={() => startEditAngkatan(item)}
-                            className="p-1.5 rounded-xl text-muted-foreground hover:text-secondary hover:bg-secondary/10 transition-all">
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-secondary hover:bg-secondary/10 transition-all">
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
                           <button onClick={() => setDeleteItem({ type: "angkatan", item })}
-                            className="p-1.5 rounded-xl text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-all">
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-all">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
@@ -494,10 +494,10 @@ export default function AdminMasterPage() {
           
           {/* ---- TELEGRAM TAB ---- */}
           {activeTab === "telegram" && (
-            <div className="card-3d bg-card border-4 border-border rounded-3xl p-6 sm:p-8">
-              <div className="mb-6 pb-6 border-b-2 border-border flex flex-col gap-2">
-                <h2 className="text-xl font-black uppercase text-foreground">Integrasi Bot Telegram</h2>
-                <p className="text-sm font-bold text-muted-foreground">
+            <div className="bg-card border border-border rounded-2xl p-6 sm:p-7 shadow-xs">
+              <div className="mb-6 pb-6 border-b border-border flex flex-col gap-1.5">
+                <h2 className="text-lg font-bold text-foreground">Integrasi Bot Telegram</h2>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Dapatkan notifikasi otomatis saat ada mahasiswa yang mengunggah karya atau saat AI selesai melakukan review. 
                   Pastikan Anda sudah mengklik tombol <strong>START</strong> di dalam obrolan bot Telegram Anda.
                 </p>
@@ -505,27 +505,27 @@ export default function AdminMasterPage() {
               
               <form onSubmit={saveTelegramSettings} className="space-y-5 max-w-xl">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-black uppercase text-muted-foreground">Telegram Bot Token</label>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Telegram Bot Token</label>
                   <input type="text" value={telegramToken} onChange={(e) => setTelegramToken(e.target.value)}
                     placeholder="mis: 123456789:ABCdefGHIjkl..." disabled={isSubmitting}
-                    className="w-full px-4 py-3 rounded-xl border-3 border-border bg-background font-bold text-sm outline-none focus:border-blue-500 transition-all disabled:opacity-50"
+                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-background font-medium text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all disabled:opacity-50 shadow-2xs"
                   />
-                  <p className="text-[10px] font-bold text-muted-foreground">Dapatkan dari @BotFather di Telegram.</p>
+                  <p className="text-[11px] font-medium text-muted-foreground">Dapatkan token dari @BotFather di Telegram.</p>
                 </div>
                 
                 <div className="space-y-1.5">
                   <label className="text-xs font-black uppercase text-muted-foreground">Telegram Chat ID Admin</label>
                   <input type="text" value={telegramChatId} onChange={(e) => setTelegramChatId(e.target.value)}
                     placeholder="mis: 987654321" disabled={isSubmitting}
-                    className="w-full px-4 py-3 rounded-xl border-3 border-border bg-background font-bold text-sm outline-none focus:border-blue-500 transition-all disabled:opacity-50"
+                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-background font-medium text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all disabled:opacity-50"
                   />
-                  <p className="text-[10px] font-bold text-muted-foreground">Dapatkan ID pribadi Anda dari @userinfobot.</p>
+                  <p className="text-[11px] font-medium text-muted-foreground">Dapatkan ID pribadi Anda dari @userinfobot.</p>
                 </div>
                 
                 <button type="submit" disabled={isSubmitting}
-                  className="w-full mt-4 flex justify-center items-center gap-2 px-5 py-3.5 rounded-xl bg-blue-600 text-white font-black text-sm border-3 border-border shadow-[3px_3px_0px_0px_var(--color-border)] hover:-translate-y-1 hover:shadow-[5px_5px_0px_0px_var(--color-border)] active:translate-y-0 active:shadow-[1px_1px_0px_0px_var(--color-border)] transition-all disabled:opacity-50">
+                  className="w-full mt-4 flex justify-center items-center gap-2 px-5 py-3 rounded-xl bg-primary text-white font-semibold text-sm shadow-xs hover:bg-[#ea580c] hover:shadow-md hover:shadow-orange-500/20 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50">
                   <Send className="w-4 h-4" />
-                  {isSubmitting ? "Menyimpan..." : "Simpan Pengaturan Telegram"}
+                  <span>{isSubmitting ? "Menyimpan..." : "Simpan Pengaturan Telegram"}</span>
                 </button>
               </form>
             </div>
@@ -539,28 +539,28 @@ export default function AdminMasterPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => !isSubmitting && setDeleteItem(null)}
-              className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+              className="absolute inset-0 bg-background/80 backdrop-blur-xs"
             />
-            <motion.div initial={{ scale: 0.9, y: 20, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.9, y: 20, opacity: 0 }}
-              className="relative bg-card border-4 border-border rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-[8px_8px_0px_0px_var(--color-border)] z-10 text-center"
+            <motion.div initial={{ scale: 0.95, y: 15, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.95, y: 15, opacity: 0 }}
+              className="relative bg-card border border-border rounded-2xl p-6 sm:p-7 max-w-sm w-full shadow-2xl z-10 text-center"
             >
-              <div className="w-14 h-14 rounded-2xl bg-red-100 dark:bg-red-950 text-red-600 border-4 border-red-500 flex items-center justify-center mx-auto mb-4">
-                <Trash2 className="w-7 h-7" />
+              <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-500 border border-rose-500/20 flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-black text-foreground mb-2 uppercase">Hapus Data?</h3>
-              <p className="text-xs sm:text-sm font-bold text-muted-foreground mb-6 leading-relaxed">
-                Apakah kamu yakin ingin menghapus{" "}
-                <span className="text-foreground underline decoration-red-500">
+              <h3 className="text-lg font-bold text-foreground mb-1.5">Hapus Data?</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-6 leading-relaxed">
+                Apakah Anda yakin ingin menghapus{" "}
+                <span className="font-semibold text-foreground">
                   {deleteItem.type === "angkatan" ? deleteItem.item.label : deleteItem.value}
                 </span>?
               </p>
-              <div className="flex gap-3">
+              <div className="flex gap-2.5">
                 <button onClick={() => setDeleteItem(null)} disabled={isSubmitting}
-                  className="flex-1 py-3 px-4 rounded-xl font-black text-xs uppercase bg-muted border-2 border-border hover:bg-muted/80 disabled:opacity-50">
+                  className="flex-1 py-2.5 px-4 rounded-xl font-semibold text-xs bg-card border border-border text-foreground hover:bg-muted transition-colors disabled:opacity-50">
                   Batal
                 </button>
                 <button onClick={handleConfirmDelete} disabled={isSubmitting}
-                  className="flex-1 py-3 px-4 rounded-xl font-black text-xs uppercase text-white bg-red-500 border-2 border-red-700 shadow-[3px_3px_0px_0px_#991b1b] hover:bg-red-600 disabled:opacity-50">
+                  className="flex-1 py-2.5 px-4 rounded-xl font-semibold text-xs text-white bg-rose-600 hover:bg-rose-700 transition-colors shadow-xs disabled:opacity-50">
                   {isSubmitting ? "Menghapus..." : "Ya, Hapus"}
                 </button>
               </div>

@@ -6,7 +6,7 @@ import { NotificationBell } from "@/components/dashboard/NotificationBell";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { supabase } from "@/lib/supabase";
 import { useState, useRef, useEffect } from "react";
-import { LogOut, Home, UploadCloud, ChevronDown, User, Compass, Shield } from "lucide-react";
+import { LogOut, Home, UploadCloud, ChevronDown, User, Folder, Shield } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { LogoutConfirmModal } from "@/components/ui/LogoutConfirmModal";
@@ -57,17 +57,19 @@ export function DashboardTopbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b-4 border-border bg-card/90 backdrop-blur-md shadow-[0_4px_0_0_var(--color-border)]">
+      <header className="sticky top-0 z-40 w-full border-b border-border bg-card/90 backdrop-blur-md">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
 
           {/* Left: Brand + Dashboard label */}
           <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-1.5 shrink-0">
-              <span className="font-black text-xl tracking-tight">
-                Karya<span className="text-primary">Tazkia</span>
+            <Link href="/" className="flex items-center gap-2 shrink-0 group">
+              <div className="w-1 h-5 bg-primary rounded-full group-hover:h-6 transition-all duration-200" />
+              <span className="font-bold text-lg tracking-tight">
+                <span className="text-foreground">Karya</span>
+                <span className="text-primary">Tazkia</span>
               </span>
             </Link>
-            <span className="hidden sm:inline text-[11px] font-black px-2.5 py-0.5 rounded-lg uppercase bg-primary/10 text-primary border-2 border-primary/30">
+            <span className="hidden sm:inline text-xs font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
               Dashboard
             </span>
           </div>
@@ -77,11 +79,11 @@ export function DashboardTopbar() {
             {/* Home Link */}
             <Link
               href="/"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-border bg-background font-bold text-xs hover:-translate-y-0.5 shadow-[2px_2px_0px_var(--color-border)] transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-background font-medium text-xs hover:bg-muted hover:border-primary/30 transition-all shadow-xs"
               title="Kembali ke Beranda"
             >
               <Home className="w-4 h-4 text-primary" />
-              <span className="hidden md:inline font-black">Beranda Utama</span>
+              <span className="hidden md:inline font-semibold">Beranda Utama</span>
             </Link>
 
             <NotificationBell />
@@ -91,33 +93,33 @@ export function DashboardTopbar() {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl border-2 border-border bg-card font-black text-sm shadow-[2px_2px_0px_var(--color-border)] hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_var(--color-border)] transition-all"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-card font-medium text-sm shadow-xs hover:bg-muted hover:border-primary/30 transition-all"
               >
                 {avatarUrl && !avatarError ? (
-                  <img src={avatarUrl} alt={fullName} className="w-7 h-7 rounded-lg border-2 border-border object-cover" onError={() => setAvatarError(true)} />
+                  <img src={avatarUrl} alt={fullName} className="w-6 h-6 rounded-md object-cover" onError={() => setAvatarError(true)} />
                 ) : (
-                  <div className="w-7 h-7 rounded-lg bg-secondary text-white flex items-center justify-center text-xs font-black border-2 border-border">
+                  <div className="w-6 h-6 rounded-md bg-primary text-white flex items-center justify-center text-xs font-bold">
                     {avatarLetter}
                   </div>
                 )}
-                <span className="max-w-[110px] truncate hidden sm:inline">{fullName}</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`} />
+                <span className="max-w-[110px] truncate hidden sm:inline text-foreground">{fullName}</span>
+                <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`} />
               </button>
 
               {/* Dropdown Menu */}
               {isDropdownOpen && (
-                <div className="absolute right-0 sm:right-2 top-[calc(100%+8px)] w-56 bg-card border-4 border-border rounded-2xl shadow-[6px_6px_0px_var(--color-border)] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="px-4 py-3 border-b-2 border-border bg-muted/50">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase">{isAdmin ? "Akun Admin" : "Akun Mahasiswa"}</p>
-                    <p className="text-sm font-black text-foreground truncate mt-0.5">{fullName}</p>
-                    <p className="text-[11px] font-bold text-muted-foreground truncate">{user?.email}</p>
+                <div className="absolute right-0 sm:right-2 top-[calc(100%+8px)] w-56 bg-card border border-border rounded-xl shadow-lg overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-4 py-3 border-b border-border bg-muted/40">
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">{isAdmin ? "Akun Admin" : "Akun Mahasiswa"}</p>
+                    <p className="text-sm font-semibold text-foreground truncate mt-0.5">{fullName}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                   </div>
-                  <div className="p-2 flex flex-col gap-1">
+                  <div className="p-1.5 flex flex-col gap-0.5">
                     {isAdmin && (
                       <Link
                         href="/admin/karya"
                         onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-muted font-bold text-sm text-foreground transition-colors"
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-muted font-medium text-sm text-foreground transition-colors"
                       >
                         <Shield className="w-4 h-4 text-purple-500" />
                         Kelola Karya
@@ -126,42 +128,34 @@ export function DashboardTopbar() {
                     <Link
                       href="/dashboard"
                       onClick={() => setIsDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-muted font-bold text-sm text-foreground transition-colors"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-muted font-medium text-sm text-foreground transition-colors"
                     >
                       <User className="w-4 h-4 text-primary" />
-                      Dashboard Saya
+                      Dashboard Profil
+                    </Link>
+                    <Link
+                      href="/dashboard/projects"
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-muted font-medium text-sm text-foreground transition-colors"
+                    >
+                      <Folder className="w-4 h-4 text-blue-500" />
+                      Karya Saya
                     </Link>
                     <Link
                       href="/submit"
                       onClick={() => setIsDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-muted font-bold text-sm text-foreground transition-colors"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-muted font-medium text-sm text-foreground transition-colors"
                     >
-                      <UploadCloud className="w-4 h-4 text-secondary" />
+                      <UploadCloud className="w-4 h-4 text-orange-500" />
                       Upload Karya
                     </Link>
-                    <Link
-                      href="/mahasiswa"
-                      onClick={() => setIsDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-muted font-bold text-sm text-foreground transition-colors"
-                    >
-                      <User className="w-4 h-4 text-blue-500" />
-                      Cari Mahasiswa
-                    </Link>
-                    <Link
-                      href="/explore"
-                      onClick={() => setIsDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-muted font-bold text-sm text-foreground transition-colors"
-                    >
-                      <Compass className="w-4 h-4 text-orange-500" />
-                      Galeri Karya
-                    </Link>
-                    <div className="my-1 border-t-2 border-border" />
+                    <div className="my-1 border-t border-border" />
                     <button
                       onClick={() => {
                         setIsDropdownOpen(false);
                         setShowLogoutConfirm(true);
                       }}
-                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-destructive/10 hover:text-destructive font-bold text-sm text-foreground transition-colors w-full text-left"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400 font-medium text-sm text-muted-foreground transition-colors w-full text-left"
                     >
                       <LogOut className="w-4 h-4" />
                       Keluar

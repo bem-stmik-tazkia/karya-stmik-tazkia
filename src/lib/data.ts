@@ -75,23 +75,35 @@ export async function incrementKaryaView(karyaId: string, deviceId: string, user
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ karyaId, deviceId, userId }),
     });
-    if (res.ok) return true;
+    if (res.ok) {
+      const data = await res.json().catch(() => null);
+      if (data?.success) return true;
+    }
   } catch (err) {
     console.warn("[incrementKaryaView] /api/view failed, trying direct RPC fallback:", err);
   }
 
   // Fallback ke direct RPC client-side jika fetch route gagal
   try {
+    // 1. Signature karya_id
     let { error } = await supabase.rpc("increment_karya_view", {
       karya_id: karyaId,
     });
     if (error) {
+      // 2. Signature p_karya_id
       const res2 = await supabase.rpc("increment_karya_view", {
+        p_karya_id: karyaId,
+      });
+      error = res2.error;
+    }
+    if (error) {
+      // 3. Signature alternatif lengkap
+      const res3 = await supabase.rpc("increment_karya_view", {
         p_karya_id: karyaId,
         p_device_id: deviceId,
         p_user_id: userId || null,
       });
-      error = res2.error;
+      error = res3.error;
     }
     return !error;
   } catch (err) {

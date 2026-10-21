@@ -55,6 +55,7 @@ export type MahasiswaProfile = {
   website_url?: string | null;
   skills?: string[];
   is_featured?: boolean;
+  badges?: any;
   created_at: string;
   updated_at?: string;
 };
@@ -86,9 +87,9 @@ export type KaryaCategory = "Technology" | "Programming" | "Research" | "IoT" | 
 
 export const KARYA_CATEGORIES: { value: string; label: string }[] = [
   { value: "All", label: "Semua Karya" },
-  { value: "Technology", label: "Web & Sistem" },
+  { value: "Technology", label: "Website" },
   { value: "Programming", label: "Mobile Apps" },
-  { value: "Research", label: "Riset & Jurnal" },
+  { value: "Research", label: "Riset / Jurnal" },
   { value: "IoT", label: "Proyek IoT" },
   { value: "Multimedia", label: "Desain & Lainnya" },
 ];

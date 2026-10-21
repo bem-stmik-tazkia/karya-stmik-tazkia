@@ -57,177 +57,132 @@ function FloatingParticles() {
   );
 }
 
-// Animated 404 number
+// Sleek 404 number display
 function AnimatedNumber() {
-  const [wobble, setWobble] = useState(false);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setWobble(true);
-      setTimeout(() => setWobble(false), 600);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
-    <motion.div
-      className="relative inline-flex items-center justify-center"
-      animate={wobble ? { rotate: [-3, 3, -2, 2, 0] } : {}}
-      transition={{ duration: 0.5 }}
-    >
-      {/* Glow effect */}
-      <div className="absolute inset-0 bg-primary/20 rounded-full blur-3xl scale-150" />
+    <div className="relative inline-flex items-center justify-center">
+      {/* Ambient background glow */}
+      <div className="absolute inset-0 bg-primary/20 rounded-full blur-3xl scale-125 pointer-events-none" />
 
-      <div className="relative flex items-center gap-2 sm:gap-4">
+      <div className="relative flex items-center gap-3 sm:gap-5">
         {/* 4 */}
         <motion.div
-          className="w-24 h-24 sm:w-32 sm:h-32 bg-primary text-primary-foreground rounded-3xl border-4 border-border shadow-[6px_6px_0px_0px_var(--color-border)] flex items-center justify-center"
-          initial={{ y: -80, opacity: 0, rotate: -15 }}
-          animate={{ y: 0, opacity: 1, rotate: -8 }}
-          transition={{ type: "spring", stiffness: 200, damping: 18 }}
-          whileHover={{ scale: 1.05, rotate: -5, transition: { duration: 0.2 } }}
+          className="w-20 h-20 sm:w-28 sm:h-28 bg-card border border-border/80 shadow-md text-foreground rounded-2xl flex items-center justify-center"
+          initial={{ y: -40, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 220, damping: 20 }}
+          whileHover={{ scale: 1.05, y: -2 }}
         >
-          <span className="text-5xl sm:text-7xl font-black">4</span>
+          <span className="text-4xl sm:text-6xl font-extrabold text-foreground">4</span>
         </motion.div>
 
-        {/* Crying emoji in the middle */}
+        {/* Center icon / accent */}
         <motion.div
-          className="w-20 h-20 sm:w-28 sm:h-28 bg-accent text-accent-foreground rounded-full border-4 border-border shadow-[6px_6px_0px_0px_var(--color-border)] flex items-center justify-center z-10"
-          initial={{ scale: 0, opacity: 0 }}
+          className="w-18 h-18 sm:w-24 sm:h-24 bg-primary/10 border border-primary/30 text-primary rounded-2xl flex items-center justify-center shadow-md shadow-orange-500/10"
+          initial={{ scale: 0.6, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.2 }}
-          whileHover={{ scale: 1.1, transition: { duration: 0.2 } }}
+          transition={{ type: "spring", stiffness: 260, damping: 18, delay: 0.15 }}
+          whileHover={{ scale: 1.08 }}
         >
-          <motion.span
-            className="text-4xl sm:text-5xl"
-            animate={{ rotate: [0, -10, 10, -10, 0] }}
-            transition={{ duration: 2, repeat: Infinity, repeatDelay: 2 }}
-          >
-            😵
-          </motion.span>
+          <Sparkles className="w-9 h-9 sm:w-12 sm:h-12 text-primary" />
         </motion.div>
 
         {/* 4 */}
         <motion.div
-          className="w-24 h-24 sm:w-32 sm:h-32 bg-secondary text-secondary-foreground rounded-3xl border-4 border-border shadow-[6px_6px_0px_0px_var(--color-border)] flex items-center justify-center"
-          initial={{ y: 80, opacity: 0, rotate: 15 }}
-          animate={{ y: 0, opacity: 1, rotate: 8 }}
-          transition={{ type: "spring", stiffness: 200, damping: 18, delay: 0.1 }}
-          whileHover={{ scale: 1.05, rotate: 5, transition: { duration: 0.2 } }}
+          className="w-20 h-20 sm:w-28 sm:h-28 bg-card border border-border/80 shadow-md text-foreground rounded-2xl flex items-center justify-center"
+          initial={{ y: 40, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 220, damping: 20, delay: 0.1 }}
+          whileHover={{ scale: 1.05, y: -2 }}
         >
-          <span className="text-5xl sm:text-7xl font-black">4</span>
+          <span className="text-4xl sm:text-6xl font-extrabold text-foreground">4</span>
         </motion.div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
 export default function NotFound() {
   return (
-    <div className="min-h-[90vh] flex flex-col items-center justify-center px-4 py-16 bg-background relative overflow-hidden">
-      {/* Background decorative blobs */}
-      <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-secondary/5 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-[85vh] flex flex-col items-center justify-center px-4 py-16 bg-background relative overflow-hidden">
+      {/* Background ambient lighting */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-gradient-to-tr from-primary/10 via-orange-500/5 to-transparent blur-3xl rounded-full pointer-events-none" />
       <FloatingParticles />
 
       <motion.div
-        className="relative z-10 w-full max-w-2xl"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
+        className="relative z-10 w-full max-w-xl mx-auto"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
       >
-        {/* 404 Number block */}
+        {/* 404 Number visual */}
         <div className="flex justify-center mb-8">
           <AnimatedNumber />
         </div>
 
-        {/* Text content card */}
-        <motion.div
-          className="bg-card border-4 border-border rounded-[2rem] p-8 sm:p-10 text-center shadow-[8px_8px_0px_0px_var(--color-border)] relative overflow-hidden"
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3, type: "spring", stiffness: 200, damping: 20 }}
-        >
-          {/* Top accent bar */}
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-accent to-secondary rounded-t-[2rem]" />
+        {/* Content card */}
+        <div className="bg-card border border-border rounded-2xl p-7 sm:p-10 text-center shadow-lg shadow-black/5 dark:shadow-black/20 backdrop-blur-xs relative overflow-hidden">
+          {/* Subtle top indicator bar */}
+          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-primary via-amber-500 to-primary/40" />
 
-          <motion.div
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border-2 border-primary/30 rounded-full mb-5"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.45, type: "spring" }}
-          >
-            <span className="text-xs font-black text-primary uppercase tracking-wider">Halaman Tidak Ditemukan</span>
-          </motion.div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold mb-4">
+            <span>Status 404</span>
+          </div>
 
-          <h1 className="text-3xl sm:text-4xl font-black text-foreground uppercase tracking-tight mb-3">
-            Nyasar, Bos? 🗺️
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight mb-2.5">
+            Halaman Tidak Ditemukan
           </h1>
 
-          <p className="text-muted-foreground font-bold mb-2 max-w-md mx-auto leading-relaxed">
-            Halaman yang kamu cari sepertinya tidak ada di peta kami, atau mungkin sudah dihapus.
-          </p>
-          <p className="text-sm text-muted-foreground/70 font-medium mb-8">
-            Coba kembali ke beranda atau jelajahi karya mahasiswa kami.
+          <p className="text-sm sm:text-base text-muted-foreground font-normal mb-8 max-w-md mx-auto leading-relaxed">
+            Halaman yang Anda tuju mungkin telah dipindahkan, dihapus, atau tautan yang Anda gunakan keliru.
           </p>
 
-          {/* CTA Buttons */}
+          {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-              <Link
-                href="/"
-                className="flex items-center justify-center gap-2.5 px-7 py-3.5 bg-primary text-primary-foreground font-black uppercase text-sm border-4 border-border shadow-[4px_4px_0px_0px_var(--color-border)] hover:shadow-[2px_2px_0px_0px_var(--color-border)] hover:translate-y-0.5 rounded-2xl transition-all"
-              >
-                <Home className="w-4 h-4" />
-                Balik ke Beranda
-              </Link>
-            </motion.div>
+            <Link
+              href="/"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-semibold text-sm shadow-xs hover:bg-[#ea580c] hover:shadow-md hover:shadow-orange-500/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+            >
+              <Home className="w-4 h-4" />
+              <span>Kembali ke Beranda</span>
+            </Link>
 
-            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-              <Link
-                href="/explore"
-                className="flex items-center justify-center gap-2.5 px-7 py-3.5 bg-secondary text-secondary-foreground font-black uppercase text-sm border-4 border-border shadow-[4px_4px_0px_0px_var(--color-border)] hover:shadow-[2px_2px_0px_0px_var(--color-border)] hover:translate-y-0.5 rounded-2xl transition-all"
-              >
-                <Compass className="w-4 h-4" />
-                Explore Karya
-              </Link>
-            </motion.div>
+            <Link
+              href="/explore"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-card border border-border text-foreground font-semibold text-sm shadow-2xs hover:bg-muted/70 hover:border-primary/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+            >
+              <Compass className="w-4 h-4 text-primary" />
+              <span>Jelajahi Karya</span>
+            </Link>
 
-            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-              <button
-                onClick={() => window.history.back()}
-                className="flex items-center justify-center gap-2.5 px-7 py-3.5 bg-muted text-foreground font-black uppercase text-sm border-4 border-border shadow-[4px_4px_0px_0px_var(--color-border)] hover:shadow-[2px_2px_0px_0px_var(--color-border)] hover:translate-y-0.5 rounded-2xl transition-all"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Kembali
-              </button>
-            </motion.div>
+            <button
+              onClick={() => window.history.back()}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 font-medium text-sm transition-all duration-150"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Kembali</span>
+            </button>
           </div>
-        </motion.div>
+        </div>
 
-        {/* Helpful links */}
-        <motion.div
-          className="mt-6 flex items-center justify-center gap-2 flex-wrap"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-        >
-          <span className="text-xs text-muted-foreground font-bold">Mau ke mana?</span>
+        {/* Quick directory links */}
+        <div className="mt-8 flex items-center justify-center gap-3 flex-wrap text-xs text-muted-foreground">
+          <span className="font-medium">Tautan cepat:</span>
           {[
-            { label: "Feed", href: "/feed" },
-            { label: "Submit Karya", href: "/submit" },
-            { label: "Profil", href: "/dashboard" },
-            { label: "Tentang", href: "/about" },
+            { label: "Daftar Mahasiswa", href: "/student" },
+            { label: "Galeri Karya", href: "/explore" },
+            { label: "Kirim Karya", href: "/submit" },
+            { label: "Tentang Kami", href: "/about" },
           ].map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="text-xs font-black text-primary hover:underline underline-offset-4 decoration-2 decoration-primary/40 transition-all"
+              className="font-medium text-foreground hover:text-primary transition-colors underline-offset-4 hover:underline"
             >
               {item.label}
             </Link>
           ))}
-        </motion.div>
+        </div>
       </motion.div>
     </div>
   );

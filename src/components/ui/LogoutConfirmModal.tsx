@@ -20,39 +20,40 @@ export function LogoutConfirmModal({ open, loading, onConfirm, onCancel }: Logou
         className="absolute inset-0 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200"
       />
       {/* Modal */}
-      <div className="relative bg-card border-4 border-border rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-[8px_8px_0px_0px_var(--color-border)] z-10 flex flex-col items-center text-center animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+      <div className="relative bg-card border border-border rounded-2xl p-6 sm:p-7 max-w-sm w-full shadow-2xl z-10 flex flex-col items-center text-center animate-in fade-in zoom-in-95 slide-in-from-bottom-3 duration-200">
         {/* Close button */}
         <button
           onClick={onCancel}
-          className="absolute top-4 right-4 p-1.5 rounded-xl bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
+          className="absolute top-4 right-4 p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          aria-label="Tutup"
         >
           <X className="w-4 h-4" />
         </button>
 
         {/* Icon */}
-        <div className="w-16 h-16 rounded-2xl bg-orange-100 dark:bg-orange-900/40 border-4 border-orange-500 text-orange-600 flex items-center justify-center mb-5">
-          <LogOut className="w-8 h-8" />
+        <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4">
+          <LogOut className="w-6 h-6" />
         </div>
 
-        <h3 className="text-xl font-black text-foreground mb-2 uppercase">
+        <h3 className="text-lg font-bold text-foreground mb-1.5">
           Keluar dari Akun?
         </h3>
-        <p className="text-muted-foreground font-bold text-sm mb-6 leading-relaxed">
+        <p className="text-muted-foreground text-xs mb-6 leading-relaxed font-normal">
           Kamu akan keluar dari sesi ini. Kamu bisa masuk kembali kapan saja menggunakan akun Google kamu.
         </p>
 
-        <div className="flex w-full gap-3">
+        <div className="flex w-full gap-2.5">
           <button
             onClick={onCancel}
             disabled={loading}
-            className="flex-1 py-3 px-4 rounded-xl font-black text-sm text-foreground bg-muted border-2 border-border hover:bg-muted/80 transition-colors disabled:opacity-50"
+            className="flex-1 py-2.5 px-4 rounded-xl font-semibold text-xs text-foreground bg-muted border border-border hover:bg-muted/80 transition-colors disabled:opacity-50"
           >
             Batal
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="flex-1 py-3 px-4 rounded-xl font-black text-sm text-white bg-orange-500 border-2 border-orange-700 shadow-[3px_3px_0px_0px_#c2410c] hover:bg-orange-600 hover:translate-y-0.5 active:translate-y-1 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 py-2.5 px-4 rounded-xl font-semibold text-xs text-white bg-primary hover:bg-[#ea580c] transition-all shadow-xs hover:shadow-md disabled:opacity-50 flex items-center justify-center gap-1.5"
           >
             <LogOut className="w-4 h-4" />
             {loading ? "Keluar..." : "Ya, Keluar"}

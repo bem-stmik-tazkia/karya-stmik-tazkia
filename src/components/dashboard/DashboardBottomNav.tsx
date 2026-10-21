@@ -1,50 +1,55 @@
 "use client";
 
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Folder, User, Home, LogOut, MessageSquare, Users } from "lucide-react";
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import { Folder, UploadCloud, User, Home, LogOut } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { LogoutConfirmModal } from "@/components/ui/LogoutConfirmModal";
-import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 
 export function DashboardBottomNav() {
   const pathname = usePathname();
   const router = useRouter();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  const [userId, setUserId] = useState<string | undefined>(undefined);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUserId(session?.user?.id);
-    });
-    
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      setUserId(session?.user?.id);
-    });
-    
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
-
-  // Use hook inline to avoid creating a new file, or use the one we just created
-  // Wait, I created useUnreadMessages hook, so I'll import it.
-  const unreadCount = useUnreadMessages(userId);
-
   const navItems = [
-    { label: "Karya", href: "/dashboard/projects", icon: Folder, exact: true },
-    { label: "Pesan", href: "/inbox", icon: MessageSquare, exact: false, badge: unreadCount },
-    { label: "Mahasiswa", href: "/mahasiswa", icon: Users, exact: false },
-    { label: "Profil", href: "/dashboard", icon: User, exact: true },
-    { label: "Beranda", href: "/", icon: Home, exact: true },
+    {
+      label: "Karya",
+      href: "/dashboard/projects",
+      icon: Folder,
+    },
+    {
+      label: "Upload",
+      href: "/submit",
+      icon: UploadCloud,
+    },
+    {
+      label: "Profil",
+      href: "/dashboard",
+      icon: User,
+    },
+    {
+      label: "Beranda",
+      href: "/",
+      icon: Home,
+    },
   ];
 
-  const isActive = (href: string, exact?: boolean) => {
-    if (exact) return pathname === href;
-    return pathname?.startsWith(href);
+  const isActive = (href: string) => {
+    if (href === "/dashboard") {
+      return pathname === "/dashboard" || pathname === "/dashboard/profile";
+    }
+    if (href === "/dashboard/projects") {
+      return pathname?.startsWith("/dashboard/projects");
+    }
+    if (href === "/submit") {
+      return pathname?.startsWith("/submit");
+    }
+    if (href === "/") {
+      return pathname === "/";
+    }
+    return pathname === href;
   };
 
   const handleLogout = async () => {
@@ -53,54 +58,88 @@ export function DashboardBottomNav() {
     router.push("/");
   };
 
-  // Hide bottom nav inside individual chat rooms (they have their own input bar)
-  const isChatRoom = /^\/inbox\/[^/]+$/.test(pathname || "");
-  if (isChatRoom) return null;
-
   return (
     <>
-      {/* Floating Bottom Nav */}
-      <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-2rem)] max-w-lg">
-        <nav className="bg-card border-4 border-border px-2 py-2 rounded-2xl shadow-[6px_6px_0px_0px_var(--color-border)] flex items-center justify-between gap-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.href, item.exact);
+      {/* Floating Bottom Nav - Identik dengan MobileBottomNav Beranda */}
+      <div
+        className="fixed bottom-3.5 left-0 right-0 z-40 px-3 sm:px-4 pointer-events-none flex justify-center"
+        style={{ marginBottom: "env(safe-area-inset-bottom, 0px)" }}
+      >
+        <nav
+          aria-label="Navigasi Dashboard"
+          className="pointer-events-auto w-full max-w-[400px] rounded-full p-1.5 bg-white/92 dark:bg-[#0B1F4A]/92 backdrop-blur-2xl border border-slate-200/90 dark:border-[#1E3A8A]/60 shadow-[0_12px_36px_rgba(8,17,38,0.16)] dark:shadow-[0_14px_40px_rgba(0,0,0,0.65),0_0_20px_rgba(30,58,138,0.3)] select-none"
+        >
+          <div className="grid grid-cols-5 gap-0.5 sm:gap-1 relative">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.href);
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`relative flex flex-col items-center gap-1 px-2 py-2.5 rounded-xl font-black text-[10px] border-2 transition-all flex-1 min-w-0 ${
-                  active
-                    ? "bg-primary border-primary-shadow text-primary-foreground shadow-[3px_3px_0px_0px_var(--color-primary-shadow)] -translate-y-1"
-                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                }`}
-              >
-                <div className="relative">
-                  <Icon className="w-5 h-5 shrink-0" />
-                  {item.badge && item.badge > 0 ? (
-                    <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-                      {item.badge > 9 ? '9+' : item.badge}
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="relative flex flex-col items-center justify-center py-2 px-1 rounded-full z-10 transition-colors"
+                >
+                  {/* Interactive Animated Sliding Pill Indicator */}
+                  {active && (
+                    <motion.div
+                      layoutId="dashboard-dock-pill"
+                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                      className="absolute inset-0 rounded-full bg-gradient-to-r from-[#FF8A2B] to-[#ea580c] shadow-md shadow-orange-500/35"
+                    />
+                  )}
+
+                  {/* Icon with bouncy micro-animation on active / click */}
+                  <motion.div
+                    animate={{ scale: active ? 1.08 : 1 }}
+                    whileTap={{ scale: 0.76, rotate: -10 }}
+                    transition={{ type: "spring", stiffness: 450, damping: 20 }}
+                    className="relative z-10 flex flex-col items-center"
+                  >
+                    <motion.div
+                      animate={active ? { scale: [0.8, 1.25, 1], rotate: [0, -10, 10, 0] } : {}}
+                      transition={{ duration: 0.35, ease: "easeOut" }}
+                    >
+                      <Icon
+                        className={`w-[19px] h-[19px] transition-colors ${
+                          active
+                            ? "text-white stroke-[2.4]"
+                            : "text-slate-600 dark:text-[#94A9C9] stroke-[2]"
+                        }`}
+                      />
+                    </motion.div>
+                    <span
+                      className={`text-[10px] tracking-tight mt-0.5 leading-none transition-colors ${
+                        active
+                          ? "text-white font-bold"
+                          : "text-slate-600 dark:text-[#94A9C9] font-medium"
+                      }`}
+                    >
+                      {item.label}
                     </span>
-                  ) : null}
-                </div>
-                <span className="truncate w-full text-center leading-none">{item.label}</span>
-              </Link>
-            );
-          })}
+                  </motion.div>
+                </Link>
+              );
+            })}
 
-          {/* Divider */}
-          <div className="w-px h-10 bg-border shrink-0" />
-
-          {/* Logout Button */}
-          <button
-            onClick={() => setShowLogoutConfirm(true)}
-            className="flex flex-col items-center gap-1 px-2 py-2 rounded-xl font-black text-[10px] text-destructive hover:bg-destructive/10 border-2 border-transparent hover:border-destructive/30 transition-all shrink-0"
-            title="Keluar Akun"
-          >
-            <LogOut className="w-5 h-5" />
-            <span className="leading-none">Keluar</span>
-          </button>
+            {/* Logout Button in the exact same dock style */}
+            <button
+              type="button"
+              onClick={() => setShowLogoutConfirm(true)}
+              className="relative flex flex-col items-center justify-center py-2 px-1 rounded-full z-10 transition-colors group cursor-pointer"
+            >
+              <motion.div
+                whileTap={{ scale: 0.76, rotate: -10 }}
+                transition={{ type: "spring", stiffness: 450, damping: 20 }}
+                className="relative z-10 flex flex-col items-center"
+              >
+                <LogOut className="w-[19px] h-[19px] text-slate-600 dark:text-[#94A9C9] group-hover:text-red-500 transition-colors stroke-[2]" />
+                <span className="text-[10px] tracking-tight mt-0.5 leading-none text-slate-600 dark:text-[#94A9C9] group-hover:text-red-500 font-medium transition-colors">
+                  Keluar
+                </span>
+              </motion.div>
+            </button>
+          </div>
         </nav>
       </div>
 

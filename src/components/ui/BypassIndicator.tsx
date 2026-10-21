@@ -32,11 +32,11 @@ export function BypassIndicator() {
         animate={{ y: 0, opacity: 1, scale: 1 }}
         onHoverStart={() => setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
-        className="flex items-center bg-destructive/10 border-2 border-destructive backdrop-blur-md px-4 py-2 rounded-2xl shadow-[4px_4px_0px_var(--color-destructive)] overflow-hidden cursor-default transition-all duration-300"
+        className="flex items-center bg-rose-500/10 border border-rose-500/30 backdrop-blur-md px-3.5 py-2 rounded-full shadow-lg overflow-hidden cursor-default transition-all duration-200"
       >
-        <div className="flex items-center gap-2 text-destructive">
-          <AlertTriangle className="w-5 h-5 animate-pulse" />
-          <span className="font-black text-xs uppercase tracking-wider">
+        <div className="flex items-center gap-2 text-rose-500 dark:text-rose-400">
+          <AlertTriangle className="w-4 h-4 animate-pulse shrink-0" />
+          <span className="font-semibold text-xs tracking-wide">
             Mode Bypass
           </span>
         </div>
@@ -45,13 +45,13 @@ export function BypassIndicator() {
           {isHovered && (
             <motion.button
               initial={{ width: 0, opacity: 0, marginLeft: 0 }}
-              animate={{ width: "auto", opacity: 1, marginLeft: 12 }}
+              animate={{ width: "auto", opacity: 1, marginLeft: 10 }}
               exit={{ width: 0, opacity: 0, marginLeft: 0 }}
               onClick={handleRemoveBypass}
-              className="flex items-center gap-1.5 bg-destructive text-destructive-foreground px-3 py-1.5 rounded-xl font-bold text-[10px] uppercase hover:bg-destructive/90 transition-colors whitespace-nowrap"
+              className="flex items-center gap-1.5 bg-rose-600 text-white px-2.5 py-1 rounded-full font-medium text-xs hover:bg-rose-700 transition-colors whitespace-nowrap shadow-xs"
             >
               <LogOut className="w-3 h-3" />
-              Matikan
+              <span>Matikan</span>
             </motion.button>
           )}
         </AnimatePresence>

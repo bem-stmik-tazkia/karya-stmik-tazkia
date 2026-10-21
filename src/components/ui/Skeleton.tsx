@@ -18,49 +18,50 @@ export function SkeletonProjectCard({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "card-3d overflow-hidden flex flex-col h-full bg-card rounded-3xl border-4 border-border",
+        "rounded-2xl border border-border bg-card overflow-hidden shadow-xs flex flex-col h-full",
         className
       )}
     >
       {/* Thumbnail Area */}
-      <div className="aspect-[16/10] w-full relative border-b-4 border-border bg-muted/80 overflow-hidden">
+      <div className="aspect-[16/10] w-full relative bg-muted/80 overflow-hidden">
         <SkeletonBlock className="absolute inset-0 rounded-none bg-muted/50" />
         
         {/* Skeleton Badge Kategori */}
-        <div className="absolute top-3 right-3">
-          <SkeletonBlock className="w-20 h-6 rounded-full border-2 border-border shadow-[2px_2px_0px_rgba(0,0,0,0.3)] bg-primary/20" />
+        <div className="absolute top-3 left-3">
+          <SkeletonBlock className="w-16 h-5 rounded-full bg-primary/10" />
         </div>
       </div>
       
       {/* Content Area */}
-      <div className="p-5 flex flex-col gap-3">
+      <div className="p-5 flex flex-col gap-2.5">
         {/* Title */}
-        <SkeletonBlock className="h-6 w-3/4 rounded-lg bg-muted/70" />
+        <SkeletonBlock className="h-4 w-3/4 rounded bg-muted/70" />
         
         {/* Description Lines */}
-        <div className="space-y-2 mt-1">
+        <div className="space-y-1.5 mt-0.5">
           <SkeletonBlock className="h-3 w-full rounded bg-muted/50" />
           <SkeletonBlock className="h-3 w-5/6 rounded bg-muted/50" />
         </div>
         
         {/* Author Info */}
-        <div className="flex items-center gap-2 mt-3 pt-3 border-t-2 border-border/50">
-          <SkeletonBlock className="w-6 h-6 rounded-full border-2 border-border bg-secondary/30 shrink-0" />
-          <SkeletonBlock className="h-3 w-1/3 rounded bg-muted/70" />
+        <div className="flex items-center gap-2 mt-2 pt-3 border-t border-border">
+          <SkeletonBlock className="w-6 h-6 rounded-full bg-muted/70 shrink-0" />
+          <SkeletonBlock className="h-3 w-1/3 rounded bg-muted/60" />
         </div>
       </div>
     </div>
   );
 }
 
+
 // 3. Skeleton khusus untuk Feed Post
 export function SkeletonFeedPost({ className }: { className?: string }) {
   return (
-    <div className={cn("bg-card border-4 border-border shadow-[4px_4px_0px_var(--color-border)] rounded-[2rem] p-5 sm:p-6 mb-6", className)}>
+    <div className={cn("bg-card border border-border rounded-2xl p-5 sm:p-6 mb-6 shadow-xs", className)}>
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <SkeletonBlock className="w-12 h-12 rounded-xl border-2 border-border bg-secondary/20 shrink-0" />
+          <SkeletonBlock className="w-10 h-10 rounded-full bg-primary/10 shrink-0" />
           <div className="space-y-2">
             <SkeletonBlock className="h-4 w-32 rounded bg-muted/70" />
             <SkeletonBlock className="h-3 w-20 rounded bg-muted/50" />
@@ -77,15 +78,15 @@ export function SkeletonFeedPost({ className }: { className?: string }) {
 
       {/* Tags */}
       <div className="flex gap-2 mb-5">
-        <SkeletonBlock className="h-6 w-16 rounded-lg bg-primary/20" />
-        <SkeletonBlock className="h-6 w-20 rounded-lg bg-primary/20" />
-        <SkeletonBlock className="h-6 w-14 rounded-lg bg-primary/20" />
+        <SkeletonBlock className="h-6 w-16 rounded-lg bg-primary/10" />
+        <SkeletonBlock className="h-6 w-20 rounded-lg bg-primary/10" />
+        <SkeletonBlock className="h-6 w-14 rounded-lg bg-primary/10" />
       </div>
 
       {/* Footer */}
-      <div className="flex items-center gap-4 pt-4 border-t-2 border-border/50">
-        <SkeletonBlock className="h-8 w-24 rounded-xl bg-muted/50 border-2 border-border/50" />
-        <SkeletonBlock className="h-8 w-24 rounded-xl bg-muted/50 border-2 border-border/50" />
+      <div className="flex items-center gap-4 pt-4 border-t border-border">
+        <SkeletonBlock className="h-8 w-24 rounded-lg bg-muted/50 border border-border" />
+        <SkeletonBlock className="h-8 w-24 rounded-lg bg-muted/50 border border-border" />
       </div>
     </div>
   );
@@ -96,11 +97,11 @@ export function SkeletonProfileHeader({ className }: { className?: string }) {
   return (
     <div className={cn("mb-12", className)}>
       {/* Cover/Banner */}
-      <div className="h-32 sm:h-48 md:h-64 bg-primary/10 rounded-3xl border-4 border-border shadow-[4px_4px_0px_var(--color-border)] relative mb-16 overflow-hidden">
+      <div className="h-32 sm:h-48 md:h-64 bg-primary/10 rounded-2xl border border-border relative mb-16 overflow-hidden shadow-xs">
         <SkeletonBlock className="absolute inset-0 bg-primary/20 rounded-none" />
         {/* Avatar */}
         <div className="absolute -bottom-12 left-6 sm:left-10">
-          <SkeletonBlock className="w-24 h-24 sm:w-32 sm:h-32 rounded-[2rem] border-4 border-border bg-card shadow-[4px_4px_0px_var(--color-border)]" />
+          <SkeletonBlock className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl border border-border bg-card shadow-xs" />
         </div>
       </div>
       
@@ -109,8 +110,8 @@ export function SkeletonProfileHeader({ className }: { className?: string }) {
         <SkeletonBlock className="h-8 sm:h-10 w-2/3 rounded-xl bg-muted/80" />
         <SkeletonBlock className="h-4 w-1/2 rounded-md bg-muted/60" />
         <div className="flex gap-3 pt-2">
-          <SkeletonBlock className="h-6 w-24 rounded-lg bg-secondary/20" />
-          <SkeletonBlock className="h-6 w-24 rounded-lg bg-secondary/20" />
+          <SkeletonBlock className="h-6 w-24 rounded-lg bg-primary/10" />
+          <SkeletonBlock className="h-6 w-24 rounded-lg bg-primary/10" />
         </div>
       </div>
     </div>
@@ -120,20 +121,20 @@ export function SkeletonProfileHeader({ className }: { className?: string }) {
 // 5. Skeleton Form (untuk halaman Submit Form / Edit)
 export function SkeletonForm({ className }: { className?: string }) {
   return (
-    <div className={cn("bg-card border-4 border-border rounded-3xl shadow-[8px_8px_0px_var(--color-border)] p-6 md:p-8 space-y-8", className)}>
+    <div className={cn("bg-card border border-border rounded-2xl p-6 md:p-8 space-y-8 shadow-xs", className)}>
       <SkeletonBlock className="h-6 w-48 rounded-lg bg-muted/80 mb-4" />
       <div className="space-y-6">
         <div className="space-y-2">
           <SkeletonBlock className="h-4 w-32 rounded bg-muted/60" />
-          <SkeletonBlock className="h-12 w-full rounded-xl bg-muted/40 border-2 border-border" />
+          <SkeletonBlock className="h-11 w-full rounded-xl bg-muted/30 border border-border" />
         </div>
         <div className="space-y-2">
           <SkeletonBlock className="h-4 w-40 rounded bg-muted/60" />
-          <SkeletonBlock className="h-32 w-full rounded-xl bg-muted/40 border-2 border-border" />
+          <SkeletonBlock className="h-32 w-full rounded-xl bg-muted/30 border border-border" />
         </div>
         <div className="space-y-2">
           <SkeletonBlock className="h-4 w-36 rounded bg-muted/60" />
-          <SkeletonBlock className="h-12 w-full rounded-xl bg-muted/40 border-2 border-border" />
+          <SkeletonBlock className="h-11 w-full rounded-xl bg-muted/30 border border-border" />
         </div>
       </div>
     </div>

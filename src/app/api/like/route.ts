@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Redis } from "@upstash/redis";
-import { createClient, supabaseAdmin } from "@/lib/supabase-server";
+import { createClient, supabaseAdmin, supabaseServer } from "@/lib/supabase-server";
 
 // Redis opsional — jika tidak dikonfigurasi, fallback ke karya_likes_log
 const isRedisConfigured = !!(
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
         : deviceId;
     const redisKey = `liked:${karyaId}:${identity}`;
 
-    const db = supabaseAdmin || (await createClient());
+    const db = supabaseAdmin || (userId ? await createClient() : supabaseServer);
 
     // ─── Cek Redis lock (jika dikonfigurasi) ─────────────────────────────
     if (redis) {
@@ -174,7 +174,7 @@ export async function GET(req: NextRequest) {
     }
 
     const identity = userId && uuidRegex.test(userId) ? userId : deviceId;
-    const db = supabaseAdmin || (await createClient());
+    const db = supabaseAdmin || (userId ? await createClient() : supabaseServer);
 
     // Kasus 1: Cek single karyaId
     if (karyaId) {
