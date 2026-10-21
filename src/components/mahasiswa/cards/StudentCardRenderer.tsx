@@ -2,10 +2,6 @@
 
 import React from "react";
 import StandardStudentCard, { StudentCardData } from "./umum/StandardStudentCard";
-import BEM2026StudentCard from "./khusus/BEM2026StudentCard";
-import RistekQuantumCard from "./khusus/RistekQuantumCard";
-import RistekMechaCard from "./khusus/RistekMechaCard";
-import CustomStudentCard from "./umum/CustomStudentCard";
 
 export interface StudentCardRendererProps {
   skinId?: string;
@@ -13,61 +9,44 @@ export interface StudentCardRendererProps {
   customPrimary?: string;
   customSecondary?: string;
   enableTilt?: boolean;
+  isSkeleton?: boolean;
   onContactClick?: () => void;
   onProfileClick?: () => void;
+  onTriggerUnlock?: () => void;
+  onFilterAngkatan?: (ang: any) => void;
+  onFilterStatus?: (st: string) => void;
+  onFilterSkill?: (sk: string) => void;
 }
 
 export const StudentCardRenderer: React.FC<StudentCardRendererProps> = ({
   skinId = "classic",
   data,
-  customPrimary = "#38bdf8",
-  customSecondary = "#0f172a",
+  customPrimary = "#FF8A2B",
+  customSecondary = "#0B1F4A",
   enableTilt = true,
+  isSkeleton = false,
   onContactClick,
   onProfileClick,
+  onTriggerUnlock,
+  onFilterAngkatan,
+  onFilterStatus,
+  onFilterSkill,
 }) => {
   switch (skinId) {
-    case "bem2026":
-      return (
-        <BEM2026StudentCard
-          data={data}
-          enableTilt={enableTilt}
-          onContactClick={onContactClick}
-          onProfileClick={onProfileClick}
-        />
-      );
-
-    case "ristekA":
-    case "ristekQuantum":
-      return (
-        <RistekQuantumCard
-          data={data}
-          enableTilt={enableTilt}
-          onContactClick={onContactClick}
-          onProfileClick={onProfileClick}
-        />
-      );
-
-    case "ristekB":
-    case "ristekMecha":
-      return (
-        <RistekMechaCard
-          data={data}
-          enableTilt={enableTilt}
-          onContactClick={onContactClick}
-          onProfileClick={onProfileClick}
-        />
-      );
-
     case "custom":
       return (
-        <CustomStudentCard
+        <StandardStudentCard
           data={data}
-          primaryColor={customPrimary}
-          secondaryColor={customSecondary}
+          primaryColor={customPrimary || "#FF8A2B"}
+          secondaryColor={customSecondary || "#0B1F4A"}
           enableTilt={enableTilt}
+          isSkeleton={isSkeleton}
           onContactClick={onContactClick}
           onProfileClick={onProfileClick}
+          onTriggerUnlock={onTriggerUnlock}
+          onFilterAngkatan={onFilterAngkatan}
+          onFilterStatus={onFilterStatus}
+          onFilterSkill={onFilterSkill}
         />
       );
 
@@ -77,13 +56,19 @@ export const StudentCardRenderer: React.FC<StudentCardRendererProps> = ({
       return (
         <StandardStudentCard
           data={data}
+          primaryColor="#FF8A2B"
+          secondaryColor="#0B1F4A"
           enableTilt={enableTilt}
+          isSkeleton={isSkeleton}
           onContactClick={onContactClick}
           onProfileClick={onProfileClick}
+          onTriggerUnlock={onTriggerUnlock}
+          onFilterAngkatan={onFilterAngkatan}
+          onFilterStatus={onFilterStatus}
+          onFilterSkill={onFilterSkill}
         />
       );
   }
 };
 
 export default StudentCardRenderer;
-

@@ -2,15 +2,10 @@
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCw, Mail, ExternalLink, Check, Palette, X, User, Crown } from "lucide-react";
+import { RotateCw, Mail, ExternalLink, Check, Palette, X, User } from "lucide-react";
 import { CARD_SKINS, CardSkin, getSkinById, createCustomSkin } from "@/utils/skinConfig";
 import { PENGHARGAAN_CATALOG } from "@/data/penghargaanCatalog";
 import StudentCardRenderer from "@/components/mahasiswa/cards/StudentCardRenderer";
-import {
-  TazkiaAchievementHexBadge,
-  HardHatSvg,
-  PickaxeSvg,
-} from "@/components/penghargaan/TazkiaAchievementBadge";
 import toast from "react-hot-toast";
 
 interface SkinPreviewModalProps {
@@ -40,11 +35,11 @@ export default function SkinPreviewModal({
   onApplySkin,
   onClose,
 }: SkinPreviewModalProps) {
-  // Custom colors state for the "custom" skin option
-  const [customPrimary, setCustomPrimary] = useState<string>("#38bdf8");
-  const [customSecondary, setCustomSecondary] = useState<string>("#0b132b");
-  const [savedPrimary, setSavedPrimary] = useState<string>("#38bdf8");
-  const [savedSecondary, setSavedSecondary] = useState<string>("#0b132b");
+  // Custom colors state for the "custom" skin option (defaults to Tazkia official colors)
+  const [customPrimary, setCustomPrimary] = useState<string>("#FF8A2B");
+  const [customSecondary, setCustomSecondary] = useState<string>("#0B1F4A");
+  const [savedPrimary, setSavedPrimary] = useState<string>("#FF8A2B");
+  const [savedSecondary, setSavedSecondary] = useState<string>("#0B1F4A");
 
   // Selected skin for live preview
   const [selectedIdx, setSelectedIdx] = useState<number>(() => {
@@ -73,7 +68,7 @@ export default function SkinPreviewModal({
     if (propFeaturedBadgeIds && propFeaturedBadgeIds.length > 0) {
       return propFeaturedBadgeIds;
     }
-    return [14, 4, 9, 13, 2];
+    return [9, 4, 7, 10, 14];
   });
 
   // Sync saved skin, custom colors & featured badges from props/localStorage on mount
@@ -99,33 +94,37 @@ export default function SkinPreviewModal({
         const savedCustom = localStorage.getItem("tazkia_custom_skin_colors");
         if (savedCustom && isMounted) {
           const parsed = JSON.parse(savedCustom);
-          if (parsed.primary && parsed.secondary && isMounted) {
+          if (parsed.primary) {
             setCustomPrimary(parsed.primary);
-            setCustomSecondary(parsed.secondary);
             setSavedPrimary(parsed.primary);
+          }
+          if (parsed.secondary) {
+            setCustomSecondary(parsed.secondary);
             setSavedSecondary(parsed.secondary);
           }
         }
       } catch {
-        // ignore
+        // fallback
       }
 
       if (!propFeaturedBadgeIds || propFeaturedBadgeIds.length === 0) {
         try {
-          const savedBadges =
-            (studentId ? localStorage.getItem(`tazkia_featured_badges_${studentId}`) : null) ||
-            localStorage.getItem("tazkia_featured_badges");
+          const storageKey = studentId
+            ? `tazkia_featured_badges_${studentId}`
+            : "tazkia_featured_badges";
+          const savedBadges = localStorage.getItem(storageKey);
           if (savedBadges && isMounted) {
             const parsed = JSON.parse(savedBadges);
-            if (Array.isArray(parsed) && parsed.length > 0 && isMounted) {
+            if (Array.isArray(parsed) && parsed.length > 0) {
               setFeaturedBadgeIds(parsed.slice(0, 5));
             }
           }
         } catch {
-          // ignore
+          // fallback
         }
       }
     }
+
     return () => {
       isMounted = false;
     };
@@ -136,17 +135,6 @@ export default function SkinPreviewModal({
     rawSkin.id === "custom"
       ? createCustomSkin(customPrimary, customSecondary)
       : rawSkin;
-
-  // In preview mode, dynamically feature the exclusive limited badges if previewing limited skins
-  const previewBadgeIds = useMemo(() => {
-    if (curSkin.id === "bem2026") {
-      return [15, 14, 4, 9, 13];
-    }
-    if (curSkin.id === "ristekA" || curSkin.id === "ristekB") {
-      return [16, 15, 14, 9, 13];
-    }
-    return featuredBadgeIds;
-  }, [curSkin.id, featuredBadgeIds]);
 
   const rawAppliedSkin = CARD_SKINS[appliedIdx] || CARD_SKINS[0];
   const appliedSkin: CardSkin =
@@ -179,7 +167,9 @@ export default function SkinPreviewModal({
           );
         }
         window.dispatchEvent(new Event("tazkia_profile_skin_updated"));
-        window.dispatchEvent(new CustomEvent("tazkia_profile_skin_updated", { detail: { skinId: "custom", studentId } }));
+        window.dispatchEvent(
+          new CustomEvent("tazkia_profile_skin_updated", { detail: { skinId: "custom", studentId } })
+        );
         window.dispatchEvent(new Event("storage"));
       }
       if (onApplySkin) {
@@ -193,7 +183,9 @@ export default function SkinPreviewModal({
           localStorage.setItem(`tazkia_profile_skin_${studentId}`, skin.id);
         }
         window.dispatchEvent(new Event("tazkia_profile_skin_updated"));
-        window.dispatchEvent(new CustomEvent("tazkia_profile_skin_updated", { detail: { skinId: skin.id, studentId } }));
+        window.dispatchEvent(
+          new CustomEvent("tazkia_profile_skin_updated", { detail: { skinId: skin.id, studentId } })
+        );
         window.dispatchEvent(new Event("storage"));
       }
       if (onApplySkin) {
@@ -205,7 +197,7 @@ export default function SkinPreviewModal({
 
   return (
     <AnimatePresence>
-      {/* Outer Scrollable Overlay (using items-start with my-auto prevents flex-center clipping) */}
+      {/* Outer Scrollable Overlay */}
       <div className="fixed inset-0 z-50 overflow-y-auto p-2 sm:p-4 md:p-6 flex items-start justify-center">
         {/* Backdrop */}
         <motion.div
@@ -222,7 +214,7 @@ export default function SkinPreviewModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 15 }}
           transition={{ duration: 0.25, ease: "easeOut" }}
-          className="relative w-full max-w-[1040px] bg-card border border-border rounded-[24px] shadow-2xl z-10 flex flex-col my-auto max-h-[94vh] overflow-hidden"
+          className="relative w-full max-w-[1040px] bg-card border border-border rounded-[20px] sm:rounded-[24px] shadow-2xl z-10 flex flex-col my-auto max-h-[96vh] md:max-h-[92vh] overflow-hidden"
           style={
             {
               "--c1": curSkin.secondaryColor,
@@ -232,7 +224,6 @@ export default function SkinPreviewModal({
         >
           {/* ── Modal Head ── */}
           <div className="flex items-center gap-3 px-5 sm:px-6 py-3.5 border-b border-border shrink-0 bg-card">
-            {/* Header icon stays consistent Tazkia orange (#FF8A2B) */}
             <div className="w-[36px] h-[36px] rounded-xl flex items-center justify-center shadow-xs bg-[#FF8A2B] text-white">
               <Palette className="w-5 h-5 text-white" />
             </div>
@@ -255,21 +246,22 @@ export default function SkinPreviewModal({
             </button>
           </div>
 
-          {/* ── Modal Body: 2 Kolom (Stage Kiri, Side Kanan) dengan Scroll Terpisah ── */}
-          <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-[1.05fr_1fr] divide-y md:divide-y-0 md:divide-x divide-border overflow-hidden">
+          {/* ── Modal Body: 2 Kolom (Stage Kiri, Side Kanan) ── */}
+          <div className="flex-1 min-h-0 flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-border overflow-hidden">
             {/* ══════════════════════════════════════════════
-                KOLOM KIRI: STAGE 3D INTERAKTIF (MODULAR PER-SKIN)
+                KOLOM KIRI: STAGE 3D INTERAKTIF
             ══════════════════════════════════════════════ */}
             <div
-              className="relative px-3 sm:px-5 py-3 sm:py-4 flex flex-col items-center min-h-0 h-full overflow-y-auto transition-all duration-500"
+              className="w-full md:w-[50%] lg:w-[52%] shrink-0 h-[215px] sm:h-[260px] md:h-full overflow-y-auto relative px-2 sm:px-4 py-2 sm:py-3.5 flex flex-col items-center transition-all duration-500"
               style={{
                 background: `radial-gradient(120% 90% at 50% 0%, ${curSkin.primaryColor}22, transparent 65%), linear-gradient(180deg, ${curSkin.secondaryColor}14, var(--background))`,
               }}
             >
-              <div className="w-full flex flex-col items-center py-2">
-                <div className="w-full flex justify-center py-1 origin-top scale-[0.82] sm:scale-[0.88] md:scale-[0.92] transition-transform">
+              <div className="w-full flex flex-col items-center py-0.5 antialiased">
+                <div className="w-full flex justify-center py-0.5 [zoom:0.66] sm:[zoom:0.78] md:[zoom:0.92]">
                   <StudentCardRenderer
                     skinId={curSkin.id}
+                    isSkeleton={true}
                     data={{
                       name: studentName,
                       initials:
@@ -278,44 +270,25 @@ export default function SkinPreviewModal({
                           .map((w) => w[0])
                           .slice(0, 2)
                           .join("")
-                          .toUpperCase() || "HA",
-                      angkatan: angkatan ? `ANGKATAN ${angkatan}` : "ANGKATAN 26",
-                      statusIcon: curSkin.id === "ristekB" ? "⚡" : "🚀",
-                      status: statusBadge || (curSkin.id === "ristekB" ? "Core Architect" : "Open for Collab"),
+                          .toUpperCase() || "MH",
+                      angkatan: angkatan ? `ANGKATAN ${angkatan}` : "ANGKATAN 2",
+                      statusIcon: "🟠",
+                      status: statusBadge || "Open for Collab",
                       major: prodi || "STMIK Tazkia · Informatika",
-                      skills:
-                        curSkin.id === "bem2026"
-                          ? ["Leadership", "Manajemen Organisasi"]
-                          : curSkin.id === "ristekA"
-                          ? ["System Builder", "Web Architect"]
-                          : curSkin.id === "ristekB"
-                          ? ["Cloud & Security", "Fullstack Eng"]
-                          : ["UI/UX Design", "Frontend Dev"],
+                      skills: ["UI/UX Design", "Frontend Dev"],
                       bio:
                         bio ||
-                        (curSkin.id === "bem2026"
-                          ? "Pengurus aktif Badan Eksekutif Mahasiswa periode 2026 dengan lencana 26 emas eksklusif."
-                          : curSkin.id === "ristekA"
-                          ? "Core Builder BEM x Ristek 2026. Mengembangkan fitur interaktif dan arsitektur platform Karya Tazkia."
-                          : curSkin.id === "ristekB"
-                          ? "Lead Architect BEM x Ristek 2026 dengan skin Mecha Sapphire Ultra dan lencana 26 neon."
-                          : "Mahasiswa kreatif STMIK Tazkia yang siap berkarya & berkolaborasi."),
-                      roleTitle:
-                        curSkin.id === "bem2026"
-                          ? "Badan Eksekutif Mahasiswa 2026"
-                          : curSkin.id === "ristekA"
-                          ? "Core Builder • BEM x Ristek 2026"
-                          : curSkin.id === "ristekB"
-                          ? "Lead Architect • BEM x Ristek 2026"
-                          : "Mahasiswa Aktif STMIK Tazkia",
-                      serial: `KTZ-2026-${curSkin.id.toUpperCase()}-026`,
-                      avatarUrl: avatarUrl,
+                        "Mahasiswa kreatif STMIK Tazkia yang siap berkarya & berkolaborasi.",
+                      roleTitle: "Mahasiswa Aktif STMIK Tazkia",
+                      serial: "KTZ-2026-STD-001",
+                      featuredBadgeIds: featuredBadgeIds,
+                      avatarUrl: avatarUrl || null,
                     }}
                     customPrimary={customPrimary}
                     customSecondary={customSecondary}
                     enableTilt={true}
                     onContactClick={() => {
-                      toast.success(`Menghubungi ${studentName} (Mode Preview)`);
+                      toast.success("Mode Preview: Tombol Hubungi aktif");
                     }}
                     onProfileClick={() => {
                       toast.success("Membuka profil mahasiswa (Mode Preview)");
@@ -324,8 +297,8 @@ export default function SkinPreviewModal({
                 </div>
 
                 {/* Hint */}
-                <div className="text-[11px] text-muted-foreground z-10 text-center select-none pt-2 pb-1">
-                  Hover kursor untuk 3D tilt · Klik tombol <strong>Balik</strong> untuk melihat ID Pass
+                <div className="text-[10px] sm:text-[11px] text-muted-foreground z-10 text-center select-none mt-1 sm:mt-2 px-2 pb-1">
+                  Hover kursor untuk 3D tilt · Klik tombol <strong>Balik</strong> untuk membuka Lemari Penghargaan
                 </div>
               </div>
             </div>
@@ -333,22 +306,22 @@ export default function SkinPreviewModal({
             {/* ══════════════════════════════════════════════
                 KOLOM KANAN: KOLEKSI TEMA
             ══════════════════════════════════════════════ */}
-            <div className="p-4 sm:p-5 md:p-6 flex flex-col min-h-0 h-full overflow-hidden">
-              {/* Header: Judul, Tagline & Label Koleksi (Fixed di atas, tidak ikut scroll) */}
-              <div className="shrink-0 flex flex-col gap-2 pb-2.5 bg-card">
+            <div className="w-full md:flex-1 flex-1 min-h-0 overflow-hidden p-3 sm:p-4.5 md:p-6 flex flex-col bg-card">
+              {/* Header: Judul, Tagline, Atur Warna & Label Koleksi (DIKUNCI / SHRINK-0 - TIDAK PERNAH TENGGELAM) */}
+              <div className="shrink-0 flex flex-col gap-1.5 sm:gap-2 pb-1.5 sm:pb-2.5 bg-card">
                 {/* Meta Skin Title & Tag */}
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2.5">
                   <div className="flex-1 min-w-0">
-                    <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight truncate">
+                    <h2 className="text-base sm:text-lg md:text-xl font-bold text-foreground tracking-tight truncate">
                       {curSkin.name}
                     </h2>
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                    <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 line-clamp-1">
                       {curSkin.tagline}
                     </p>
                   </div>
 
                   <span
-                    className="shrink-0 font-bold text-[10px] px-2.5 py-1 rounded-full whitespace-nowrap"
+                    className="shrink-0 font-bold text-[9.5px] sm:text-[10px] px-2.5 py-0.5 sm:py-1 rounded-full whitespace-nowrap"
                     style={{
                       backgroundColor: `${curSkin.primaryColor}22`,
                       color: curSkin.primaryColor,
@@ -360,21 +333,21 @@ export default function SkinPreviewModal({
 
                 {/* Interactive 2-Color Customizer (Aktif jika memilih tema Custom Warna) */}
                 {curSkin.id === "custom" && (
-                  <div className="pt-1 pb-1 flex flex-col gap-2">
-                    <div className="flex items-center justify-between text-xs font-semibold text-foreground">
-                      <span className="flex items-center gap-1.5 text-[11px]">
+                  <div className="pt-0.5 pb-0.5 flex flex-col gap-1.5 sm:gap-2">
+                    <div className="flex items-center justify-between text-[11px] font-semibold text-foreground">
+                      <span className="flex items-center gap-1.5 text-[10.5px] sm:text-[11px]">
                         <Palette className="w-3.5 h-3.5 text-primary" />
                         Atur 2 Warna Kartu
                       </span>
-                      <span className="text-[10px] text-muted-foreground font-mono">
+                      <span className="text-[9.5px] sm:text-[10px] text-muted-foreground font-mono">
                         Preview Langsung
                       </span>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
                       {/* Warna 1: Aksen */}
-                      <div className="bg-muted/40 border border-border/80 rounded-xl p-2 flex items-center gap-2">
-                        <div className="relative w-7 h-7 rounded-lg overflow-hidden shrink-0 border border-border shadow-xs">
+                      <div className="bg-muted/40 border border-border/80 rounded-xl p-1.5 sm:p-2 flex items-center gap-2">
+                        <div className="relative w-6 h-6 sm:w-7 sm:h-7 rounded-lg overflow-hidden shrink-0 border border-border shadow-xs">
                           <input
                             type="color"
                             value={customPrimary}
@@ -388,18 +361,18 @@ export default function SkinPreviewModal({
                           />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <span className="text-[9.5px] text-muted-foreground block font-medium leading-none mb-1">
+                          <span className="text-[9px] sm:text-[9.5px] text-muted-foreground block font-medium leading-none mb-0.5">
                             Warna Aksen
                           </span>
-                          <span className="text-[11px] font-mono font-bold text-foreground uppercase truncate block">
+                          <span className="text-[10.5px] sm:text-[11px] font-mono font-bold text-foreground uppercase truncate block">
                             {customPrimary}
                           </span>
                         </div>
                       </div>
 
                       {/* Warna 2: Latar Header */}
-                      <div className="bg-muted/40 border border-border/80 rounded-xl p-2 flex items-center gap-2">
-                        <div className="relative w-7 h-7 rounded-lg overflow-hidden shrink-0 border border-border shadow-xs">
+                      <div className="bg-muted/40 border border-border/80 rounded-xl p-1.5 sm:p-2 flex items-center gap-2">
+                        <div className="relative w-6 h-6 sm:w-7 sm:h-7 rounded-lg overflow-hidden shrink-0 border border-border shadow-xs">
                           <input
                             type="color"
                             value={customSecondary}
@@ -413,10 +386,10 @@ export default function SkinPreviewModal({
                           />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <span className="text-[9.5px] text-muted-foreground block font-medium leading-none mb-1">
+                          <span className="text-[9px] sm:text-[9.5px] text-muted-foreground block font-medium leading-none mb-0.5">
                             Warna Latar
                           </span>
-                          <span className="text-[11px] font-mono font-bold text-foreground uppercase truncate block">
+                          <span className="text-[10.5px] sm:text-[11px] font-mono font-bold text-foreground uppercase truncate block">
                             {customSecondary}
                           </span>
                         </div>
@@ -424,11 +397,12 @@ export default function SkinPreviewModal({
                     </div>
 
                     {/* Quick Presets */}
-                    <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar text-[10px]">
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar text-[9.5px] sm:text-[10px]">
                       <span className="text-muted-foreground font-medium shrink-0">
                         Preset:
                       </span>
                       {[
+                        { name: "Tazkia Default", pri: "#FF8A2B", sec: "#0B1F4A" },
                         { name: "Neon Cyber", pri: "#00ffcc", sec: "#0a192f" },
                         { name: "Sunset Gold", pri: "#f59e0b", sec: "#26170a" },
                         { name: "Purple Neon", pri: "#c084fc", sec: "#1e1035" },
@@ -442,17 +416,13 @@ export default function SkinPreviewModal({
                             setCustomPrimary(p.pri);
                             setCustomSecondary(p.sec);
                           }}
-                          className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-md border border-border bg-card hover:bg-muted text-[10px] cursor-pointer transition-colors"
+                          className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-md border border-border bg-card hover:bg-muted text-[9.5px] sm:text-[10px] cursor-pointer transition-colors"
                         >
                           <span
                             className="w-2 h-2 rounded-full inline-block"
                             style={{ backgroundColor: p.pri }}
                           />
-                          <span
-                            className="w-2 h-2 rounded-full inline-block -ml-0.5"
-                            style={{ backgroundColor: p.sec }}
-                          />
-                          <span className="text-muted-foreground font-medium">{p.name}</span>
+                          <span>{p.name}</span>
                         </button>
                       ))}
                     </div>
@@ -460,14 +430,14 @@ export default function SkinPreviewModal({
                 )}
 
                 {/* Label Koleksi Tema */}
-                <div className="font-mono font-bold text-[10.5px] tracking-widest text-muted-foreground uppercase pt-1">
+                <div className="font-mono font-bold text-[10px] sm:text-[10.5px] tracking-widest text-muted-foreground uppercase pt-0.5">
                   Koleksi tema · {CARD_SKINS.length} pilihan
                 </div>
               </div>
 
-              {/* Grid Container: Bagian yang scrollable jika tema banyak dengan padding agar tidak mentok/terpotong */}
-              <div className="flex-1 min-h-0 overflow-y-auto pt-2.5 pb-4 px-2 -mx-2">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              {/* Grid Container (HANYA BAGIAN INI YANG SCROLL - JUDUL DI ATAS TETAP KOKOH) */}
+              <div className="flex-1 min-h-0 overflow-y-auto pt-1 pb-2 px-1 -mx-1">
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                   {CARD_SKINS.map((skin, idx) => {
                     const isSelected = selectedIdx === idx;
                     const isApplied = appliedIdx === idx;
@@ -494,10 +464,10 @@ export default function SkinPreviewModal({
                                 borderColor: displaySkin.primaryColor,
                                 boxShadow: `0 8px 18px -10px ${displaySkin.primaryColor}`,
                               }
-                            : {}
+                            : undefined
                         }
                       >
-                        {/* Checkmark badge: Selalu nempel pada tema yang sedang aktif digunakan */}
+                        {/* Checkmark badge */}
                         {isApplied && (
                           <span
                             className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full bg-emerald-500 text-white text-[9px] font-bold flex items-center gap-0.5 shadow-xs z-10 leading-none"
@@ -508,7 +478,7 @@ export default function SkinPreviewModal({
                           </span>
                         )}
 
-                        {/* Tag Preview: Muncul saat skin lain sedang di-preview tapi belum diterapkan */}
+                        {/* Tag Preview */}
                         {!isApplied && isSelected && (
                           <span
                             className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full text-white text-[9px] font-bold flex items-center gap-0.5 shadow-xs z-10 leading-none"
@@ -520,43 +490,11 @@ export default function SkinPreviewModal({
 
                         {/* Mini Card Preview */}
                         <div
-                          className="h-[64px] rounded-[10px] relative overflow-hidden transition-transform"
+                          className="h-[52px] sm:h-[60px] rounded-[10px] relative overflow-hidden transition-transform"
                           style={{
-                            background:
-                              skin.id === "bem2026"
-                                ? "linear-gradient(135deg, #071936 0%, #132a56 50%, #2e1f10 100%)"
-                                : skin.id === "ristekA"
-                                ? "linear-gradient(135deg, #020817 0%, #071e46 60%, #032e61 100%)"
-                                : skin.id === "ristekB"
-                                ? "linear-gradient(135deg, #020617 0%, #09255c 60%, #023e7d 100%)"
-                                : `linear-gradient(135deg, ${displaySkin.secondaryColor}, ${displaySkin.secondaryColor}dd)`,
+                            background: `linear-gradient(135deg, ${displaySkin.secondaryColor}, ${displaySkin.secondaryColor}dd)`,
                           }}
                         >
-                          {/* Pattern / Aksen Khusus Tema Eksklusif */}
-                          {skin.id === "bem2026" && (
-                            <>
-                              <div className="absolute -top-3 -right-3 w-10 h-10 bg-amber-500/25 rounded-full blur-xs pointer-events-none" />
-                              <span className="absolute top-1.5 right-1.5 px-1.5 py-0.2 rounded text-[7.5px] font-black bg-amber-500/30 text-amber-300 border border-amber-400/40 font-mono shadow-xs">
-                                '26
-                              </span>
-                            </>
-                          )}
-                          {skin.id === "ristekA" && (
-                            <>
-                              <div className="absolute -top-3 -right-3 w-10 h-10 bg-[#00f0ff]/25 rounded-full blur-xs pointer-events-none" />
-                              <span className="absolute top-1.5 right-1.5 px-1.5 py-0.2 rounded text-[7.5px] font-mono font-black bg-cyan-500/30 text-[#00f0ff] border border-cyan-400/50 shadow-xs">
-                                RSTK
-                              </span>
-                            </>
-                          )}
-                          {skin.id === "ristekB" && (
-                            <>
-                              <div className="absolute -top-3 -right-3 w-10 h-10 bg-blue-500/30 rounded-full blur-xs pointer-events-none" />
-                              <span className="absolute top-1.5 right-1.5 px-1.5 py-0.2 rounded text-[7.5px] font-mono font-black bg-sky-500/30 text-sky-200 border border-sky-400/50 shadow-xs">
-                                MECHA
-                              </span>
-                            </>
-                          )}
                           {skin.id === "custom" && (
                             <span className="absolute top-1.5 right-1.5 px-1.5 py-0.2 rounded text-[7.5px] font-mono font-bold bg-white/15 text-white border border-white/20">
                               CUSTOM
@@ -567,14 +505,7 @@ export default function SkinPreviewModal({
                           <div
                             className="absolute left-0 right-0 bottom-0 h-[3px]"
                             style={{
-                              background:
-                                skin.id === "bem2026"
-                                  ? "linear-gradient(90deg, #f59e0b, #f97316)"
-                                  : skin.id === "ristekA"
-                                  ? "linear-gradient(90deg, #00f0ff, #3b82f6, #f97316)"
-                                  : skin.id === "ristekB"
-                                  ? "linear-gradient(90deg, #38bdf8, #00f0ff, #f97316)"
-                                  : displaySkin.primaryColor,
+                              background: displaySkin.primaryColor,
                             }}
                           />
                           {/* Mini avatar ring */}
@@ -603,7 +534,7 @@ export default function SkinPreviewModal({
           </div>
 
           {/* ── Modal Foot ── */}
-          <div className="flex items-center gap-2.5 px-5 sm:px-6 py-3 border-t border-border shrink-0 bg-card">
+          <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 px-4 sm:px-6 py-3 border-t border-border shrink-0 bg-card">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <i
                 className="w-[8px] h-[8px] rounded-full block"
@@ -614,36 +545,37 @@ export default function SkinPreviewModal({
               </span>
             </div>
 
-            <div className="flex-1" />
+            <div className="flex-1 hidden sm:block" />
 
-            <button
-              type="button"
-              onClick={onClose}
-              className="border border-border bg-muted hover:bg-muted/80 text-foreground font-semibold text-xs px-4 py-2 rounded-xl cursor-pointer transition-colors"
-            >
-              Tutup
-            </button>
+            <div className="flex items-center gap-2 shrink-0 ml-auto">
+              <button
+                type="button"
+                onClick={onClose}
+                className="border border-border bg-muted hover:bg-muted/80 text-foreground font-semibold text-xs px-4 py-2 rounded-xl cursor-pointer transition-colors"
+              >
+                Tutup
+              </button>
 
-            {/* Tombol Terapkan Tema: Selalu konsisten menggunakan warna oranye Tazkia (#FF8A2B), tidak berubah warna mengikuti preview skin */}
-            <button
-              type="button"
-              onClick={handleApply}
-              disabled={isSame}
-              className={`font-bold text-xs px-4.5 py-2 rounded-xl cursor-pointer transition-all inline-flex items-center gap-1.5 ${
-                isSame
-                  ? "opacity-55 cursor-default bg-muted text-muted-foreground border border-border"
-                  : "bg-[#FF8A2B] hover:bg-[#ea7920] text-white shadow-xs hover:brightness-105 active:scale-95"
-              }`}
-            >
-              {isSame ? (
-                <>
-                  <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>Sedang digunakan</span>
-                </>
-              ) : (
-                "Terapkan tema"
-              )}
-            </button>
+              <button
+                type="button"
+                onClick={handleApply}
+                disabled={isSame}
+                className={`font-bold text-xs px-4.5 py-2 rounded-xl cursor-pointer transition-all inline-flex items-center gap-1.5 ${
+                  isSame
+                    ? "opacity-55 cursor-default bg-muted text-muted-foreground border border-border"
+                    : "bg-[#FF8A2B] hover:bg-[#ea7920] text-white shadow-xs hover:brightness-105 active:scale-95"
+                }`}
+              >
+                {isSame ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>Sedang digunakan</span>
+                  </>
+                ) : (
+                  "Terapkan tema"
+                )}
+              </button>
+            </div>
           </div>
         </motion.div>
       </div>

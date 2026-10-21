@@ -163,28 +163,31 @@ export function Navbar() {
 
             {/* Auth section */}
             {user ? (
-              <div className="hidden sm:block relative" ref={dropdownRef}>
+              <div className="relative" ref={dropdownRef}>
                 <button
+                  type="button"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-border bg-card text-xs font-medium hover:bg-muted hover:border-primary/40 transition-all duration-200 shadow-2xs cursor-pointer"
+                  className="flex items-center gap-1.5 sm:gap-2 p-1 sm:px-3 sm:py-1.5 rounded-xl border border-border bg-card text-xs font-medium hover:bg-muted hover:border-primary/40 transition-all duration-200 shadow-2xs cursor-pointer"
+                  title="Menu Akun & Dashboard"
+                  aria-label="Menu Akun"
                 >
                   {avatarUrl && !avatarError ? (
                     <img
                       src={avatarUrl}
                       alt={displayName}
-                      className="w-5 h-5 rounded-md object-cover"
+                      className="w-7 h-7 sm:w-5 sm:h-5 rounded-lg sm:rounded-md object-cover"
                       onError={() => setAvatarError(true)}
                     />
                   ) : (
-                    <div className="w-5 h-5 rounded-md bg-primary text-white flex items-center justify-center text-[10px] font-bold">
+                    <div className="w-7 h-7 sm:w-5 sm:h-5 rounded-lg sm:rounded-md bg-[#FF8A2B] text-white flex items-center justify-center text-[11px] sm:text-[10px] font-bold">
                       {avatarLetter}
                     </div>
                   )}
-                  <span className="max-w-[100px] truncate text-foreground font-semibold">
+                  <span className="hidden sm:inline max-w-[100px] truncate text-foreground font-semibold">
                     {displayName}
                   </span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 text-muted-foreground transition-transform duration-200 ${
+                    className={`hidden sm:inline w-3.5 h-3.5 text-muted-foreground transition-transform duration-200 ${
                       isDropdownOpen ? "rotate-180" : ""
                     }`}
                   />
@@ -192,7 +195,7 @@ export function Navbar() {
 
                 {/* Dropdown */}
                 {isDropdownOpen && (
-                  <div className="absolute right-0 top-[calc(100%+8px)] w-56 bg-card border border-border rounded-2xl shadow-xl overflow-hidden z-50">
+                  <div className="absolute right-0 top-[calc(100%+8px)] w-56 sm:w-60 bg-card border border-border rounded-2xl shadow-xl overflow-hidden z-50">
                     <div className="px-4 py-3 border-b border-border bg-muted/40">
                       <p className="text-[10px] font-mono font-semibold text-muted-foreground uppercase tracking-wider">
                         {isAdmin ? "AKUN ADMIN" : "MASUK SEBAGAI"}
@@ -203,14 +206,24 @@ export function Navbar() {
                     </div>
                     <div className="p-1.5 flex flex-col gap-0.5">
                       {isAdmin ? (
-                        <Link
-                          href="/admin/karya"
-                          onClick={() => setIsDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-muted font-medium text-xs text-foreground transition-colors"
-                        >
-                          <Shield className="w-4 h-4 text-violet-500" />
-                          <span>Kelola Karya Admin</span>
-                        </Link>
+                        <>
+                          <Link
+                            href="/admin/karya"
+                            onClick={() => setIsDropdownOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-muted font-medium text-xs text-foreground transition-colors"
+                          >
+                            <Shield className="w-4 h-4 text-violet-500" />
+                            <span>Kelola Karya Admin</span>
+                          </Link>
+                          <Link
+                            href="/dashboard"
+                            onClick={() => setIsDropdownOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-muted font-medium text-xs text-foreground transition-colors"
+                          >
+                            <User className="w-4 h-4 text-primary" />
+                            <span>Dashboard Mahasiswa</span>
+                          </Link>
+                        </>
                       ) : (
                         <>
                           <Link
@@ -220,6 +233,14 @@ export function Navbar() {
                           >
                             <User className="w-4 h-4 text-primary" />
                             <span>Dashboard Mahasiswa</span>
+                          </Link>
+                          <Link
+                            href="/dashboard/profile"
+                            onClick={() => setIsDropdownOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-muted font-medium text-xs text-foreground transition-colors"
+                          >
+                            <User className="w-4 h-4 text-[#FF8A2B]" />
+                            <span>Profil &amp; Skin Kartu</span>
                           </Link>
                           <Link
                             href="/submit"

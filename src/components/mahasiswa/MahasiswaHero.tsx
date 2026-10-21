@@ -49,25 +49,25 @@ export default function MahasiswaHero({
       id="atas"
       className="w-full bg-white dark:bg-[#0B1F4A] border-b border-border dark:border-[#1E3E82] text-foreground transition-colors"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16 pb-10 sm:pb-12 flex flex-col md:flex-row md:items-end justify-between gap-8 sm:gap-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-16 pb-8 sm:pb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 sm:gap-12">
         {/* Left Column: Heading & Description */}
         <div className="max-w-2xl">
-          <div className="font-mono text-xs sm:text-sm font-bold text-[#FF8A2B] tracking-wider uppercase mb-3">
+          <div className="font-mono text-xs sm:text-sm font-bold text-[#FF8A2B] tracking-wider uppercase mb-2 sm:mb-3">
             DIREKTORI MAHASISWA &amp; TALENTA DIGITAL
           </div>
-          <h1 className="font-heading font-extrabold text-3xl sm:text-5xl lg:text-6xl tracking-tight leading-[1.05] text-[#0B1F4A] dark:text-white mb-4">
+          <h1 className="font-heading font-extrabold text-3xl sm:text-5xl lg:text-6xl tracking-tight leading-[1.05] text-[#0B1F4A] dark:text-white mb-3 sm:mb-4">
             Temukan talenta{" "}
             <span className="text-[#FF8A2B]">STMIK Tazkia</span>
           </h1>
-          <p className="text-base sm:text-lg text-[#5B6B8C] dark:text-[#C3CDE6] leading-relaxed max-w-xl">
+          <p className="text-sm sm:text-lg text-[#5B6B8C] dark:text-[#C3CDE6] leading-relaxed max-w-xl">
             Profil mahasiswa kreatif, inovator muda, dan portofolio karya nyata mereka lintas angkatan dan program studi.
           </p>
         </div>
 
         {/* Right Column: Big Numerical Stats */}
-        <div className="flex items-center gap-8 sm:gap-12 shrink-0">
+        <div className="flex items-center gap-6 sm:gap-10 md:gap-12 shrink-0">
           <div>
-            <div className="font-heading font-extrabold text-4xl sm:text-5xl text-[#0B1F4A] dark:text-white leading-none">
+            <div className="font-heading font-extrabold text-3xl sm:text-5xl text-[#0B1F4A] dark:text-white leading-none">
               {totalMahasiswa}
             </div>
             <div className="text-xs sm:text-sm text-[#5B6B8C] dark:text-[#C3CDE6] mt-1.5 font-medium">
@@ -76,7 +76,7 @@ export default function MahasiswaHero({
           </div>
 
           <div>
-            <div className="font-heading font-extrabold text-4xl sm:text-5xl text-[#FF8A2B] leading-none">
+            <div className="font-heading font-extrabold text-3xl sm:text-5xl text-[#FF8A2B] leading-none">
               {totalProjects}
             </div>
             <div className="text-xs sm:text-sm text-[#5B6B8C] dark:text-[#C3CDE6] mt-1.5 font-medium">
@@ -85,7 +85,7 @@ export default function MahasiswaHero({
           </div>
 
           <div>
-            <div className="font-heading font-extrabold text-4xl sm:text-5xl text-[#0B1F4A] dark:text-white leading-none">
+            <div className="font-heading font-extrabold text-3xl sm:text-5xl text-[#0B1F4A] dark:text-white leading-none">
               {availableAngkatan.length || 3}
             </div>
             <div className="text-xs sm:text-sm text-[#5B6B8C] dark:text-[#C3CDE6] mt-1.5 font-medium">
@@ -96,7 +96,7 @@ export default function MahasiswaHero({
       </div>
 
       {/* Search Input & 3 Rows of Filter Chips */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 sm:pb-14">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 sm:pb-14">
         {/* 58px Pill Search Input */}
         <div className="relative max-w-3xl">
           <label htmlFor="cari-mhs" className="sr-only">
@@ -109,7 +109,7 @@ export default function MahasiswaHero({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari nama mahasiswa, keahlian, atau karya..."
-            className="w-full h-[54px] sm:h-[58px] rounded-full border border-border dark:border-[#1E3E82] bg-[#F4F6FB] dark:bg-[#122A5E] pl-13 pr-12 text-sm sm:text-base text-[#0B1F4A] dark:text-white placeholder:text-[#8D9BB8] dark:placeholder:text-[#88A2D3] focus:outline-none focus:ring-2 focus:ring-[#FF8A2B]/40 focus:border-[#FF8A2B] shadow-2xs transition-all"
+            className="w-full h-[50px] sm:h-[58px] rounded-full border border-border dark:border-[#1E3E82] bg-[#F4F6FB] dark:bg-[#122A5E] pl-13 pr-12 text-sm sm:text-base text-[#0B1F4A] dark:text-white placeholder:text-[#8D9BB8] dark:placeholder:text-[#88A2D3] focus:outline-none focus:ring-2 focus:ring-[#FF8A2B]/40 focus:border-[#FF8A2B] shadow-2xs transition-all"
           />
           {searchQuery && (
             <button
@@ -123,125 +123,131 @@ export default function MahasiswaHero({
         </div>
 
         {/* 3 Rows of Chips: ANGKATAN, PRODI, STATUS */}
-        <div className="flex flex-col gap-3.5 mt-7 max-w-4xl">
+        <div className="flex flex-col gap-3.5 sm:gap-4 mt-5 sm:mt-7 max-w-4xl">
           {/* Row 1: ANGKATAN */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="w-20 font-mono text-xs font-bold text-[#5B6B8C] dark:text-[#A9B8DA] tracking-wider shrink-0">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+            <span className="w-20 font-mono text-[11px] sm:text-xs font-bold text-[#5B6B8C] dark:text-[#A9B8DA] tracking-wider uppercase shrink-0">
               ANGKATAN
             </span>
-            <button
-              type="button"
-              onClick={() => setSelectedAngkatan(null)}
-              className={`g-chip min-h-[38px] px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                selectedAngkatan === null
-                  ? "bg-[#FF8A2B] text-[#1A0F05] border border-[#FF8A2B] font-bold shadow-xs"
-                  : "bg-[#F4F6FB] dark:bg-[#122A5E] border border-border dark:border-[#1E3E82] text-[#0B1F4A] dark:text-white hover:border-[#FF8A2B]/60 hover:bg-[#FFE9D6]/30"
-              }`}
-            >
-              Semua
-            </button>
-            {angkatanOptions.length > 0
-              ? angkatanOptions.map((opt) => {
-                  const yearNum = Number(opt.value);
-                  const isSelected = selectedAngkatan === yearNum;
-                  return (
-                    <button
-                      type="button"
-                      key={opt.value}
-                      onClick={() =>
-                        setSelectedAngkatan(isNaN(yearNum) ? null : yearNum)
-                      }
-                      className={`g-chip min-h-[38px] px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                        isSelected
-                          ? "bg-[#FF8A2B] text-[#1A0F05] border border-[#FF8A2B] font-bold shadow-xs"
-                          : "bg-[#F4F6FB] dark:bg-[#122A5E] border border-border dark:border-[#1E3E82] text-[#0B1F4A] dark:text-white hover:border-[#FF8A2B]/60 hover:bg-[#FFE9D6]/30"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })
-              : availableAngkatan.map((year) => (
-                  <button
-                    type="button"
-                    key={year}
-                    onClick={() => setSelectedAngkatan(year)}
-                    className={`g-chip min-h-[38px] px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                      selectedAngkatan === year
-                        ? "bg-[#FF8A2B] text-[#1A0F05] border border-[#FF8A2B] font-bold shadow-xs"
-                        : "bg-[#F4F6FB] dark:bg-[#122A5E] border border-border dark:border-[#1E3E82] text-[#0B1F4A] dark:text-white hover:border-[#FF8A2B]/60 hover:bg-[#FFE9D6]/30"
-                    }`}
-                  >
-                    Angkatan {year}
-                  </button>
-                ))}
-          </div>
-
-          {/* Row 2: PRODI */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="w-20 font-mono text-xs font-bold text-[#5B6B8C] dark:text-[#A9B8DA] tracking-wider shrink-0">
-              PRODI
-            </span>
-            <button
-              type="button"
-              onClick={() => setSelectedProdi(ALL_PRODI_VALUE)}
-              className={`g-chip min-h-[38px] px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                selectedProdi === ALL_PRODI_VALUE
-                  ? "bg-[#FF8A2B] text-[#1A0F05] border border-[#FF8A2B] font-bold shadow-xs"
-                  : "bg-[#F4F6FB] dark:bg-[#122A5E] border border-border dark:border-[#1E3E82] text-[#0B1F4A] dark:text-white hover:border-[#FF8A2B]/60 hover:bg-[#FFE9D6]/30"
-              }`}
-            >
-              Semua prodi
-            </button>
-            {finalProdiList
-              .filter((p) => p.value !== ALL_PRODI_VALUE)
-              .map((opt) => (
-                <button
-                  type="button"
-                  key={opt.value}
-                  onClick={() => setSelectedProdi(opt.value)}
-                  className={`g-chip min-h-[38px] px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                    selectedProdi === opt.value
-                      ? "bg-[#FF8A2B] text-[#1A0F05] border border-[#FF8A2B] font-bold shadow-xs"
-                      : "bg-[#F4F6FB] dark:bg-[#122A5E] border border-border dark:border-[#1E3E82] text-[#0B1F4A] dark:text-white hover:border-[#FF8A2B]/60 hover:bg-[#FFE9D6]/30"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-          </div>
-
-          {/* Row 3: STATUS */}
-          {setSelectedStatus && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="w-20 font-mono text-xs font-bold text-[#5B6B8C] dark:text-[#A9B8DA] tracking-wider shrink-0">
-                STATUS
-              </span>
               <button
                 type="button"
-                onClick={() => setSelectedStatus("ALL")}
-                className={`g-chip min-h-[38px] px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                  selectedStatus === "ALL"
+                onClick={() => setSelectedAngkatan(null)}
+                className={`g-chip min-h-[34px] sm:min-h-[36px] px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                  selectedAngkatan === null
                     ? "bg-[#FF8A2B] text-[#1A0F05] border border-[#FF8A2B] font-bold shadow-xs"
                     : "bg-[#F4F6FB] dark:bg-[#122A5E] border border-border dark:border-[#1E3E82] text-[#0B1F4A] dark:text-white hover:border-[#FF8A2B]/60 hover:bg-[#FFE9D6]/30"
                 }`}
               >
                 Semua
               </button>
-              {STATUS_FILTER_OPTIONS.map((st) => (
+              {angkatanOptions.length > 0
+                ? angkatanOptions.map((opt) => {
+                    const yearNum = Number(opt.value);
+                    const isSelected = selectedAngkatan === yearNum;
+                    return (
+                      <button
+                        type="button"
+                        key={opt.value}
+                        onClick={() =>
+                          setSelectedAngkatan(isNaN(yearNum) ? null : yearNum)
+                        }
+                        className={`g-chip min-h-[34px] sm:min-h-[36px] px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-[#FF8A2B] text-[#1A0F05] border border-[#FF8A2B] font-bold shadow-xs"
+                            : "bg-[#F4F6FB] dark:bg-[#122A5E] border border-border dark:border-[#1E3E82] text-[#0B1F4A] dark:text-white hover:border-[#FF8A2B]/60 hover:bg-[#FFE9D6]/30"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })
+                : availableAngkatan.map((year) => (
+                    <button
+                      type="button"
+                      key={year}
+                      onClick={() => setSelectedAngkatan(year)}
+                      className={`g-chip min-h-[34px] sm:min-h-[36px] px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                        selectedAngkatan === year
+                          ? "bg-[#FF8A2B] text-[#1A0F05] border border-[#FF8A2B] font-bold shadow-xs"
+                          : "bg-[#F4F6FB] dark:bg-[#122A5E] border border-border dark:border-[#1E3E82] text-[#0B1F4A] dark:text-white hover:border-[#FF8A2B]/60 hover:bg-[#FFE9D6]/30"
+                      }`}
+                    >
+                      Angkatan {year}
+                    </button>
+                  ))}
+            </div>
+          </div>
+
+          {/* Row 2: PRODI */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+            <span className="w-20 font-mono text-[11px] sm:text-xs font-bold text-[#5B6B8C] dark:text-[#A9B8DA] tracking-wider uppercase shrink-0">
+              PRODI
+            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setSelectedProdi(ALL_PRODI_VALUE)}
+                className={`g-chip min-h-[34px] sm:min-h-[36px] px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                  selectedProdi === ALL_PRODI_VALUE
+                    ? "bg-[#FF8A2B] text-[#1A0F05] border border-[#FF8A2B] font-bold shadow-xs"
+                    : "bg-[#F4F6FB] dark:bg-[#122A5E] border border-border dark:border-[#1E3E82] text-[#0B1F4A] dark:text-white hover:border-[#FF8A2B]/60 hover:bg-[#FFE9D6]/30"
+                }`}
+              >
+                Semua prodi
+              </button>
+              {finalProdiList
+                .filter((p) => p.value !== ALL_PRODI_VALUE)
+                .map((opt) => (
+                  <button
+                    type="button"
+                    key={opt.value}
+                    onClick={() => setSelectedProdi(opt.value)}
+                    className={`g-chip min-h-[34px] sm:min-h-[36px] px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                      selectedProdi === opt.value
+                        ? "bg-[#FF8A2B] text-[#1A0F05] border border-[#FF8A2B] font-bold shadow-xs"
+                        : "bg-[#F4F6FB] dark:bg-[#122A5E] border border-border dark:border-[#1E3E82] text-[#0B1F4A] dark:text-white hover:border-[#FF8A2B]/60 hover:bg-[#FFE9D6]/30"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+            </div>
+          </div>
+
+          {/* Row 3: STATUS */}
+          {setSelectedStatus && (
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+              <span className="w-20 font-mono text-[11px] sm:text-xs font-bold text-[#5B6B8C] dark:text-[#A9B8DA] tracking-wider uppercase shrink-0">
+                STATUS
+              </span>
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  key={st}
-                  onClick={() => setSelectedStatus(st)}
-                  className={`g-chip min-h-[38px] px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                    selectedStatus === st
+                  onClick={() => setSelectedStatus("ALL")}
+                  className={`g-chip min-h-[34px] sm:min-h-[36px] px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                    selectedStatus === "ALL"
                       ? "bg-[#FF8A2B] text-[#1A0F05] border border-[#FF8A2B] font-bold shadow-xs"
                       : "bg-[#F4F6FB] dark:bg-[#122A5E] border border-border dark:border-[#1E3E82] text-[#0B1F4A] dark:text-white hover:border-[#FF8A2B]/60 hover:bg-[#FFE9D6]/30"
                   }`}
                 >
-                  {st}
+                  Semua
                 </button>
-              ))}
+                {STATUS_FILTER_OPTIONS.map((st) => (
+                  <button
+                    type="button"
+                    key={st}
+                    onClick={() => setSelectedStatus(st)}
+                    className={`g-chip min-h-[34px] sm:min-h-[36px] px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                      selectedStatus === st
+                        ? "bg-[#FF8A2B] text-[#1A0F05] border border-[#FF8A2B] font-bold shadow-xs"
+                        : "bg-[#F4F6FB] dark:bg-[#122A5E] border border-border dark:border-[#1E3E82] text-[#0B1F4A] dark:text-white hover:border-[#FF8A2B]/60 hover:bg-[#FFE9D6]/30"
+                    }`}
+                  >
+                    {st}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>
