@@ -703,7 +703,18 @@ export default function ProjectDetailPage({
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-foreground truncate group-hover:text-primary transition-colors duration-200">{member.name}</p>
+                        <div className="flex items-center justify-between gap-1">
+                          <p className="font-semibold text-sm text-foreground truncate group-hover:text-primary transition-colors duration-200">{member.name}</p>
+                          {(member as any).status === "pending" ? (
+                            <span className="text-[9px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/25 px-1.5 py-0.5 rounded-full shrink-0">
+                              ⏳ Pending
+                            </span>
+                          ) : (member as any).status === "rejected" ? (
+                            <span className="text-[9px] font-semibold text-rose-500 bg-rose-500/10 border border-rose-500/25 px-1.5 py-0.5 rounded-full shrink-0">
+                              ✕ Ditolak
+                            </span>
+                          ) : null}
+                        </div>
                         <p className="text-[11px] text-muted-foreground">{member.role || "Project Lead"}</p>
                       </div>
                     </div>

@@ -32,7 +32,8 @@ export function isStudentKarya(
   if (studentUserId && k.user_id === studentUserId) return true;
   if (studentId && k.user_id === studentId) return true;
   if (k.team && Array.isArray(k.team)) {
-    return k.team.some((tm) => {
+    return k.team.some((tm: any) => {
+      if (tm.status === "rejected") return false;
       if (studentUserId && tm.user_id === studentUserId) return true;
       if (studentId && tm.user_id === studentId) return true;
       if (tm.name && tm.name.toLowerCase() === studentName.toLowerCase()) return true;
@@ -118,7 +119,9 @@ export function getStudentBadges(m: MahasiswaProfile, allKarya: Karya[] = []): S
 
 // Adapter: convert MahasiswaProfile (Supabase) → Student (local type for UI components)
 function toStudent(m: MahasiswaProfile, allKarya: Karya[] = []): Student {
-  const validSkills = (m.skills ?? []).filter((s) => Boolean(s) && PREDEFINED_SKILLS.includes(s));
+  const validSkills = Array.isArray(m.skills)
+    ? m.skills.filter((s) => Boolean(s && typeof s === "string" && s.trim()))
+    : [];
   return {
     id: m.id,
     name: m.full_name,
@@ -128,6 +131,7 @@ function toStudent(m: MahasiswaProfile, allKarya: Karya[] = []): Student {
     avatarUrl: m.avatar_url ?? "",
     coverUrl: m.cover_url ?? undefined,
     statusBadge: normalizeStatusBadge(m.status_badge),
+    rawStatusBadge: m.status_badge ?? undefined,
     skills: validSkills,
     contactEmail: (m as any).contact_email || m.email || "",
     socials: {

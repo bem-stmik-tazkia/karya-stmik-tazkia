@@ -2,6 +2,8 @@
 
 import React from "react";
 import StandardStudentCard, { StudentCardData } from "./umum/StandardStudentCard";
+import { getSkinDefinition, createCustomSkinDefinition } from "./skins";
+import type { SkinDefinition } from "./skins";
 
 export interface StudentCardRendererProps {
   skinId?: string;
@@ -32,43 +34,53 @@ export const StudentCardRenderer: React.FC<StudentCardRendererProps> = ({
   onFilterStatus,
   onFilterSkill,
 }) => {
-  switch (skinId) {
-    case "custom":
-      return (
-        <StandardStudentCard
-          data={data}
-          primaryColor={customPrimary || "#FF8A2B"}
-          secondaryColor={customSecondary || "#0B1F4A"}
-          enableTilt={enableTilt}
-          isSkeleton={isSkeleton}
-          onContactClick={onContactClick}
-          onProfileClick={onProfileClick}
-          onTriggerUnlock={onTriggerUnlock}
-          onFilterAngkatan={onFilterAngkatan}
-          onFilterStatus={onFilterStatus}
-          onFilterSkill={onFilterSkill}
-        />
-      );
+  // ─── Resolve skin dari registry ──────────────────
+  let skin: SkinDefinition;
 
-    case "standard":
-    case "classic":
-    default:
-      return (
-        <StandardStudentCard
-          data={data}
-          primaryColor="#FF8A2B"
-          secondaryColor="#0B1F4A"
-          enableTilt={enableTilt}
-          isSkeleton={isSkeleton}
-          onContactClick={onContactClick}
-          onProfileClick={onProfileClick}
-          onTriggerUnlock={onTriggerUnlock}
-          onFilterAngkatan={onFilterAngkatan}
-          onFilterStatus={onFilterStatus}
-          onFilterSkill={onFilterSkill}
-        />
-      );
+  if (skinId === "custom") {
+    // Skin custom: gunakan warna pilihan user
+    skin = createCustomSkinDefinition(customPrimary, customSecondary);
+  } else {
+    // Skin lainnya: lookup dari registry
+    skin = getSkinDefinition(skinId);
   }
+
+  // ─── Shared props untuk kartu ────────────────────
+  const sharedProps = {
+    data,
+    enableTilt,
+    isSkeleton,
+    onContactClick,
+    onProfileClick,
+    onTriggerUnlock,
+    onFilterAngkatan,
+    onFilterStatus,
+    onFilterSkill,
+  };
+
+  // ─── Render ──────────────────────────────────────
+
+  // Jika skin punya CardComponent khusus (untuk skin eksklusif),
+  // render komponen tersebut langsung
+  if (skin.CardComponent) {
+    const ExclusiveCard = skin.CardComponent;
+    return (
+      <ExclusiveCard
+        {...sharedProps}
+        primaryColor={skin.primaryColor}
+        secondaryColor={skin.secondaryColor}
+      />
+    );
+  }
+
+  // Skin standar: pakai StudentCardBase (StandardStudentCard) + warna dari skin
+  return (
+    <StandardStudentCard
+      {...sharedProps}
+      primaryColor={skin.primaryColor}
+      secondaryColor={skin.secondaryColor}
+    />
+  );
 };
 
 export default StudentCardRenderer;

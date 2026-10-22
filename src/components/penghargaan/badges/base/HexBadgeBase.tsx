@@ -257,7 +257,7 @@ export const HexBadgeBase: React.FC<HexBadgeBaseProps> = ({
       {/* Sleek & Compact Info Box on Hover (Pemberitahuan Ringkas Detail Badge) */}
       {showTooltip && badge && (size === "xs" || size === "sm") && (
         <div
-          className={`pointer-events-none absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-all duration-200 z-[80] w-52 sm:w-56 max-w-[240px] p-2.5 rounded-lg bg-slate-950/95 text-white shadow-[0_8px_24px_rgba(0,0,0,0.6)] border border-slate-700/80 backdrop-blur-md text-left select-none ${
+          className={`pointer-events-none absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-all duration-200 z-[80] w-48 sm:w-52 max-w-[calc(100vw-32px)] p-2.5 rounded-lg bg-slate-950/95 text-white shadow-[0_8px_24px_rgba(0,0,0,0.6)] border border-slate-700/80 backdrop-blur-md text-left select-none ${
             tooltipAlign === "left"
               ? "left-0 translate-x-0"
               : tooltipAlign === "right"

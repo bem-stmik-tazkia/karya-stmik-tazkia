@@ -40,6 +40,7 @@ import { getTechTagColor } from "@/utils/techTagColor";
 import {
   PENGHARGAAN_CATALOG,
   calculateStudentEarnedBadges,
+  getBadgeMissionProgress,
   type PenghargaanBadge,
 } from "@/data/penghargaanCatalog";
 import { TazkiaAchievementHexBadge } from "@/components/penghargaan/TazkiaAchievementBadge";
@@ -158,13 +159,69 @@ export default function StudentClient({ params }: { params: Promise<{ id: string
   // Badges & Achievements
   const studentSkills = useMemo(() => {
     return Array.from(new Set(mahasiswa?.skills || [])).filter(
-      (s) => Boolean(s) && PREDEFINED_SKILLS.includes(s)
+      (s) => Boolean(s && typeof s === "string" && s.trim())
     );
   }, [mahasiswa?.skills]);
 
-  const studentBadgeIds = useMemo(() => {
-    return PENGHARGAAN_CATALOG.map((b) => b.id);
+  // Top 3 Karya Pilihan Kurator Kampus (Podium Beranda / Explore)
+  const [topCuratorProjectIds, setTopCuratorProjectIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    async function loadCuratorTop() {
+      try {
+        const { data } = await supabase
+          .from("karya")
+          .select("id, likes, views")
+          .eq("status", "approved");
+        if (data && data.length > 0) {
+          const top3 = [...data]
+            .sort((a, b) => {
+              const scoreA = (a.likes || 0) * 3 + (a.views || 0);
+              const scoreB = (b.likes || 0) * 3 + (b.views || 0);
+              return scoreB - scoreA;
+            })
+            .slice(0, 3)
+            .map((k) => k.id);
+          setTopCuratorProjectIds(top3);
+        }
+      } catch (e) {
+        console.error("Gagal memuat top kurator karya:", e);
+      }
+    }
+    loadCuratorTop();
   }, []);
+
+  const evaluatedProjects = useMemo(() => {
+    return (projects || []).map((p: any) => {
+      const isTopCurator =
+        topCuratorProjectIds.includes(p.id) ||
+        Boolean(p.is_featured || p.is_curator_spotlight);
+      const liveDemoUrl = p.live_url || p.demo_url || (p as any).liveUrl || (p as any).demoUrl || "";
+      return {
+        ...p,
+        likes: p.likes ?? p.likes_count ?? 0,
+        views: p.views ?? p.views_count ?? 0,
+        live_url: liveDemoUrl,
+        demo_url: liveDemoUrl,
+        is_featured: isTopCurator,
+        is_curator_spotlight: isTopCurator,
+      };
+    });
+  }, [projects, topCuratorProjectIds]);
+
+  const studentUserId = mahasiswa?.user_id || mahasiswa?.id;
+  const studentBadgeIds = useMemo(() => {
+    return calculateStudentEarnedBadges({
+      userId: studentUserId,
+      projects: evaluatedProjects,
+      angkatan: mahasiswa?.angkatan,
+      skills: mahasiswa?.skills,
+      bio: mahasiswa?.bio,
+      statusBadge: mahasiswa?.status_badge,
+      cardSkin: activeSkinId,
+      unlockedBadgeIds: (mahasiswa as any)?.unlockedBadgeIds || (mahasiswa as any)?.unlocked_badge_ids,
+    });
+  }, [studentUserId, evaluatedProjects, mahasiswa?.angkatan, mahasiswa?.skills, mahasiswa?.bio, mahasiswa?.status_badge, activeSkinId, (mahasiswa as any)?.unlockedBadgeIds, (mahasiswa as any)?.unlocked_badge_ids]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -210,6 +267,59 @@ export default function StudentClient({ params }: { params: Promise<{ id: string
   }, [resolvedParams.id, user]);
 
   const isOwnProfile = user?.id === mahasiswa?.user_id;
+
+  // Notifikasi Penghargaan Baru Terbuka untuk Profil Pribadi (Seen / Unread tracking)
+  const [seenBadgeIds, setSeenBadgeIds] = useState<number[]>([]);
+  const [hasLoadedSeenBadges, setHasLoadedSeenBadges] = useState(false);
+
+  const seenKey = useMemo(() => {
+    return `tazkia_seen_badges_${mahasiswa?.user_id || mahasiswa?.id || user?.id || "default"}`;
+  }, [mahasiswa?.user_id, mahasiswa?.id, user?.id]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem(seenKey);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            setSeenBadgeIds(parsed);
+          }
+        }
+      } catch {
+        // ignore
+      }
+      setHasLoadedSeenBadges(true);
+    }
+  }, [seenKey]);
+
+  // Penghargaan yang baru terbuka (belum dilihat pengguna di profil pribadinya)
+  const newlyUnlockedBadgeIds = useMemo(() => {
+    if (!isOwnProfile || !hasLoadedSeenBadges) return [];
+    return studentBadgeIds.filter((id: number) => !seenBadgeIds.includes(id));
+  }, [isOwnProfile, hasLoadedSeenBadges, studentBadgeIds, seenBadgeIds]);
+
+  const markBadgeAsSeen = (badgeId: number) => {
+    if (!seenBadgeIds.includes(badgeId)) {
+      const next = [...seenBadgeIds, badgeId];
+      setSeenBadgeIds(next);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(seenKey, JSON.stringify(next));
+        } catch {}
+      }
+    }
+  };
+
+  const markAllAsSeen = () => {
+    const next = Array.from(new Set([...seenBadgeIds, ...studentBadgeIds]));
+    setSeenBadgeIds(next);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(seenKey, JSON.stringify(next));
+      } catch {}
+    }
+  };
 
   if (loading) {
     return (
@@ -260,9 +370,6 @@ export default function StudentClient({ params }: { params: Promise<{ id: string
               <div className="absolute inset-0 opacity-30 bg-[radial-gradient(#f59e0b_1.2px,transparent_1.2px)] [background-size:14px_14px] animate-pulse pointer-events-none" />
               <div className="absolute -right-8 -top-10 w-52 h-52 bg-gradient-to-bl from-amber-400/35 via-orange-500/20 to-transparent rounded-full blur-xl animate-pulse pointer-events-none" />
               <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-amber-200/25 to-transparent -skew-x-12 bem-shimmer-sweep pointer-events-none" />
-              <span className="absolute left-12 bottom-3 w-1.5 h-1.5 rounded-full bg-amber-300 float-sparkle-1" />
-              <span className="absolute left-1/2 top-6 w-2 h-2 rounded-full bg-yellow-200 float-sparkle-2" />
-              <span className="absolute right-20 bottom-4 w-1.5 h-1.5 rounded-full bg-orange-300 float-sparkle-3" />
             </>
           )}
 
@@ -376,9 +483,9 @@ export default function StudentClient({ params }: { params: Promise<{ id: string
             </p>
 
             {/* Skills (Warna-warni sesuai getTechTagColor) */}
-            {(mahasiswa.skills ?? []).filter((s) => Boolean(s) && PREDEFINED_SKILLS.includes(s)).length > 0 && (
+            {studentSkills.length > 0 && (
               <div className="flex flex-wrap justify-center md:justify-start gap-1.5 sm:gap-2 mb-6 max-w-xl mx-auto md:mx-0">
-                {(mahasiswa.skills ?? []).filter((s) => Boolean(s) && PREDEFINED_SKILLS.includes(s)).map((skill, i) => {
+                {studentSkills.map((skill, i) => {
                   const colorClass = getTechTagColor(skill);
                   return (
                     <span
@@ -507,6 +614,17 @@ export default function StudentClient({ params }: { params: Promise<{ id: string
               <h2 className="text-sm sm:text-lg font-bold tracking-tight text-foreground font-mono uppercase whitespace-nowrap">
                 Penghargaan &amp; Prestasi
               </h2>
+              {isOwnProfile && newlyUnlockedBadgeIds.length > 0 ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-black shadow-[0_0_10px_rgba(239,68,68,0.5)]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                  <span>{newlyUnlockedBadgeIds.length} Baru Terbuka</span>
+                </span>
+              ) : studentBadgeIds.length > 0 ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-bold">
+                  <Check className="w-3 h-3 stroke-[3]" />
+                  <span>{studentBadgeIds.length} Diraih</span>
+                </span>
+              ) : null}
             </div>
             <span className="text-[11px] sm:text-xs font-bold px-2.5 py-0.5 sm:py-1 rounded-full bg-primary/10 text-primary border border-primary/20 shrink-0 whitespace-nowrap">
               {studentBadgeIds.length} / {PENGHARGAAN_CATALOG.length} Diraih
@@ -517,10 +635,44 @@ export default function StudentClient({ params }: { params: Promise<{ id: string
           </p>
         </div>
 
-        {/* Badges Shelf - 14 Clean Medallions */}
+        {/* Notifikasi Banner Khusus Profil Pribadi jika ada penghargaan baru */}
+        {isOwnProfile && newlyUnlockedBadgeIds.length > 0 && (
+          <div className="mb-5 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-red-500/15 via-orange-500/10 to-amber-500/10 border-2 border-red-500/40 shadow-[0_0_20px_rgba(239,68,68,0.15)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-red-500/30">
+                <Award className="w-5 h-5 animate-pulse" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-extrabold text-foreground">
+                    Penghargaan Baru Terbuka!
+                  </h4>
+                  <span className="px-2 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-black uppercase tracking-wider shadow-xs">
+                    +{newlyUnlockedBadgeIds.length} Baru
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Selamat! Portofolio karya Anda telah membuka penghargaan baru. Badge bertanda merah di bawah siap dipajang di galeri Anda.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+              <button
+                type="button"
+                onClick={markAllAsSeen}
+                className="px-3.5 py-1.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-xs font-bold transition shadow-xs cursor-pointer active:scale-95"
+              >
+                Tandai Sudah Dilihat
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Badges Shelf - 16 Clean Medallions */}
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2.5 sm:gap-3.5">
           {PENGHARGAAN_CATALOG.map((badge) => {
             const isOwned = studentBadgeIds.includes(badge.id);
+            const isNewUnlock = isOwnProfile && newlyUnlockedBadgeIds.includes(badge.id);
             const isTerbatas = badge.group === "terbatas" || badge.tier === "khusus";
             const isEmas = badge.tier === "emas";
             const isPerak = badge.tier === "perak";
@@ -536,14 +688,33 @@ export default function StudentClient({ params }: { params: Promise<{ id: string
               <button
                 type="button"
                 key={badge.id}
-                onClick={() => setSelectedBadge(badge)}
+                onClick={() => {
+                  if (isNewUnlock) {
+                    markBadgeAsSeen(badge.id);
+                  }
+                  setSelectedBadge(badge);
+                }}
                 className={`group relative flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl border transition-all duration-200 cursor-pointer text-center select-none ${
-                  isOwned
-                    ? "border-border bg-card hover:bg-muted/60 hover:border-primary/50 hover:shadow-md hover:-translate-y-1 active:translate-y-0"
+                  isNewUnlock
+                    ? "border-red-500 bg-red-500/10 ring-2 ring-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)] hover:-translate-y-1 active:translate-y-0"
+                    : isOwned
+                    ? "border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10 hover:border-emerald-500/50 hover:shadow-sm hover:-translate-y-1 active:translate-y-0"
                     : "border-dashed border-border/70 bg-muted/20 opacity-70 hover:opacity-100 hover:border-slate-400 dark:hover:border-slate-600 hover:-translate-y-0.5 active:translate-y-0"
                 }`}
-                title={`Klik untuk melihat detail penghargaan ${badge.name}`}
+                title={
+                  isNewUnlock
+                    ? `[BARU TERBUKA] Klik untuk melihat detail & tandai sudah dilihat: ${badge.name}`
+                    : `Klik untuk melihat detail penghargaan ${badge.name}`
+                }
               >
+                {/* Red notification dot in corner ONLY if newly unlocked in own profile */}
+                {isNewUnlock && (
+                  <span className="absolute -top-1 -right-1 z-30 flex h-3 w-3 pointer-events-none">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 border-2 border-card shadow-xs" />
+                  </span>
+                )}
+
                 {/* Hexagon Medallion with custom vector artwork */}
                 <div className="relative mb-2 flex items-center justify-center">
                   <TazkiaAchievementHexBadge
@@ -551,12 +722,15 @@ export default function StudentClient({ params }: { params: Promise<{ id: string
                     size="sm"
                     locked={!isOwned}
                     animated={isOwned}
+                    showTooltip={false}
                   />
 
                   {/* Corner Status Dot */}
                   <span
                     className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center border shadow-xs z-20 ${
-                      isOwned
+                      isNewUnlock
+                        ? "bg-red-500 text-white border-card animate-pulse"
+                        : isOwned
                         ? "bg-emerald-500 text-white border-card"
                         : "bg-slate-400 text-white border-card"
                     }`}
@@ -578,6 +752,17 @@ export default function StudentClient({ params }: { params: Promise<{ id: string
                 <span className={`text-[8.5px] sm:text-[9px] font-mono font-bold uppercase mt-0.5 ${tierColor}`}>
                   {badge.tierLabel}
                 </span>
+
+                {/* Status tag */}
+                {isNewUnlock ? (
+                  <span className="text-[8px] font-black text-red-500 dark:text-red-400 uppercase tracking-tighter mt-0.5 animate-pulse">
+                    🔴 Terbuka
+                  </span>
+                ) : isOwned ? (
+                  <span className="text-[8px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-tighter mt-0.5">
+                    ✓ Diraih
+                  </span>
+                ) : null}
               </button>
             );
           })}
@@ -826,6 +1011,7 @@ export default function StudentClient({ params }: { params: Promise<{ id: string
           angkatan={mahasiswa.angkatan}
           avatarUrl={mahasiswa.avatar_url}
           bio={mahasiswa.bio}
+          skills={studentSkills}
           statusBadge={mahasiswa.status_badge}
           activeSkinId={activeSkin.id}
           studentId={mahasiswa.id || mahasiswa.user_id}
@@ -836,97 +1022,162 @@ export default function StudentClient({ params }: { params: Promise<{ id: string
 
       {/* Badge Detail Overlay Modal */}
       <AnimatePresence>
-        {selectedBadge && (
-          <div className="fixed inset-0 z-50 overflow-y-auto p-3 sm:p-4 flex min-h-full items-center justify-center">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedBadge(null)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm cursor-pointer"
-            />
+        {selectedBadge && (() => {
+          const isSelectedUnlocked = studentBadgeIds.includes(selectedBadge.id);
+          const selectedProgress = getBadgeMissionProgress(selectedBadge.id, {
+            userId: studentUserId,
+            projects: evaluatedProjects,
+            angkatan: mahasiswa?.angkatan,
+            skills: mahasiswa?.skills,
+            bio: mahasiswa?.bio,
+            statusBadge: mahasiswa?.status_badge,
+            cardSkin: activeSkinId,
+            unlockedBadgeIds: studentBadgeIds,
+          });
 
-            {/* Modal Dialog Card */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ type: "spring", damping: 25, stiffness: 350 }}
-              className="relative z-10 w-full max-w-sm max-h-[90vh] overflow-y-auto my-auto rounded-3xl border border-border bg-card p-5 sm:p-6 shadow-2xl text-center"
-            >
-              {/* Close Button Top Right */}
-              <button
-                type="button"
+          return (
+            <div className="fixed inset-0 z-50 overflow-y-auto p-3 sm:p-4 flex min-h-full items-center justify-center">
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 onClick={() => setSelectedBadge(null)}
-                className="absolute top-4 right-4 p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
-                aria-label="Tutup"
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm cursor-pointer"
+              />
+
+              {/* Modal Dialog Card */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                transition={{ type: "spring", damping: 25, stiffness: 350 }}
+                className={`relative z-10 w-full max-w-sm max-h-[90vh] overflow-y-auto my-auto rounded-3xl border bg-card p-5 sm:p-6 shadow-2xl text-center ${
+                  isSelectedUnlocked
+                    ? "border-emerald-500/40 ring-1 ring-emerald-500/30 shadow-[0_0_25px_rgba(16,185,129,0.15)]"
+                    : "border-border"
+                }`}
               >
-                <X className="w-5 h-5" />
-              </button>
+                {/* Close Button Top Right */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedBadge(null)}
+                  className="absolute top-4 right-4 p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                  aria-label="Tutup"
+                >
+                  <X className="w-5 h-5" />
+                </button>
 
-              {/* Big Glowing Medallion with custom vector artwork */}
-              <div className="relative mx-auto my-2 py-1 flex items-center justify-center">
-                <TazkiaAchievementHexBadge
-                  badge={selectedBadge}
-                  size="md"
-                  locked={!studentBadgeIds.includes(selectedBadge.id)}
-                  animated={studentBadgeIds.includes(selectedBadge.id)}
-                />
-              </div>
-
-              {/* Status Pill */}
-              <div className="mt-1 mb-2.5">
-                {studentBadgeIds.includes(selectedBadge.id) ? (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
-                    <span>Sudah Diraih</span>
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/30">
-                    <Lock className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Masih Terkunci</span>
-                  </span>
-                )}
-              </div>
-
-              {/* Title & Tier */}
-              <h3 className="text-lg sm:text-xl font-extrabold text-foreground tracking-tight mb-0.5">
-                {selectedBadge.name}
-              </h3>
-              <p className="text-[11px] sm:text-xs font-mono font-bold uppercase tracking-wider text-muted-foreground mb-3">
-                PENGHARGAAN TINGKAT {selectedBadge.tierLabel}
-              </p>
-
-              {/* Description Box with Mission & Philosophy */}
-              <div className="bg-muted/40 border border-border/80 rounded-2xl p-3.5 text-xs text-foreground/90 leading-relaxed mb-4 text-left space-y-2">
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-primary block">Misi / Syarat Buka</span>
-                  <p className="mt-0.5 font-medium">{selectedBadge.mission}</p>
+                {/* Big Glowing Medallion with custom vector artwork */}
+                <div className="relative mx-auto my-2 py-1 flex items-center justify-center">
+                  <TazkiaAchievementHexBadge
+                    badge={selectedBadge}
+                    size="md"
+                    locked={!isSelectedUnlocked}
+                    animated={isSelectedUnlocked}
+                  />
                 </div>
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Makna & Filosofi</span>
-                  <p className="mt-0.5 text-muted-foreground text-[11.5px]">{selectedBadge.philosophy}</p>
+
+                {/* Status Pill */}
+                <div className="mt-1 mb-2.5">
+                  {isSelectedUnlocked ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      <span>MISI TERBUKA &amp; DIRAIH (PERMANEN)</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/30">
+                      <Lock className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Masih Terkunci</span>
+                    </span>
+                  )}
                 </div>
-                {!studentBadgeIds.includes(selectedBadge.id) && (
-                  <div className="mt-2 pt-2 border-t border-border/60 text-[11px] font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                    <Info className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                    <span>Publikasikan karya atau terus tingkatkan portofolio untuk membuka penghargaan ini!</span>
+
+                {/* Title & Tier */}
+                <h3 className="text-lg sm:text-xl font-extrabold text-foreground tracking-tight mb-0.5">
+                  {selectedBadge.name}
+                </h3>
+                <p className="text-[11px] sm:text-xs font-mono font-bold uppercase tracking-wider text-muted-foreground mb-3">
+                  PENGHARGAAN TINGKAT {selectedBadge.tierLabel}
+                </p>
+
+                {/* Description Box with Real Mission & Philosophy */}
+                <div
+                  className={`border rounded-2xl p-3.5 text-xs text-foreground/90 leading-relaxed mb-4 text-left space-y-2.5 ${
+                    isSelectedUnlocked
+                      ? "bg-emerald-500/5 border-emerald-500/30"
+                      : "bg-muted/40 border-border/80"
+                  }`}
+                >
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-primary block">
+                      Misi / Syarat Buka
+                    </span>
+                    <p className="mt-0.5 font-medium leading-relaxed">
+                      {selectedProgress.requirementText}
+                    </p>
                   </div>
-                )}
-              </div>
 
-              {/* Action Button */}
-              <button
-                type="button"
-                onClick={() => setSelectedBadge(null)}
-                className="w-full py-2.5 px-4 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-95 transition-opacity cursor-pointer shadow-sm"
-              >
-                Mengerti
-              </button>
-            </motion.div>
-          </div>
-        )}
+                  {/* Real Mission Progress */}
+                  <div className="pt-2 border-t border-border/60">
+                    <div className="flex items-center justify-between text-[10px] mb-1 font-mono">
+                      <span className="font-bold text-foreground uppercase tracking-wider">
+                        Progres Misi
+                      </span>
+                      <span
+                        className={
+                          isSelectedUnlocked
+                            ? "text-emerald-600 dark:text-emerald-400 font-bold"
+                            : "text-amber-500 font-extrabold"
+                        }
+                      >
+                        {selectedProgress.progressText} ({selectedProgress.percentage}%)
+                      </span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-muted overflow-hidden mb-1">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${
+                          isSelectedUnlocked
+                            ? "bg-gradient-to-r from-emerald-500 to-green-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"
+                            : "bg-gradient-to-r from-amber-500 to-orange-400"
+                        }`}
+                        style={{ width: `${selectedProgress.percentage}%` }}
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground italic">
+                      {selectedProgress.remainingText}
+                    </p>
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                      Makna &amp; Filosofi
+                    </span>
+                    <p className="mt-0.5 text-muted-foreground text-[11.5px] italic">
+                      &ldquo;{selectedBadge.philosophy}&rdquo;
+                    </p>
+                  </div>
+
+                  {!isSelectedUnlocked && (
+                    <div className="mt-2 pt-2 border-t border-border/60 text-[11px] font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                      <Info className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                      <span>Publikasikan karya atau terus tingkatkan portofolio untuk membuka penghargaan ini!</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Button */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedBadge(null)}
+                  className="w-full py-2.5 px-4 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-95 transition-opacity cursor-pointer shadow-sm"
+                >
+                  Mengerti
+                </button>
+              </motion.div>
+            </div>
+          );
+        })()}
       </AnimatePresence>
     </div>
   );

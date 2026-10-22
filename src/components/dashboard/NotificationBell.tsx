@@ -2,15 +2,17 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Bell, CheckCheck, X, Clock, CheckCircle, XCircle, RefreshCw, Trash } from "lucide-react";
+import { Bell, CheckCheck, X, Clock, CheckCircle, XCircle, RefreshCw, Trash, Users, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { formatDistanceToNow } from "date-fns";
 import { id as localeId } from "date-fns/locale";
+import toast from "react-hot-toast";
+import { respondCollabRequest } from "@/lib/collabService";
 
 interface Notification {
   id: string;
-  type: "karya_approved" | "karya_rejected" | "karya_pending" | "info";
+  type: "karya_approved" | "karya_rejected" | "karya_pending" | "info" | "collab_request" | "collab_accepted" | "collab_rejected" | string;
   title: string;
   message: string;
   karya_id: string | null;
@@ -23,6 +25,9 @@ const NOTIF_ICON: Record<string, React.ReactNode> = {
   karya_rejected: <XCircle className="w-5 h-5 text-red-500 shrink-0" />,
   karya_pending: <RefreshCw className="w-5 h-5 text-yellow-500 shrink-0" />,
   info: <Bell className="w-5 h-5 text-blue-500 shrink-0" />,
+  collab_request: <Users className="w-5 h-5 text-amber-500 shrink-0" />,
+  collab_accepted: <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />,
+  collab_rejected: <XCircle className="w-5 h-5 text-rose-500 shrink-0" />,
 };
 
 export function NotificationBell() {
@@ -30,6 +35,7 @@ export function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isRespondingCollab, setIsRespondingCollab] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
@@ -119,6 +125,49 @@ export function NotificationBell() {
     await supabase.from("notifications").delete().eq("user_id", user.id);
     setNotifications([]);
     setLoading(false);
+  };
+
+  // Respond to collaboration request (accept / reject)
+  const handleCollabAction = async (notif: Notification, action: "accept" | "reject") => {
+    if (!user || !notif.karya_id) return;
+    setIsRespondingCollab(notif.id);
+    const toastId = toast.loading(action === "accept" ? "Menerima kolaborasi..." : "Menolak kolaborasi...");
+
+    try {
+      const res = await respondCollabRequest({
+        karyaId: notif.karya_id,
+        action,
+        responderUserId: user.id,
+        responderName: user.user_metadata?.full_name,
+        notificationId: notif.id,
+      });
+
+      if (res.success) {
+        if (action === "accept") {
+          toast.success("🎉 Kolaborasi berhasil diterima! Karya telah resmi masuk ke portofolio Anda.", { id: toastId });
+        } else {
+          toast.success("Undangan kolaborasi ditolak.", { id: toastId });
+        }
+        setNotifications((prev) =>
+          prev.map((n) =>
+            n.id === notif.id
+              ? {
+                  ...n,
+                  is_read: true,
+                  message: action === "accept" ? `${n.message} (✓ Kolaborasi Diterima)` : `${n.message} (✕ Kolaborasi Ditolak)`,
+                  type: action === "accept" ? "collab_accepted" : "collab_rejected",
+                }
+              : n
+          )
+        );
+      } else {
+        toast.error(res.error || "Gagal merespons kolaborasi", { id: toastId });
+      }
+    } catch {
+      toast.error("Terjadi kesalahan sistem", { id: toastId });
+    } finally {
+      setIsRespondingCollab(null);
+    }
   };
 
   if (!user) return null;
@@ -240,6 +289,37 @@ export function NotificationBell() {
                       <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed font-normal">
                         {notif.message}
                       </p>
+
+                      {/* Action buttons for collaboration request */}
+                      {notif.type === "collab_request" && notif.karya_id && (
+                        <div className="mt-2.5 pt-2 border-t border-border/60 flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCollabAction(notif, "accept");
+                            }}
+                            disabled={isRespondingCollab === notif.id}
+                            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Terima Kolab</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCollabAction(notif, "reject");
+                            }}
+                            disabled={isRespondingCollab === notif.id}
+                            className="px-3 py-1.5 rounded-lg bg-muted border border-border hover:bg-rose-500/10 hover:border-rose-500/30 hover:text-rose-600 font-semibold text-xs flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                            <span>Tolak</span>
+                          </button>
+                        </div>
+                      )}
+
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium">
                           <Clock className="w-3 h-3" />

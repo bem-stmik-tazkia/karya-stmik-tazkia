@@ -1,11 +1,29 @@
+/**
+ * 🎨 Skin Configuration
+ * ──────────────────────
+ * File ini menyediakan backward-compatible API (CARD_SKINS, getSkinById, dll)
+ * yang dipakai oleh SkinPreviewModal dan komponen lainnya.
+ *
+ * Sekarang otomatis di-generate dari skin registry (skins/registry.ts).
+ * Untuk menambah skin baru → cukup buat file di skins/ dan register di registry.
+ */
+
+import {
+  SKIN_LIST,
+  getSkinDefinition,
+  createCustomSkinDefinition,
+} from "@/components/mahasiswa/cards/skins";
+import type { SkinDefinition } from "@/components/mahasiswa/cards/skins";
+
+// ─── CardSkin Interface (backward compatible) ──────
 export interface CardSkin {
   id: string;
   name: string;
   tagline: string;
   badge: string;
   description: string;
-  primaryColor: string; // Accent color (var(--c2) / b)
-  secondaryColor: string; // Base header / dark color (var(--c1) / a)
+  primaryColor: string;
+  secondaryColor: string;
   headerGradient: string;
   headerBorderColor: string;
   avatarRingStyle: string;
@@ -16,67 +34,58 @@ export interface CardSkin {
   previewBg: string;
 }
 
-export const CARD_SKINS: CardSkin[] = [
-  {
-    id: "classic",
-    name: "Tazkia Classic",
-    tagline: "Identitas resmi kampus STMIK Tazkia",
-    badge: "Bawaan",
-    description: "Kombinasi solid Deep Navy (#0B1F4A) dengan aksen Vibrant Orange (#FF8A2B).",
-    primaryColor: "#FF8A2B",
-    secondaryColor: "#0B1F4A",
-    headerGradient: "linear-gradient(135deg, #0B1F4A, #16347A)",
-    headerBorderColor: "#FF8A2B",
-    avatarRingStyle: "#FF8A2B",
-    statusDotColor: "#FF8A2B",
-    buttonTextColor: "#ffffff",
-    backBgColor: "#0B1F4A",
-    backBorderColor: "#FF8A2B",
-    previewBg: "from-[#0B1F4A] to-[#16347A]",
-  },
-  {
-    id: "custom",
-    name: "Custom Warna",
-    tagline: "Kreasikan 2 kombinasi warna pilihanmu",
-    badge: "Kustom",
-    description: "Bebas atur 2 warna untuk aksen & latar kartu (bawaan warna resmi Tazkia).",
-    primaryColor: "#FF8A2B",
-    secondaryColor: "#0B1F4A",
-    headerGradient: "linear-gradient(135deg, #0B1F4A, #16347A)",
-    headerBorderColor: "#FF8A2B",
-    avatarRingStyle: "#FF8A2B",
-    statusDotColor: "#FF8A2B",
-    buttonTextColor: "#ffffff",
-    backBgColor: "#0B1F4A",
-    backBorderColor: "#FF8A2B",
-    previewBg: "from-[#0B1F4A] to-[#16347A]",
-  },
-];
-
-export const DEFAULT_TAZKIA_SKIN: CardSkin = CARD_SKINS[0];
-
-export function createCustomSkin(primaryColor?: string, secondaryColor?: string): CardSkin {
-  const pri = primaryColor || "#FF8A2B";
-  const sec = secondaryColor || "#0B1F4A";
+// ─── Konversi SkinDefinition → CardSkin ────────────
+function toCardSkin(skin: SkinDefinition): CardSkin {
   return {
-    id: "custom",
-    name: "Custom Warna",
-    tagline: "Kreasikan 2 kombinasi warna pilihanmu",
-    badge: "Kustom",
-    description: "Tema personalisasi bebas dengan 2 warna pilihanmu.",
-    primaryColor: pri,
-    secondaryColor: sec,
-    headerGradient: `linear-gradient(135deg, ${sec}, ${sec}dd)`,
-    headerBorderColor: pri,
-    avatarRingStyle: pri,
-    statusDotColor: pri,
+    id: skin.id,
+    name: skin.name,
+    tagline: skin.tagline,
+    badge: skin.badge,
+    description: skin.description,
+    primaryColor: skin.primaryColor,
+    secondaryColor: skin.secondaryColor,
+    headerGradient:
+      skin.headerGradient ||
+      `linear-gradient(135deg, ${skin.secondaryColor}, ${skin.secondaryColor}dd)`,
+    headerBorderColor: skin.primaryColor,
+    avatarRingStyle: skin.primaryColor,
+    statusDotColor: skin.primaryColor,
     buttonTextColor: "#ffffff",
-    backBgColor: sec,
-    backBorderColor: pri,
-    previewBg: `from-[${sec}] to-[${pri}]`,
+    backBgColor: skin.secondaryColor,
+    backBorderColor: skin.primaryColor,
+    previewBg:
+      skin.previewBg ||
+      `from-[${skin.secondaryColor}] to-[${skin.primaryColor}]`,
   };
 }
 
+// ─── Exported Constants & Functions ────────────────
+
+/**
+ * Daftar semua skin (otomatis dari registry).
+ * Backward compatible — dipakai oleh SkinPreviewModal.
+ */
+export const CARD_SKINS: CardSkin[] = SKIN_LIST.map(toCardSkin);
+
+/**
+ * Skin default Tazkia.
+ */
+export const DEFAULT_TAZKIA_SKIN: CardSkin = CARD_SKINS[0];
+
+/**
+ * Buat CardSkin custom dari 2 warna pilihan user.
+ */
+export function createCustomSkin(
+  primaryColor?: string,
+  secondaryColor?: string
+): CardSkin {
+  const skinDef = createCustomSkinDefinition(primaryColor, secondaryColor);
+  return toCardSkin(skinDef);
+}
+
+/**
+ * Ambil CardSkin berdasarkan ID (backward compatible).
+ */
 export function getSkinById(id?: string | null): CardSkin {
   if (!id || id === "default" || id === "classic") return CARD_SKINS[0];
 

@@ -1,17 +1,69 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Folder, UploadCloud, User, Home, LogOut } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { LogoutConfirmModal } from "@/components/ui/LogoutConfirmModal";
+import { getExclusiveBadgeGrants, getClaimableGrantsForUser } from "@/lib/badgeService";
 
 export function DashboardBottomNav() {
   const pathname = usePathname();
   const router = useRouter();
+  const { user } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [hasBadgeNotification, setHasBadgeNotification] = useState(false);
+
+  // Cek notifikasi penghargaan baru atau lencana eksklusif yang belum diklaim
+  useEffect(() => {
+    const checkBadgeNotifications = async () => {
+      if (typeof window === "undefined") return;
+
+      // Cek apakah ada lencana eksklusif dari admin yang belum diklaim
+      try {
+        const grants = await getExclusiveBadgeGrants();
+        const claimable = getClaimableGrantsForUser(grants, {
+          userId: user?.id,
+          email: user?.email,
+        });
+        if (claimable.length > 0) {
+          setHasBadgeNotification(true);
+          return;
+        }
+      } catch {}
+
+      // Cek apakah ada notifikasi penghargaan unread di localStorage
+      try {
+        const hasUnread = localStorage.getItem("tazkia_has_unopened_badge") === "true";
+        setHasBadgeNotification(hasUnread);
+      } catch {
+        setHasBadgeNotification(false);
+      }
+    };
+
+    checkBadgeNotifications();
+
+    const handleUpdated = () => checkBadgeNotifications();
+    const handleViewed = () => {
+      setHasBadgeNotification(false);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("tazkia_has_unopened_badge", "false");
+      }
+    };
+
+    window.addEventListener("tazkia_badges_updated", handleUpdated);
+    window.addEventListener("tazkia_badges_viewed", handleViewed);
+    window.addEventListener("storage", handleUpdated);
+
+    return () => {
+      window.removeEventListener("tazkia_badges_updated", handleUpdated);
+      window.removeEventListener("tazkia_badges_viewed", handleViewed);
+      window.removeEventListener("storage", handleUpdated);
+    };
+  }, [user?.id, user?.email]);
 
   const navItems = [
     {
@@ -99,6 +151,7 @@ export function DashboardBottomNav() {
                     <motion.div
                       animate={active ? { scale: [0.8, 1.25, 1], rotate: [0, -10, 10, 0] } : {}}
                       transition={{ duration: 0.35, ease: "easeOut" }}
+                      className="relative"
                     >
                       <Icon
                         className={`w-[19px] h-[19px] transition-colors ${
@@ -107,6 +160,13 @@ export function DashboardBottomNav() {
                             : "text-slate-600 dark:text-[#94A9C9] stroke-[2]"
                         }`}
                       />
+                      {/* Red notification dot if Profil has unread badges */}
+                      {item.label === "Profil" && hasBadgeNotification && (
+                        <span className="absolute -top-1 -right-1 z-30 flex h-2.5 w-2.5 pointer-events-none">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 border border-white dark:border-[#0B1F4A] shadow-xs" />
+                        </span>
+                      )}
                     </motion.div>
                     <span
                       className={`text-[10px] tracking-tight mt-0.5 leading-none transition-colors ${

@@ -14,6 +14,7 @@ export type Student = {
   avatarUrl: string;
   coverUrl?: string;
   statusBadge?: string;
+  rawStatusBadge?: string; // format DB asli, misal "🤝 Siap Freelance" (sebelum normalize)
   skills: string[];
   contactEmail: string;
   socials: {

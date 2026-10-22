@@ -69,7 +69,14 @@ export default async function ProjectsListPage() {
     .or(`user_id.eq.${user.id},team.cs.[{"user_id":"${user.id}"}]`)
     .order("created_at", { ascending: false });
 
-  const karyaList = rawKaryaList?.filter(k => k.status !== "deleted" && k.status !== "DELETED") || [];
+  const karyaList = (rawKaryaList?.filter(k => k.status !== "deleted" && k.status !== "DELETED") || []).filter((k: any) => {
+    if (k.user_id === user.id) return true;
+    if (Array.isArray(k.team)) {
+      const myMembership = k.team.find((m: any) => m.user_id === user.id);
+      if (myMembership && myMembership.status === "rejected") return false;
+    }
+    return true;
+  });
 
   const formatDate = (dateStr: string) =>
     new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric" }).format(new Date(dateStr));

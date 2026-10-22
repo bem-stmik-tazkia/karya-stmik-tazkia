@@ -713,7 +713,7 @@ export default function ProjectClientPage({
                 <span>Tim Pembuat</span>
               </h3>
               <div className="flex flex-col gap-2.5">
-                {team.map((member) => (
+                {team.filter((m: any) => m.status !== "rejected").map((member: any) => (
                   <Link
                     href={`/student/${member.user_id || `temp-${member.name}`}`}
                     key={member.user_id || member.name}
@@ -733,9 +733,16 @@ export default function ProjectClientPage({
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-xs text-foreground truncate group-hover:text-primary transition-colors">
-                          {member.name}
-                        </p>
+                        <div className="flex items-center justify-between gap-1">
+                          <p className="font-semibold text-xs text-foreground truncate group-hover:text-primary transition-colors">
+                            {member.name}
+                          </p>
+                          {member.status === "pending" && (
+                            <span className="text-[9px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/25 px-1.5 py-0.5 rounded-full shrink-0">
+                              ⏳ Konfirmasi
+                            </span>
+                          )}
+                        </div>
                         <p className="text-[11px] text-muted-foreground truncate">
                           {member.role || "Project Lead"}
                         </p>

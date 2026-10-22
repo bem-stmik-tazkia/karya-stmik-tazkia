@@ -30,6 +30,7 @@ import { PREDEFINED_SKILLS } from "@/utils/skillOptions";
 import {
   PENGHARGAAN_CATALOG,
   calculateStudentEarnedBadges,
+  getBadgeMissionProgress,
   type PenghargaanBadge,
 } from "@/data/penghargaanCatalog";
 import { TazkiaAchievementHexBadge } from "@/components/penghargaan/TazkiaAchievementBadge";
@@ -104,9 +105,18 @@ export default function MahasiswaProfileDrawer({
 
   const studentSkills = Array.from(
     new Set(student.skills || [])
-  ).filter((s) => Boolean(s) && PREDEFINED_SKILLS.includes(s));
+  ).filter((s) => Boolean(s && typeof s === "string" && s.trim()));
 
-  const studentBadgeIds = PENGHARGAAN_CATALOG.map((b) => b.id);
+  const studentBadgeIds = calculateStudentEarnedBadges({
+    userId: student.userId || student.id,
+    projects: projects || [],
+    angkatan: student.angkatan,
+    skills: student.skills,
+    bio: student.bio,
+    statusBadge: student.rawStatusBadge || student.statusBadge,
+    cardSkin: student.cardSkin,
+    unlockedBadgeIds: (student as any).unlockedBadgeIds || (student as any).unlocked_badge_ids,
+  });
 
   const displayedBadges = PENGHARGAAN_CATALOG;
 
@@ -320,12 +330,15 @@ export default function MahasiswaProfileDrawer({
                         <h3 className="text-xs font-bold uppercase tracking-wider text-foreground font-mono">
                           Penghargaan &amp; Prestasi
                         </h3>
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                          {studentBadgeIds.length} / {PENGHARGAAN_CATALOG.length} Diraih
-                        </span>
+                        {studentBadgeIds.length > 0 && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-bold">
+                            <Check className="w-3 h-3 stroke-[3]" />
+                            <span>{studentBadgeIds.length} Diraih</span>
+                          </span>
+                        )}
                       </div>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
-                        Penghargaan pencapaian dan rekam jejak prestasi mahasiswa.
+                        Penghargaan pencapaian dan rekam jejak prestasi mahasiswa ({studentBadgeIds.length} dari {PENGHARGAAN_CATALOG.length} penghargaan diraih).
                       </p>
                     </div>
                   </div>
@@ -346,22 +359,33 @@ export default function MahasiswaProfileDrawer({
                         ? "bg-slate-500/15 text-slate-700 dark:text-slate-300 border-slate-500/30 font-bold"
                         : "bg-amber-800/20 text-amber-700 dark:text-amber-500 border-amber-700/30 font-bold";
 
+                      const missionProgress = getBadgeMissionProgress(badge.id, {
+                        projects: projects || [],
+                        angkatan: student.angkatan,
+                        skills: student.skills,
+                        bio: student.bio,
+                        statusBadge: student.rawStatusBadge || student.statusBadge,
+                        cardSkin: student.cardSkin,
+                        unlockedBadgeIds: studentBadgeIds,
+                      });
+
                       return (
                         <div
                           key={badge.id}
                           onClick={() => setSelectedBadgeDetail(isExpanded ? null : badge.id)}
                           className={`flex items-start gap-2.5 p-2.5 rounded-xl border transition-all duration-200 cursor-pointer shadow-2xs ${
                             isOwned
-                              ? "border-border bg-muted/30 hover:bg-muted/60 hover:border-[#FF8A2B]/40"
+                              ? "border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10 hover:border-emerald-500/50"
                               : "border-dashed border-border/80 bg-muted/10 opacity-75 hover:opacity-100 hover:border-slate-400 dark:hover:border-slate-600"
-                          } ${isExpanded ? "ring-2 ring-[#FF8A2B]/40" : ""}`}
+                          } ${isExpanded ? "ring-2 ring-primary/40" : ""}`}
                         >
-                          <div className="shrink-0 mt-0.5">
+                          <div className="shrink-0 mt-0.5 relative">
                             <TazkiaAchievementHexBadge
                               badge={badge}
                               size="xs"
                               locked={!isOwned}
                               animated={isOwned}
+                              showTooltip={false}
                             />
                           </div>
                           <div className="min-w-0 flex-1">
@@ -377,8 +401,8 @@ export default function MahasiswaProfileDrawer({
                                 </span>
                               </div>
                               {isOwned ? (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
-                                  <Check className="w-3 h-3 stroke-[3]" />
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
+                                  <Check className="w-2.5 h-2.5 stroke-[3]" />
                                   <span>Diraih</span>
                                 </span>
                               ) : (
@@ -388,18 +412,55 @@ export default function MahasiswaProfileDrawer({
                                 </span>
                               )}
                             </div>
+
+                            {/* Real Requirement / Mission text */}
                             <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
-                              {badge.mission}
+                              {missionProgress.requirementText}
                             </p>
+
+                            {/* Real Mission Progress Bar */}
+                            <div className="mt-2 pt-1.5 border-t border-border/50">
+                              <div className="flex items-center justify-between text-[9.5px] mb-1 font-mono">
+                                <span className="text-muted-foreground font-semibold">Progres Misi</span>
+                                <span
+                                  className={
+                                    isOwned
+                                      ? "text-emerald-600 dark:text-emerald-400 font-bold"
+                                      : "text-amber-600 dark:text-amber-400 font-bold"
+                                  }
+                                >
+                                  {missionProgress.progressText} ({missionProgress.percentage}%)
+                                </span>
+                              </div>
+                              <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden mb-1">
+                                <div
+                                  className={`h-full rounded-full transition-all duration-300 ${
+                                    isOwned
+                                      ? "bg-gradient-to-r from-emerald-500 to-green-500"
+                                      : "bg-gradient-to-r from-amber-500 to-orange-400"
+                                  }`}
+                                  style={{ width: `${missionProgress.percentage}%` }}
+                                />
+                              </div>
+                              <p className="text-[9.5px] text-muted-foreground italic">
+                                {missionProgress.remainingText}
+                              </p>
+                            </div>
+
                             {isExpanded && (
-                              <div className="mt-1.5 pt-1.5 border-t border-border/60 text-[10px] space-y-1">
+                              <div className="mt-2 pt-2 border-t border-border/60 text-[10px] space-y-1">
                                 <p className="text-muted-foreground">
                                   <strong className="text-foreground">Filosofi:</strong> {badge.philosophy}
                                 </p>
-                                {!isOwned && (
+                                {!isOwned ? (
                                   <p className="font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1">
                                     <Info className="w-3 h-3 shrink-0" />
-                                    <span>Syarat Membuka: Penuhi misi di atas untuk membuka penghargaan ini.</span>
+                                    <span>Penuhi misi di atas untuk membuka penghargaan ini.</span>
+                                  </p>
+                                ) : (
+                                  <p className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                    <Check className="w-3 h-3 shrink-0" />
+                                    <span>Misi telah selesai dan penghargaan ini telah berhasil diraih!</span>
                                   </p>
                                 )}
                               </div>
@@ -550,6 +611,7 @@ export default function MahasiswaProfileDrawer({
           angkatan={student.angkatan}
           avatarUrl={student.avatarUrl}
           bio={student.bio}
+          skills={studentSkills}
           statusBadge={student.statusBadge}
           studentId={student.id || student.userId}
           onApplySkin={() => {

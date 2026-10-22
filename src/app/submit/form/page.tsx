@@ -17,6 +17,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import toast from "react-hot-toast";
 import { useUnsavedChangesWarning } from "@/hooks/useUnsavedChangesWarning";
 import { UnsavedChangesModal } from "@/components/ui/UnsavedChangesModal";
+import { sendCollabRequest } from "@/lib/collabService";
 
 const KATEGORI_OPTIONS = [
   { id: "Technology", label: "Aplikasi Web & Sistem" },
@@ -329,7 +330,16 @@ export default function UploadKaryaFormPage() {
       if (!authUser) throw new Error("Silakan login kembali.");
 
       const techStackArray = dataToSubmit.tech_stack.split(",").map(t => t.trim()).filter(Boolean);
-      const teamObjects = dataToSubmit.team.filter(t => t.name.trim() !== "").map(t => ({ name: t.name, role: t.role, avatar: t.avatar || "", user_id: t.user_id || undefined }));
+      const teamObjects = dataToSubmit.team.filter(t => t.name.trim() !== "").map((t, idx) => {
+        const isLead = idx === 0 || t.user_id === authUser.id;
+        return {
+          name: t.name,
+          role: t.role,
+          avatar: t.avatar || "",
+          user_id: t.user_id || undefined,
+          status: isLead ? "accepted" : ((t as any).status || "pending"),
+        };
+      });
 
       let dataToSave: any = {
         title: dataToSubmit.title,
@@ -345,6 +355,8 @@ export default function UploadKaryaFormPage() {
       };
 
       const escapeHtml = (unsafe: string) => (unsafe || "").toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+
+      let createdKaryaId = editId;
 
       if (editId) {
         // Edit Mode
@@ -380,12 +392,13 @@ export default function UploadKaryaFormPage() {
           status: "pending",
           ai_review_status: "pending_review",
         };
-        const { error } = await supabase.from("karya").insert({
+        const { data: createdKarya, error } = await supabase.from("karya").insert({
           user_id: authUser.id,
           slug: dataToSubmit.title.toLowerCase().replace(/[^a-z0-9]+/g, "-") + "-" + Math.random().toString(36).substring(2, 6),
           ...dataToSave
-        });
+        }).select("id").single();
         if (error) throw error;
+        if (createdKarya?.id) createdKaryaId = createdKarya.id;
         
         fetch("/api/notify", {
           method: "POST",
@@ -395,6 +408,22 @@ export default function UploadKaryaFormPage() {
             message: `[BARU] Mahasiswa baru saja mengunggah karya baru!\n\n📌 <b>Judul:</b> ${escapeHtml(dataToSubmit.title)}\n📁 <b>Kategori:</b> ${escapeHtml(dataToSubmit.category)}\n\nKarya ini sedang masuk ke antrean AI untuk di-review otomatis.`
           })
         }).catch(() => {});
+      }
+
+      // Kirim undangan kolaborasi otomatis ke rekan tim yang terdaftar
+      if (createdKaryaId) {
+        const invitees = teamObjects.filter(t => t.user_id && t.user_id !== authUser.id);
+        for (const invitee of invitees) {
+          sendCollabRequest({
+            karyaId: createdKaryaId,
+            karyaTitle: dataToSubmit.title,
+            inviterUserId: authUser.id,
+            inviterName: authUser.user_metadata?.full_name || "Rekan Mahasiswa",
+            recipientUserId: invitee.user_id!,
+            recipientName: invitee.name,
+            role: invitee.role,
+          }).catch((collabErr) => console.warn("Failed to send collab invite:", collabErr));
+        }
       }
 
       // Trigger AI Worker secara asinkron (background) agar karya langsung direview
@@ -608,7 +637,16 @@ export default function UploadKaryaFormPage() {
               {formData.team.map((anggota, i) => (
                 <div key={i} className="bg-muted/30 rounded-2xl p-4 border-2 border-border/50 space-y-3">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-black text-muted-foreground uppercase tracking-wide">{i === 0 ? "Project Lead" : `Anggota ${i + 1}`}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-black text-muted-foreground uppercase tracking-wide">
+                        {i === 0 ? "Project Lead" : `Anggota ${i + 1}`}
+                      </p>
+                      {i > 0 && anggota.user_id && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                          🤝 Butuh Konfirmasi
+                        </span>
+                      )}
+                    </div>
                     {i > 0 && <button type="button" onClick={() => setFormData(prev => ({ ...prev, team: prev.team.filter((_, idx) => idx !== i) }))} className="text-muted-foreground/50 hover:text-red-400 transition-colors"><FiTrash2 size={14} /></button>}
                   </div>
                   <div className="flex items-start gap-3">
@@ -646,6 +684,11 @@ export default function UploadKaryaFormPage() {
                 </div>
               ))}
             </div>
+            {formData.team.length > 1 && (
+              <p className="text-[11px] text-muted-foreground mt-2.5 font-medium flex items-center gap-1.5 bg-muted/40 p-2.5 rounded-xl border border-border">
+                <span>ℹ️ Rekan tim yang Anda pilih akan menerima notifikasi permintaan kolaborasi. Kolaborasi resmi aktif &amp; membuka lencana setelah rekan mengklik <strong>Terima</strong>.</span>
+              </p>
+            )}
           </div>
 
           {/* Galeri */}

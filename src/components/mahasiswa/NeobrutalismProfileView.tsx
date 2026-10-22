@@ -20,6 +20,9 @@ import {
   SlidersHorizontal,
   Lock,
   Info,
+  Gift,
+  Sparkles,
+  Users,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { FiInstagram } from "react-icons/fi";
@@ -29,8 +32,21 @@ import { getTechTagColor } from "@/utils/techTagColor";
 import {
   PENGHARGAAN_CATALOG,
   calculateStudentEarnedBadges,
+  getBadgeMissionProgress,
   type PenghargaanBadge,
 } from "@/data/penghargaanCatalog";
+import {
+  getExclusiveBadgeGrants,
+  getClaimableGrantsForUser,
+  getClaimedExclusiveBadgeIds,
+  claimExclusiveBadge,
+  type ExclusiveBadgeGrant,
+} from "@/lib/badgeService";
+import {
+  getPendingCollabRequestsForUser,
+  respondCollabRequest,
+  type CollabRequest,
+} from "@/lib/collabService";
 import { TazkiaAchievementHexBadge } from "@/components/penghargaan/TazkiaAchievementBadge";
 import ShareProfileModal from "@/components/mahasiswa/ShareProfileModal";
 import SkinPreviewModal from "@/components/mahasiswa/SkinPreviewModal";
@@ -81,10 +97,94 @@ export function NeobrutalismProfileView({
   const [activeSkinId, setActiveSkinId] = useState<string>("classic");
   const [selectedBadge, setSelectedBadge] = useState<PenghargaanBadge | null>(null);
 
-  // Evaluasi Penghargaan Mahasiswa (Mode demo / pengujian: Buka semua 14 badge agar animasi dan medali terlihat jelas)
-  const studentBadgeIds = useMemo(() => {
-    return PENGHARGAAN_CATALOG.map((b) => b.id);
+  // Lencana Eksklusif: Yang sudah diklaim dan yang siap diklaim dari Admin
+  const [claimedExclusiveBadgeIds, setClaimedExclusiveBadgeIds] = useState<number[]>([]);
+  const [claimableGrants, setClaimableGrants] = useState<ExclusiveBadgeGrant[]>([]);
+
+  const refreshGrantsAndClaims = React.useCallback(async () => {
+    if (typeof window === "undefined") return;
+    const uid = profile?.user_id || profile?.id || user?.id;
+    const claimed = getClaimedExclusiveBadgeIds(uid, profile?.id);
+    setClaimedExclusiveBadgeIds(claimed);
+
+    try {
+      const grants = await getExclusiveBadgeGrants();
+      const claimable = getClaimableGrantsForUser(grants, {
+        userId: uid,
+        email: profile?.email || user?.email,
+        studentId: profile?.id,
+      });
+      setClaimableGrants(claimable);
+    } catch {}
+  }, [profile?.user_id, profile?.id, profile?.email, user?.id, user?.email]);
+
+  React.useEffect(() => {
+    refreshGrantsAndClaims();
+    window.addEventListener("tazkia_badges_updated", refreshGrantsAndClaims);
+    return () => window.removeEventListener("tazkia_badges_updated", refreshGrantsAndClaims);
+  }, [refreshGrantsAndClaims]);
+
+  // Top 3 Karya Pilihan Kurator Kampus (Podium Beranda / Explore)
+  const [topCuratorProjectIds, setTopCuratorProjectIds] = useState<string[]>([]);
+
+  React.useEffect(() => {
+    async function loadCuratorTop() {
+      try {
+        const { data } = await supabase
+          .from("karya")
+          .select("id, likes, views")
+          .eq("status", "approved");
+        if (data && data.length > 0) {
+          const top3 = [...data]
+            .sort((a, b) => {
+              const scoreA = (a.likes || 0) * 3 + (a.views || 0);
+              const scoreB = (b.likes || 0) * 3 + (b.views || 0);
+              return scoreB - scoreA;
+            })
+            .slice(0, 3)
+            .map((k) => k.id);
+          setTopCuratorProjectIds(top3);
+        }
+      } catch (e) {
+        console.error("Gagal memuat top kurator karya:", e);
+      }
+    }
+    loadCuratorTop();
   }, []);
+
+  const evaluatedProjects = useMemo(() => {
+    return (projects || []).map((p: any) => {
+      const isTopCurator =
+        topCuratorProjectIds.includes(p.id) ||
+        Boolean(p.is_featured || p.is_curator_spotlight);
+      const liveDemoUrl = p.live_url || p.demo_url || (p as any).liveUrl || (p as any).demoUrl || "";
+      return {
+        ...p,
+        likes: p.likes ?? p.likes_count ?? 0,
+        views: p.views ?? p.views_count ?? 0,
+        live_url: liveDemoUrl,
+        demo_url: liveDemoUrl,
+        is_featured: isTopCurator,
+        is_curator_spotlight: isTopCurator,
+      };
+    });
+  }, [projects, topCuratorProjectIds]);
+
+  // Evaluasi Penghargaan Mahasiswa berdasarkan karya, angkatan, skill riil & klaim eksklusif
+  const studentUserId = profile?.user_id || profile?.id || user?.id;
+  const studentBadgeIds = useMemo(() => {
+    return calculateStudentEarnedBadges({
+      userId: studentUserId,
+      projects: evaluatedProjects,
+      angkatan: profile?.angkatan,
+      skills: profile?.skills || [],
+      bio: profile?.bio,
+      statusBadge: profile?.status_badge,
+      cardSkin: activeSkinId,
+      claimedBadgeIds: claimedExclusiveBadgeIds,
+      unlockedBadgeIds: (profile as any)?.unlockedBadgeIds || (profile as any)?.unlocked_badge_ids,
+    });
+  }, [studentUserId, evaluatedProjects, profile?.angkatan, profile?.skills, profile?.bio, profile?.status_badge, activeSkinId, claimedExclusiveBadgeIds, (profile as any)?.unlockedBadgeIds, (profile as any)?.unlocked_badge_ids]);
 
   // Filter Kategori Badge: "umum" (13) vs "terbatas" (1)
   const [activeBadgeTab, setActiveBadgeTab] = useState<"umum" | "terbatas">("umum");
@@ -96,6 +196,168 @@ export function NeobrutalismProfileView({
   const [featuredBadgeIds, setFeaturedBadgeIds] = useState<number[]>([]);
   const [isCustomizingShelf, setIsCustomizingShelf] = useState<boolean>(false);
   const [badgeToSwap, setBadgeToSwap] = useState<PenghargaanBadge | null>(null);
+
+  // Notifikasi Penghargaan Baru Terbuka untuk Profil Pribadi (Seen / Unread tracking)
+  const [seenBadgeIds, setSeenBadgeIds] = useState<number[]>([]);
+  const [hasLoadedSeenBadges, setHasLoadedSeenBadges] = useState(false);
+
+  const seenKey = useMemo(() => {
+    return `tazkia_seen_badges_${profile?.user_id || profile?.id || user?.id || "default"}`;
+  }, [profile?.user_id, profile?.id, user?.id]);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem(seenKey);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            setSeenBadgeIds(parsed);
+          }
+        }
+      } catch {
+        // ignore
+      }
+      setHasLoadedSeenBadges(true);
+    }
+  }, [seenKey]);
+
+  // Penghargaan yang baru terbuka (belum dilihat pengguna di profil pribadinya)
+  const newlyUnlockedBadgeIds = useMemo(() => {
+    if (!isOwnProfile || !hasLoadedSeenBadges) return [];
+    return studentBadgeIds.filter((id: number) => !seenBadgeIds.includes(id));
+  }, [isOwnProfile, hasLoadedSeenBadges, studentBadgeIds, seenBadgeIds]);
+
+  // Tandai badge yang sudah dilihat
+  const markBadgeAsSeen = (badgeId: number) => {
+    if (!seenBadgeIds.includes(badgeId)) {
+      const next = [...seenBadgeIds, badgeId];
+      setSeenBadgeIds(next);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(seenKey, JSON.stringify(next));
+          const remaining = studentBadgeIds.filter((id: number) => !next.includes(id));
+          if (remaining.length === 0 && claimableGrants.length === 0) {
+            localStorage.setItem("tazkia_has_unopened_badge", "false");
+            window.dispatchEvent(new Event("tazkia_badges_viewed"));
+          }
+          window.dispatchEvent(new Event("tazkia_badges_updated"));
+        } catch {}
+      }
+    }
+  };
+
+  const markAllAsSeen = () => {
+    const next = Array.from(new Set([...seenBadgeIds, ...studentBadgeIds]));
+    setSeenBadgeIds(next);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(seenKey, JSON.stringify(next));
+        if (claimableGrants.length === 0) {
+          localStorage.setItem("tazkia_has_unopened_badge", "false");
+          window.dispatchEvent(new Event("tazkia_badges_viewed"));
+        }
+        window.dispatchEvent(new Event("tazkia_badges_updated"));
+      } catch {}
+    }
+    toast.success("Semua notifikasi penghargaan telah ditandai sudah dilihat.");
+  };
+
+  // User mengklaim lencana eksklusif yang dikirim admin
+  const handleClaimBadge = async (badgeId: number) => {
+    const grant = claimableGrants.find((g) => g.badgeId === badgeId);
+    const uid = profile?.user_id || profile?.id || user?.id || "default";
+    const success = await claimExclusiveBadge(badgeId, uid, grant?.id);
+    if (success) {
+      toast.success(`🎉 Lencana ${PENGHARGAAN_CATALOG.find(b => b.id === badgeId)?.name || ""} berhasil Anda klaim!`);
+      markBadgeAsSeen(badgeId);
+      await refreshGrantsAndClaims();
+    }
+  };
+
+  const handleClaimAll = async () => {
+    const uid = profile?.user_id || profile?.id || user?.id || "default";
+    for (const grant of claimableGrants) {
+      await claimExclusiveBadge(grant.badgeId, uid, grant.id);
+      markBadgeAsSeen(grant.badgeId);
+    }
+    toast.success("🎉 Semua lencana eksklusif berhasil diklaim dan aktif di profil Anda!");
+    await refreshGrantsAndClaims();
+  };
+
+  // Permintaan Kolaborasi Tim untuk Akun Ini
+  const [pendingCollabRequests, setPendingCollabRequests] = useState<CollabRequest[]>([]);
+
+  const refreshCollabRequests = React.useCallback(async () => {
+    if (!isOwnProfile) return;
+    const uid = profile?.user_id || user?.id;
+    if (uid) {
+      const reqs = await getPendingCollabRequestsForUser(uid);
+      setPendingCollabRequests(reqs);
+    }
+  }, [isOwnProfile, profile?.user_id, user?.id]);
+
+  React.useEffect(() => {
+    refreshCollabRequests();
+    const handleCollabUpdated = () => refreshCollabRequests();
+    window.addEventListener("tazkia_collab_updated", handleCollabUpdated);
+    return () => window.removeEventListener("tazkia_collab_updated", handleCollabUpdated);
+  }, [refreshCollabRequests]);
+
+  const handleAcceptCollab = async (req: CollabRequest) => {
+    const uid = profile?.user_id || user?.id;
+    if (!uid) return;
+    const toastId = toast.loading("Menerima kolaborasi...");
+    const res = await respondCollabRequest({
+      requestId: req.id,
+      karyaId: req.karyaId,
+      action: "accept",
+      responderUserId: uid,
+      responderName: profile?.full_name || user?.user_metadata?.full_name,
+    });
+    if (res.success) {
+      toast.success(`🎉 Berhasil bergabung dalam tim "${req.karyaTitle}"!`, { id: toastId });
+      setPendingCollabRequests((prev) => prev.filter((r) => r.id !== req.id));
+      window.dispatchEvent(new Event("tazkia_badges_updated"));
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } else {
+      toast.error(res.error || "Gagal merespons kolaborasi", { id: toastId });
+    }
+  };
+
+  const handleRejectCollab = async (req: CollabRequest) => {
+    const uid = profile?.user_id || user?.id;
+    if (!uid) return;
+    const toastId = toast.loading("Menolak kolaborasi...");
+    const res = await respondCollabRequest({
+      requestId: req.id,
+      karyaId: req.karyaId,
+      action: "reject",
+      responderUserId: uid,
+      responderName: profile?.full_name || user?.user_metadata?.full_name,
+    });
+    if (res.success) {
+      toast.success("Undangan kolaborasi ditolak.", { id: toastId });
+      setPendingCollabRequests((prev) => prev.filter((r) => r.id !== req.id));
+    } else {
+      toast.error(res.error || "Gagal merespons kolaborasi", { id: toastId });
+    }
+  };
+
+  // Auto-clear notifikasi menu bottom saat user sudah berada di halaman profil
+  React.useEffect(() => {
+    if (isOwnProfile && typeof window !== "undefined") {
+      const timer = setTimeout(() => {
+        if (claimableGrants.length === 0) {
+          localStorage.setItem("tazkia_has_unopened_badge", "false");
+          window.dispatchEvent(new Event("tazkia_badges_viewed"));
+        }
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isOwnProfile, claimableGrants.length]);
 
   // Load saved skin & featured badges from localStorage on mount
   React.useEffect(() => {
@@ -242,7 +504,7 @@ export function NeobrutalismProfileView({
   }, [projects, activeCategory]);
 
   const validSkills = useMemo(() => {
-    return (profile.skills ?? []).filter((s) => Boolean(s) && PREDEFINED_SKILLS.includes(s));
+    return (profile.skills ?? []).filter((s) => Boolean(s && typeof s === "string" && s.trim()));
   }, [profile.skills]);
 
   return (
@@ -268,9 +530,6 @@ export function NeobrutalismProfileView({
               <div className="absolute inset-0 opacity-30 bg-[radial-gradient(#f59e0b_1.2px,transparent_1.2px)] [background-size:14px_14px] animate-pulse pointer-events-none" />
               <div className="absolute -right-8 -top-10 w-52 h-52 bg-gradient-to-bl from-amber-400/35 via-orange-500/20 to-transparent rounded-full blur-xl animate-pulse pointer-events-none" />
               <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-amber-200/25 to-transparent -skew-x-12 bem-shimmer-sweep pointer-events-none" />
-              <span className="absolute left-12 bottom-3 w-1.5 h-1.5 rounded-full bg-amber-300 float-sparkle-1" />
-              <span className="absolute left-1/2 top-6 w-2 h-2 rounded-full bg-yellow-200 float-sparkle-2" />
-              <span className="absolute right-20 bottom-4 w-1.5 h-1.5 rounded-full bg-orange-300 float-sparkle-3" />
             </>
           )}
 
@@ -551,6 +810,17 @@ export function NeobrutalismProfileView({
               <h2 className="text-sm sm:text-lg font-bold tracking-tight text-foreground font-mono uppercase whitespace-nowrap">
                 Penghargaan &amp; Prestasi
               </h2>
+              {isOwnProfile && newlyUnlockedBadgeIds.length > 0 ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-black shadow-[0_0_10px_rgba(239,68,68,0.5)]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                  <span>{newlyUnlockedBadgeIds.length} Baru Terbuka</span>
+                </span>
+              ) : studentBadgeIds.length > 0 ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-bold">
+                  <Check className="w-3 h-3 stroke-[3]" />
+                  <span>{studentBadgeIds.length} Diraih</span>
+                </span>
+              ) : null}
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[11px] sm:text-xs font-bold px-2.5 py-0.5 sm:py-1 rounded-full bg-primary/10 text-primary border border-primary/20 shrink-0 whitespace-nowrap">
@@ -579,6 +849,115 @@ export function NeobrutalismProfileView({
             Penghargaan pencapaian dan rekam jejak prestasi mahasiswa di galeri platform STMIK Tazkia.
           </p>
         </div>
+
+        {/* Banner Undangan Kolaborasi Tim yang Dikirim Rekan Mahasiswa */}
+        {isOwnProfile && pendingCollabRequests.length > 0 && (
+          <div className="mb-5 p-4 rounded-2xl bg-gradient-to-r from-blue-500/15 via-indigo-500/10 to-primary/10 border-2 border-blue-500/50 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-500/25">
+                <Users className="w-6 h-6 animate-pulse" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-extrabold text-foreground">
+                    Undangan Kolaborasi Tim Projek!
+                  </h4>
+                  <span className="px-2 py-0.5 rounded-full bg-blue-500 text-white text-[10px] font-black uppercase tracking-wider shadow-xs">
+                    {pendingCollabRequests.length} Undangan Baru
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  <strong>{pendingCollabRequests[0].inviterName}</strong> mengundang Anda bergabung ke projek <em>&ldquo;{pendingCollabRequests[0].karyaTitle}&rdquo;</em> sebagai <strong>{pendingCollabRequests[0].role || "Anggota Tim"}</strong>.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+              <button
+                type="button"
+                onClick={() => handleAcceptCollab(pendingCollabRequests[0])}
+                className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Terima Kolaborasi</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRejectCollab(pendingCollabRequests[0])}
+                className="px-3.5 py-2 rounded-xl bg-card border border-border text-muted-foreground hover:text-rose-500 hover:border-rose-500/40 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span>Tolak</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Banner Klaim Lencana Eksklusif yang Dikirim Admin */}
+        {isOwnProfile && claimableGrants.length > 0 && (
+          <div className="mb-5 p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-primary/10 border-2 border-amber-500/50 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-orange-500/25">
+                <Gift className="w-6 h-6 animate-bounce" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-extrabold text-foreground">
+                    Hadiah Lencana Eksklusif dari Admin!
+                  </h4>
+                  <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-black uppercase tracking-wider shadow-xs">
+                    {claimableGrants.length} Siap Diklaim
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Admin STMIK Tazkia telah mengirimkan lencana kehormatan eksklusif ke akun Anda ({claimableGrants.map(g => g.badgeName).join(", ")}). Klik tombol untuk mengklaim!
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+              <button
+                type="button"
+                onClick={handleClaimAll}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold transition shadow-xs cursor-pointer active:scale-95 flex items-center gap-1.5"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Klaim Lencana Sekarang</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Notifikasi Banner Khusus Profil Pribadi jika ada penghargaan baru */}
+        {isOwnProfile && newlyUnlockedBadgeIds.length > 0 && (
+          <div className="mb-5 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-red-500/15 via-orange-500/10 to-amber-500/10 border-2 border-red-500/40 shadow-[0_0_20px_rgba(239,68,68,0.15)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-red-500/30">
+                <Award className="w-5 h-5 animate-pulse" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-extrabold text-foreground">
+                    Penghargaan Baru Terbuka!
+                  </h4>
+                  <span className="px-2 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-black uppercase tracking-wider shadow-xs">
+                    +{newlyUnlockedBadgeIds.length} Baru
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Selamat! Portofolio karya Anda telah membuka penghargaan baru. Badge bertanda merah di bawah siap dipajang di rak kartu Anda.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+              <button
+                type="button"
+                onClick={markAllAsSeen}
+                className="px-3.5 py-1.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-xs font-bold transition shadow-xs cursor-pointer active:scale-95"
+              >
+                Tandai Sudah Dilihat
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Panel Kustomisasi Rak Sorotan Kartu Profil */}
         <AnimatePresence>
@@ -688,6 +1067,7 @@ export function NeobrutalismProfileView({
                                 size="xs"
                                 locked={false}
                                 animated={true}
+                                showTooltip={false}
                               />
                             </div>
                             <span className="text-[10px] font-bold text-foreground truncate w-full mt-1">
@@ -778,6 +1158,8 @@ export function NeobrutalismProfileView({
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2.5 sm:gap-3.5">
           {displayedBadges.map((badge) => {
             const isOwned = studentBadgeIds.includes(badge.id);
+            const isClaimable = isOwnProfile && claimableGrants.some((g) => g.badgeId === badge.id);
+            const isNewUnlock = isOwnProfile && newlyUnlockedBadgeIds.includes(badge.id) && !isClaimable;
             const isTerbatas = badge.group === "terbatas" || badge.tier === "khusus";
             const isEmas = badge.tier === "emas";
             const isPerak = badge.tier === "perak";
@@ -798,26 +1180,54 @@ export function NeobrutalismProfileView({
                 key={badge.id}
                 onClick={() => {
                   if (isCustomizingShelf) {
-                    handleToggleFeaturedBadge(badge.id);
+                    if (isOwned) {
+                      handleToggleFeaturedBadge(badge.id);
+                    } else if (isClaimable) {
+                      handleClaimBadge(badge.id);
+                    }
                   } else {
+                    if (isNewUnlock) {
+                      markBadgeAsSeen(badge.id);
+                    }
                     setSelectedBadge(badge);
                   }
                 }}
                 className={`group relative flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl border transition-all duration-200 cursor-pointer text-center select-none ${
                   isFeatured
                     ? "border-primary bg-primary/5 ring-2 ring-primary/40 shadow-xs hover:-translate-y-1 active:translate-y-0"
+                    : isClaimable
+                    ? "border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/60 shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:-translate-y-1 active:translate-y-0 animate-pulse"
+                    : isNewUnlock
+                    ? "border-red-500 bg-red-500/10 ring-2 ring-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)] hover:-translate-y-1 active:translate-y-0"
                     : isOwned
-                    ? "border-border bg-card hover:bg-muted/60 hover:border-primary/50 hover:shadow-md hover:-translate-y-1 active:translate-y-0"
+                    ? "border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10 hover:border-emerald-500/50 hover:shadow-sm hover:-translate-y-1 active:translate-y-0"
                     : "border-dashed border-border/70 bg-muted/20 opacity-70 hover:opacity-100 hover:border-slate-400 dark:hover:border-slate-600 hover:-translate-y-0.5 active:translate-y-0"
                 }`}
                 title={
-                  isCustomizingShelf
+                  isClaimable
+                    ? `[KLIK UNTUK KLAIM] Lencana Eksklusif "${badge.name}" dikirim oleh Admin!`
+                    : isCustomizingShelf
                     ? isFeatured
                       ? `Klik untuk melepas "${badge.name}" dari rak kartu`
                       : `Klik untuk memasang "${badge.name}" ke rak kartu`
+                    : isNewUnlock
+                    ? `[BARU TERBUKA] Klik untuk melihat detail & tandai sudah dilihat: ${badge.name}`
                     : `Klik untuk melihat detail penghargaan ${badge.name}`
                 }
               >
+                {/* Notification indicator dot in corner */}
+                {isClaimable ? (
+                  <span className="absolute -top-1 -right-1 z-30 flex h-3 w-3 pointer-events-none">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500 border-2 border-card shadow-xs" />
+                  </span>
+                ) : isNewUnlock && !isFeatured ? (
+                  <span className="absolute -top-1 -right-1 z-30 flex h-3 w-3 pointer-events-none">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 border-2 border-card shadow-xs" />
+                  </span>
+                ) : null}
+
                 {/* Featured Slot Indicator */}
                 {isFeatured && (
                   <span className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-primary text-white shadow-xs z-30 whitespace-nowrap flex items-center gap-1">
@@ -831,8 +1241,9 @@ export function NeobrutalismProfileView({
                   <TazkiaAchievementHexBadge
                     badge={badge}
                     size="sm"
-                    locked={!isOwned}
-                    animated={isOwned}
+                    locked={!isOwned && !isClaimable}
+                    animated={isOwned || isClaimable}
+                    showTooltip={false}
                   />
 
                   {/* Corner Status Dot */}
@@ -840,6 +1251,10 @@ export function NeobrutalismProfileView({
                     className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center border shadow-xs z-20 ${
                       isFeatured
                         ? "bg-primary text-white border-card"
+                        : isClaimable
+                        ? "bg-amber-500 text-white border-card animate-bounce shadow-xs"
+                        : isNewUnlock
+                        ? "bg-red-500 text-white border-card animate-pulse"
                         : isOwned
                         ? "bg-emerald-500 text-white border-card"
                         : "bg-slate-400 text-white border-card"
@@ -847,6 +1262,8 @@ export function NeobrutalismProfileView({
                   >
                     {isFeatured ? (
                       <Pin className="w-2.5 h-2.5" />
+                    ) : isClaimable ? (
+                      <Gift className="w-2.5 h-2.5" />
                     ) : isOwned ? (
                       <Check className="w-2.5 h-2.5 stroke-[3]" />
                     ) : (
@@ -864,6 +1281,25 @@ export function NeobrutalismProfileView({
                 <span className={`text-[8.5px] sm:text-[9px] font-mono font-bold uppercase mt-0.5 ${tierColor}`}>
                   {badge.tierLabel}
                 </span>
+
+                {/* Status tag */}
+                {isClaimable ? (
+                  <span className="text-[8px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-tighter mt-0.5 flex items-center gap-0.5 animate-pulse">
+                    <span>🎁 Klaim</span>
+                  </span>
+                ) : isNewUnlock ? (
+                  <span className="text-[8px] font-black text-red-500 dark:text-red-400 uppercase tracking-tighter mt-0.5 animate-pulse">
+                    🔴 Terbuka
+                  </span>
+                ) : isOwned ? (
+                  <span className="text-[8px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-tighter mt-0.5">
+                    ✓ Diraih
+                  </span>
+                ) : (
+                  <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter mt-0.5">
+                    🔒 Terkunci
+                  </span>
+                )}
               </button>
             );
           })}
@@ -971,6 +1407,7 @@ export function NeobrutalismProfileView({
           angkatan={profile.angkatan}
           avatarUrl={profile.avatar_url}
           bio={profile.bio}
+          skills={validSkills}
           statusBadge={profile.status_badge}
           activeSkinId={activeSkinId}
           featuredBadgeIds={featuredBadgeIds}
@@ -999,7 +1436,11 @@ export function NeobrutalismProfileView({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ type: "spring", damping: 25, stiffness: 350 }}
-              className="relative z-10 w-full max-w-sm sm:max-w-md my-auto rounded-3xl border border-border bg-card p-4 sm:p-6 shadow-2xl text-center max-h-[90vh] overflow-y-auto"
+              className={`relative z-10 w-full max-w-sm sm:max-w-md my-auto rounded-3xl border bg-card p-4 sm:p-6 shadow-2xl text-center max-h-[90vh] overflow-y-auto ${
+                studentBadgeIds.includes(selectedBadge.id)
+                  ? "border-emerald-500/40 ring-1 ring-emerald-500/30 shadow-[0_0_25px_rgba(16,185,129,0.15)]"
+                  : "border-border"
+              }`}
             >
               {/* Close Button Top Right */}
               <button
@@ -1011,59 +1452,178 @@ export function NeobrutalismProfileView({
                 <X className="w-5 h-5" />
               </button>
 
-              {/* Glowing Medallion with custom vector artwork */}
-              <div className="relative mx-auto mt-2 mb-3 pt-2 flex items-center justify-center">
-                <TazkiaAchievementHexBadge
-                  badge={selectedBadge}
-                  size="md"
-                  locked={!studentBadgeIds.includes(selectedBadge.id)}
-                  animated={studentBadgeIds.includes(selectedBadge.id)}
-                />
-              </div>
+              {(() => {
+                const isSelectedUnlocked = studentBadgeIds.includes(selectedBadge.id);
+                const isClaimable =
+                  isOwnProfile && claimableGrants.some((g) => g.badgeId === selectedBadge.id);
+                const selectedProgress = getBadgeMissionProgress(selectedBadge.id, {
+                  userId: studentUserId,
+                  projects: evaluatedProjects,
+                  angkatan: profile?.angkatan,
+                  skills: profile?.skills || [],
+                  bio: profile?.bio,
+                  statusBadge: profile?.status_badge,
+                  cardSkin: activeSkinId,
+                  unlockedBadgeIds: studentBadgeIds,
+                  claimedBadgeIds: claimedExclusiveBadgeIds,
+                });
 
-              {/* Status Pill */}
-              <div className="mt-1 mb-2.5">
-                {studentBadgeIds.includes(selectedBadge.id) ? (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
-                    <span>Sudah Diraih</span>
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/30">
-                    <Lock className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Masih Terkunci</span>
-                  </span>
-                )}
-              </div>
+                return (
+                  <>
+                    {/* Glowing Medallion with custom vector artwork */}
+                    <div className="relative mx-auto mt-2 mb-3 pt-2 flex items-center justify-center">
+                      <TazkiaAchievementHexBadge
+                        badge={selectedBadge}
+                        size="md"
+                        locked={!isSelectedUnlocked}
+                        animated={isSelectedUnlocked}
+                      />
+                    </div>
 
-              {/* Title & Tier */}
-              <h3 className="text-lg sm:text-xl font-extrabold text-foreground tracking-tight mb-0.5">
-                {selectedBadge.name}
-              </h3>
-              <p className="text-[11px] sm:text-xs font-mono font-bold uppercase tracking-wider text-muted-foreground mb-3">
-                PENGHARGAAN TINGKAT {selectedBadge.tierLabel}
-              </p>
+                    {/* Status Pill */}
+                    <div className="mt-1 mb-2.5">
+                      {isSelectedUnlocked ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          <span>MISI TERBUKA &amp; DIRAIH (PERMANEN)</span>
+                        </span>
+                      ) : isClaimable ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40 shadow-xs animate-pulse">
+                          <Gift className="w-3.5 h-3.5" />
+                          <span>LENCANA EKSKLUSIF SIAP DIKLAIM</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/30">
+                          <Lock className="w-3.5 h-3.5 text-slate-500" />
+                          <span>Masih Terkunci</span>
+                        </span>
+                      )}
+                    </div>
 
-              {/* Description Box with Mission & Philosophy */}
-              <div className="bg-muted/40 border border-border/80 rounded-2xl p-3.5 text-xs text-foreground/90 leading-relaxed mb-4 text-left space-y-2">
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-primary block">Misi / Syarat Buka</span>
-                  <p className="mt-0.5 font-medium">{selectedBadge.mission}</p>
+                    {/* Title & Tier */}
+                    <h3 className="text-lg sm:text-xl font-extrabold text-foreground tracking-tight mb-0.5">
+                      {selectedBadge.name}
+                    </h3>
+                    <p className="text-[11px] sm:text-xs font-mono font-bold uppercase tracking-wider text-muted-foreground mb-3">
+                      PENGHARGAAN TINGKAT {selectedBadge.tierLabel}
+                    </p>
+
+                    {/* Description Box with Real Mission & Philosophy */}
+                    <div
+                      className={`border rounded-2xl p-3.5 text-xs text-foreground/90 leading-relaxed mb-4 text-left space-y-2.5 ${
+                        isSelectedUnlocked
+                          ? "bg-emerald-500/5 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.12)]"
+                          : isClaimable
+                          ? "bg-amber-500/10 border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
+                          : "bg-muted/40 border-border/80"
+                      }`}
+                    >
+                      {isClaimable && (
+                        <div className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-800 dark:text-amber-200 text-xs font-medium flex items-start gap-2">
+                          <Gift className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                          <span>
+                            Lencana ini telah dikirimkan secara langsung oleh <strong>Admin STMIK Tazkia</strong> untuk akun Anda! Klik tombol klaim di bawah untuk mengaktifkannya di profil.
+                          </span>
+                        </div>
+                      )}
+
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-primary block">
+                          Misi / Syarat Buka
+                        </span>
+                        <p className="mt-0.5 font-medium leading-relaxed">
+                          {selectedProgress.requirementText}
+                        </p>
+                      </div>
+
+                      {/* Real Mission Progress Bar */}
+                      <div className="pt-2 border-t border-border/60">
+                        <div className="flex items-center justify-between text-[10px] mb-1 font-mono">
+                          <span className="font-bold text-foreground uppercase tracking-wider">
+                            Progres Misi
+                          </span>
+                          <span
+                            className={
+                              isSelectedUnlocked
+                                ? "text-emerald-600 dark:text-emerald-400 font-bold"
+                                : isClaimable
+                                ? "text-amber-600 dark:text-amber-400 font-extrabold"
+                                : "text-amber-500 font-extrabold"
+                            }
+                          >
+                            {selectedProgress.progressText} ({selectedProgress.percentage}%)
+                          </span>
+                        </div>
+                        <div className="w-full h-2 rounded-full bg-muted overflow-hidden mb-1">
+                          <div
+                            className={`h-full rounded-full transition-all duration-300 ${
+                              isSelectedUnlocked
+                                ? "bg-gradient-to-r from-emerald-500 to-green-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"
+                                : isClaimable
+                                ? "bg-gradient-to-r from-amber-500 to-orange-500"
+                                : "bg-gradient-to-r from-amber-500 to-orange-400"
+                            }`}
+                            style={{ width: `${selectedProgress.percentage}%` }}
+                          />
+                        </div>
+                        <p className="text-[10px] text-muted-foreground italic">
+                          {selectedProgress.remainingText}
+                        </p>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                          Makna &amp; Filosofi
+                        </span>
+                        <p className="mt-0.5 text-muted-foreground text-[11.5px] italic">
+                          &ldquo;{selectedBadge.philosophy}&rdquo;
+                        </p>
+                      </div>
+
+                      {!isSelectedUnlocked && !isClaimable && (
+                        <div className="mt-2 pt-2 border-t border-border/60 text-[11px] font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                          <Info className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                          <span>Publikasikan karya atau terus tingkatkan portofolio untuk membuka penghargaan ini!</span>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
+
+              {/* Action Buttons: Klaim / Pasang / Lepas dari Rak & Tutup */}
+              {isOwnProfile && claimableGrants.some((g) => g.badgeId === selectedBadge.id) ? (
+                <div className="flex flex-col sm:flex-row gap-2.5">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await handleClaimBadge(selectedBadge.id);
+                      setSelectedBadge(null);
+                    }}
+                    className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white font-bold text-xs sm:text-sm hover:brightness-110 shadow-lg shadow-amber-500/25 transition-all cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <Gift className="w-4 h-4 animate-bounce" />
+                    <span>Klaim Lencana Eksklusif Ini Sekarang!</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedBadge(null)}
+                    className="py-3 px-5 rounded-xl bg-card border border-border text-foreground font-semibold text-xs sm:text-sm hover:bg-muted transition-colors shadow-xs cursor-pointer"
+                  >
+                    Tutup
+                  </button>
                 </div>
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Makna & Filosofi</span>
-                  <p className="mt-0.5 text-muted-foreground text-[11.5px]">{selectedBadge.philosophy}</p>
+              ) : !studentBadgeIds.includes(selectedBadge.id) ? (
+                <div className="flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedBadge(null)}
+                    className="w-full py-2.5 rounded-xl bg-muted text-foreground font-semibold text-xs sm:text-sm hover:bg-muted/80 transition-colors shadow-xs cursor-pointer"
+                  >
+                    Tutup
+                  </button>
                 </div>
-                {!studentBadgeIds.includes(selectedBadge.id) && (
-                  <div className="mt-2 pt-2 border-t border-border/60 text-[11px] font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                    <Info className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                    <span>Publikasikan karya atau terus tingkatkan portofolio untuk membuka penghargaan ini!</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Action Buttons: Pasang/Lepas dari Rak & Tutup */}
-              {featuredBadgeIds.includes(selectedBadge.id) ? (
+              ) : featuredBadgeIds.includes(selectedBadge.id) ? (
                 <div className="flex flex-col sm:flex-row gap-2.5">
                   <button
                     type="button"

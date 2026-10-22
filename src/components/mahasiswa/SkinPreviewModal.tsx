@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCw, Mail, ExternalLink, Check, Palette, X, User } from "lucide-react";
+import { RotateCw, Mail, ExternalLink, Check, Palette, X, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { CARD_SKINS, CardSkin, getSkinById, createCustomSkin } from "@/utils/skinConfig";
 import { PENGHARGAAN_CATALOG } from "@/data/penghargaanCatalog";
 import StudentCardRenderer from "@/components/mahasiswa/cards/StudentCardRenderer";
@@ -14,6 +14,7 @@ interface SkinPreviewModalProps {
   angkatan?: number | string | null;
   avatarUrl?: string | null;
   bio?: string | null;
+  skills?: string[];
   statusBadge?: string | null;
   activeSkinId?: string;
   featuredBadgeIds?: number[];
@@ -28,6 +29,7 @@ export default function SkinPreviewModal({
   angkatan = 2026,
   avatarUrl,
   bio,
+  skills,
   statusBadge,
   activeSkinId = "classic",
   featuredBadgeIds: propFeaturedBadgeIds,
@@ -40,6 +42,69 @@ export default function SkinPreviewModal({
   const [customSecondary, setCustomSecondary] = useState<string>("#0B1F4A");
   const [savedPrimary, setSavedPrimary] = useState<string>("#FF8A2B");
   const [savedSecondary, setSavedSecondary] = useState<string>("#0B1F4A");
+
+  // Quick Presets horizontal scrolling & dragging state
+  const presetScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const isDraggingPresetRef = useRef(false);
+  const presetStartXRef = useRef(0);
+  const presetScrollStartRef = useRef(0);
+  const hasMovedPresetRef = useRef(false);
+
+  const updatePresetScrollState = () => {
+    if (presetScrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = presetScrollRef.current;
+      setCanScrollLeft(scrollLeft > 4);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 4);
+    }
+  };
+
+  const handleScrollPresetStep = (direction: "left" | "right") => {
+    if (presetScrollRef.current) {
+      const amount = direction === "left" ? -140 : 140;
+      presetScrollRef.current.scrollBy({ left: amount, behavior: "smooth" });
+      setTimeout(updatePresetScrollState, 250);
+    }
+  };
+
+  const handlePresetMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!presetScrollRef.current) return;
+    isDraggingPresetRef.current = true;
+    hasMovedPresetRef.current = false;
+    presetStartXRef.current = e.pageX;
+    presetScrollStartRef.current = presetScrollRef.current.scrollLeft;
+  };
+
+  const handlePresetMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDraggingPresetRef.current || !presetScrollRef.current) return;
+    const delta = e.pageX - presetStartXRef.current;
+    if (Math.abs(delta) > 3) {
+      hasMovedPresetRef.current = true;
+    }
+    presetScrollRef.current.scrollLeft = presetScrollStartRef.current - delta;
+    updatePresetScrollState();
+  };
+
+  const handlePresetMouseUp = () => {
+    isDraggingPresetRef.current = false;
+  };
+
+  const handlePresetWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (presetScrollRef.current && e.deltaY !== 0) {
+      presetScrollRef.current.scrollLeft += e.deltaY;
+      updatePresetScrollState();
+    }
+  };
+
+  // Global mouse up for smooth dragging release
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      isDraggingPresetRef.current = false;
+    };
+    window.addEventListener("mouseup", handleGlobalMouseUp);
+    return () => window.removeEventListener("mouseup", handleGlobalMouseUp);
+  }, []);
 
   // Selected skin for live preview
   const [selectedIdx, setSelectedIdx] = useState<number>(() => {
@@ -65,15 +130,15 @@ export default function SkinPreviewModal({
   });
 
   const [featuredBadgeIds, setFeaturedBadgeIds] = useState<number[]>(() => {
-    if (propFeaturedBadgeIds && propFeaturedBadgeIds.length > 0) {
+    if (propFeaturedBadgeIds !== undefined) {
       return propFeaturedBadgeIds;
     }
-    return [9, 4, 7, 10, 14];
+    return [];
   });
 
   // Sync saved skin, custom colors & featured badges from props/localStorage on mount
   useEffect(() => {
-    if (propFeaturedBadgeIds !== undefined && propFeaturedBadgeIds.length > 0) {
+    if (propFeaturedBadgeIds !== undefined) {
       setFeaturedBadgeIds(propFeaturedBadgeIds);
     }
   }, [propFeaturedBadgeIds]);
@@ -107,7 +172,7 @@ export default function SkinPreviewModal({
         // fallback
       }
 
-      if (!propFeaturedBadgeIds || propFeaturedBadgeIds.length === 0) {
+      if (propFeaturedBadgeIds === undefined) {
         try {
           const storageKey = studentId
             ? `tazkia_featured_badges_${studentId}`
@@ -115,7 +180,7 @@ export default function SkinPreviewModal({
           const savedBadges = localStorage.getItem(storageKey);
           if (savedBadges && isMounted) {
             const parsed = JSON.parse(savedBadges);
-            if (Array.isArray(parsed) && parsed.length > 0) {
+            if (Array.isArray(parsed)) {
               setFeaturedBadgeIds(parsed.slice(0, 5));
             }
           }
@@ -261,7 +326,7 @@ export default function SkinPreviewModal({
                 <div className="w-full flex justify-center py-0.5 [zoom:0.66] sm:[zoom:0.78] md:[zoom:0.92]">
                   <StudentCardRenderer
                     skinId={curSkin.id}
-                    isSkeleton={true}
+                    isSkeleton={false}
                     data={{
                       name: studentName,
                       initials:
@@ -272,17 +337,21 @@ export default function SkinPreviewModal({
                           .join("")
                           .toUpperCase() || "MH",
                       angkatan: angkatan ? `ANGKATAN ${angkatan}` : "ANGKATAN 2",
-                      statusIcon: "🟠",
                       status: statusBadge || "Open for Collab",
                       major: prodi || "STMIK Tazkia · Informatika",
-                      skills: ["UI/UX Design", "Frontend Dev"],
-                      bio:
-                        bio ||
-                        "Mahasiswa kreatif STMIK Tazkia yang siap berkarya & berkolaborasi.",
+                      skills: skills && skills.length > 0 ? skills : [],
+                      bio: bio || undefined,
                       roleTitle: "Mahasiswa Aktif STMIK Tazkia",
                       serial: "KTZ-2026-STD-001",
                       featuredBadgeIds: featuredBadgeIds,
+                      unlockedBadgeIds: featuredBadgeIds,
                       avatarUrl: avatarUrl || null,
+                      socials: {
+                        website: "https://tazkia.ac.id",
+                        github: "https://github.com",
+                        linkedin: "https://linkedin.com",
+                        instagram: "https://instagram.com",
+                      },
                     }}
                     customPrimary={customPrimary}
                     customSecondary={customSecondary}
@@ -396,35 +465,92 @@ export default function SkinPreviewModal({
                       </div>
                     </div>
 
-                    {/* Quick Presets */}
-                    <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar text-[9.5px] sm:text-[10px]">
-                      <span className="text-muted-foreground font-medium shrink-0">
+                    {/* Quick Presets with Scroll / Drag & Arrow Controls */}
+                    <div className="flex items-center gap-1 text-[9.5px] sm:text-[10px] select-none pt-0.5">
+                      <span className="text-muted-foreground font-medium shrink-0 mr-0.5 text-[10px]">
                         Preset:
                       </span>
-                      {[
-                        { name: "Tazkia Default", pri: "#FF8A2B", sec: "#0B1F4A" },
-                        { name: "Neon Cyber", pri: "#00ffcc", sec: "#0a192f" },
-                        { name: "Sunset Gold", pri: "#f59e0b", sec: "#26170a" },
-                        { name: "Purple Neon", pri: "#c084fc", sec: "#1e1035" },
-                        { name: "Rose Crimson", pri: "#fb7185", sec: "#2b0d18" },
-                        { name: "Electric Blue", pri: "#38bdf8", sec: "#081b2e" },
-                      ].map((p) => (
-                        <button
-                          key={p.name}
-                          type="button"
-                          onClick={() => {
-                            setCustomPrimary(p.pri);
-                            setCustomSecondary(p.sec);
-                          }}
-                          className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-md border border-border bg-card hover:bg-muted text-[9.5px] sm:text-[10px] cursor-pointer transition-colors"
-                        >
-                          <span
-                            className="w-2 h-2 rounded-full inline-block"
-                            style={{ backgroundColor: p.pri }}
-                          />
-                          <span>{p.name}</span>
-                        </button>
-                      ))}
+
+                      {/* Tombol Geser Kiri */}
+                      <button
+                        type="button"
+                        onClick={() => handleScrollPresetStep("left")}
+                        disabled={!canScrollLeft}
+                        className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 border border-border bg-card transition-all ${
+                          canScrollLeft
+                            ? "text-foreground hover:bg-muted cursor-pointer active:scale-95 shadow-xs"
+                            : "text-muted-foreground/30 opacity-30 cursor-not-allowed border-transparent"
+                        }`}
+                        title="Geser preset ke kiri"
+                        aria-label="Geser ke kiri"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                      </button>
+
+                      {/* Scrollable & Draggable Area */}
+                      <div
+                        ref={presetScrollRef}
+                        onScroll={updatePresetScrollState}
+                        onWheel={handlePresetWheel}
+                        onMouseDown={handlePresetMouseDown}
+                        onMouseMove={handlePresetMouseMove}
+                        onMouseUp={handlePresetMouseUp}
+                        onMouseLeave={handlePresetMouseUp}
+                        className="flex-1 flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar cursor-grab active:cursor-grabbing touch-pan-x"
+                      >
+                        {[
+                          { name: "Tazkia Default", pri: "#FF8A2B", sec: "#0B1F4A" },
+                          { name: "Neon Cyber", pri: "#00ffcc", sec: "#0a192f" },
+                          { name: "Sunset Gold", pri: "#f59e0b", sec: "#26170a" },
+                          { name: "Purple Neon", pri: "#c084fc", sec: "#1e1035" },
+                          { name: "Rose Crimson", pri: "#fb7185", sec: "#2b0d18" },
+                          { name: "Electric Blue", pri: "#38bdf8", sec: "#081b2e" },
+                          { name: "Emerald Tech", pri: "#10b981", sec: "#06281e" },
+                          { name: "Midnight Red", pri: "#f43f5e", sec: "#1a0b12" },
+                        ].map((p) => {
+                          const isCurrent =
+                            customPrimary.toLowerCase() === p.pri.toLowerCase() &&
+                            customSecondary.toLowerCase() === p.sec.toLowerCase();
+                          return (
+                            <button
+                              key={p.name}
+                              type="button"
+                              onClick={() => {
+                                if (hasMovedPresetRef.current) return;
+                                setCustomPrimary(p.pri);
+                                setCustomSecondary(p.sec);
+                              }}
+                              className={`shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-md border text-[9.5px] sm:text-[10px] cursor-pointer transition-colors ${
+                                isCurrent
+                                  ? "border-primary bg-primary/10 text-primary font-bold shadow-2xs"
+                                  : "border-border bg-card hover:bg-muted text-foreground"
+                              }`}
+                            >
+                              <span
+                                className="w-2 h-2 rounded-full inline-block shrink-0"
+                                style={{ backgroundColor: p.pri }}
+                              />
+                              <span className="whitespace-nowrap">{p.name}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Tombol Geser Kanan */}
+                      <button
+                        type="button"
+                        onClick={() => handleScrollPresetStep("right")}
+                        disabled={!canScrollRight}
+                        className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 border border-border bg-card transition-all ${
+                          canScrollRight
+                            ? "text-foreground hover:bg-muted cursor-pointer active:scale-95 shadow-xs"
+                            : "text-muted-foreground/30 opacity-30 cursor-not-allowed border-transparent"
+                        }`}
+                        title="Geser preset ke kanan"
+                        aria-label="Geser ke kanan"
+                      >
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 )}
@@ -492,20 +618,41 @@ export default function SkinPreviewModal({
                         <div
                           className="h-[52px] sm:h-[60px] rounded-[10px] relative overflow-hidden transition-transform"
                           style={{
-                            background: `linear-gradient(135deg, ${displaySkin.secondaryColor}, ${displaySkin.secondaryColor}dd)`,
+                            background:
+                              displaySkin.headerGradient ||
+                              `linear-gradient(135deg, ${displaySkin.secondaryColor}, ${displaySkin.secondaryColor}dd)`,
                           }}
                         >
-                          {skin.id === "custom" && (
-                            <span className="absolute top-1.5 right-1.5 px-1.5 py-0.2 rounded text-[7.5px] font-mono font-bold bg-white/15 text-white border border-white/20">
-                              CUSTOM
-                            </span>
-                          )}
+                          {/* Mini Skin Type Badge */}
+                          <span
+                            className="absolute top-1.5 right-1.5 px-1.5 py-0.2 rounded text-[7.5px] font-mono font-black border backdrop-blur-xs shadow-xs"
+                            style={{
+                              backgroundColor:
+                                skin.id === "bem2026"
+                                  ? "rgba(245, 158, 11, 0.35)"
+                                  : `${displaySkin.primaryColor}28`,
+                              borderColor:
+                                skin.id === "bem2026"
+                                  ? "rgba(251, 191, 36, 0.7)"
+                                  : `${displaySkin.primaryColor}66`,
+                              color: skin.id === "bem2026" ? "#fef08a" : "#ffffff",
+                            }}
+                          >
+                            {skin.id === "custom"
+                              ? "CUSTOM"
+                              : skin.id === "bem2026"
+                              ? "BEM '26"
+                              : "TAZKIA"}
+                          </span>
 
                           {/* Bottom strip line */}
                           <div
                             className="absolute left-0 right-0 bottom-0 h-[3px]"
                             style={{
-                              background: displaySkin.primaryColor,
+                              background:
+                                skin.id === "bem2026"
+                                  ? "linear-gradient(90deg, #f59e0b, #fde047, #f59e0b)"
+                                  : displaySkin.primaryColor,
                             }}
                           />
                           {/* Mini avatar ring */}

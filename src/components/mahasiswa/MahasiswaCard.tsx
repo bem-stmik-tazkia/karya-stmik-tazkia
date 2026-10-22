@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Student } from "@/types/student";
 import StudentCardRenderer from "@/components/mahasiswa/cards/StudentCardRenderer";
 import type { StudentCardData } from "@/components/mahasiswa/cards/umum/StandardStudentCard";
+import { calculateStudentEarnedBadges } from "@/data/penghargaanCatalog";
 
 export interface MahasiswaCardProps {
   student: Student;
@@ -33,6 +34,7 @@ export default function MahasiswaCard({
   onToggleFollow,
   inClass = "",
   animationDelay = 0,
+  projects = [],
   onFilterAngkatan,
   onFilterStatus,
   onFilterSkill,
@@ -111,39 +113,66 @@ export default function MahasiswaCard({
     return parts[0][0].toUpperCase();
   })();
 
-  // Helper for status icon matching the card aesthetics
+  // Helper: mapping teks status → emoji sesuai PREDEFINED_STATUSES di profile/page.tsx
+  // Format DB: "🚀 Open for Collab", sudah dinormalize jadi "Open for Collab" sebelum masuk sini
   const getStatusIcon = (status?: string) => {
-    if (!status) return "🟠";
-    const s = status.toLowerCase();
-    if (s.includes("freelance")) return "🟢";
-    if (s.includes("collab")) return "🟠";
-    if (s.includes("magang") || s.includes("intern")) return "🎯";
+    if (!status) return "🚀";
+    const s = status.toLowerCase().trim();
+    if (s.includes("collab")) return "🚀";
+    if (s.includes("freelance")) return "🤝";
+    if (s.includes("magang") || s.includes("intern")) return "💼";
     if (s.includes("belajar") || s.includes("studi")) return "📚";
-    if (s.includes("mentor") || s.includes("karir")) return "🔍";
-    return "🟠";
+    if (s.includes("full-time") || s.includes("fulltime") || s.includes("bekerja")) return "💻";
+    if (s.includes("startup") || s.includes("ide")) return "💡";
+    if (s.includes("mentor")) return "🔍";
+    return "🚀";
   };
+
+  // Hitung badge yang benar-benar diraih mahasiswa berdasarkan karya, angkatan, & skill riil
+  const studentUserId = student.userId || student.id;
+  const earnedBadgeIds = useMemo(() => {
+    return calculateStudentEarnedBadges({
+      userId: studentUserId,
+      projects: projects || [],
+      angkatan: student.angkatan,
+      skills: student.skills,
+      bio: student.bio,
+      statusBadge: student.rawStatusBadge || student.statusBadge,
+      cardSkin: activeSkinId,
+      unlockedBadgeIds: (student as any).unlockedBadgeIds || (student as any).unlocked_badge_ids,
+    });
+  }, [studentUserId, projects, student.angkatan, student.skills, student.bio, student.rawStatusBadge, student.statusBadge, activeSkinId, (student as any).unlockedBadgeIds, (student as any).unlocked_badge_ids]);
+
+  // Featured 5 badge: ambil dari pilihan custom mahasiswa atau 5 badge pertama yang diraihnya
+  const featuredBadgeIds = useMemo(() => {
+    if (student.featuredBadgeIds && student.featuredBadgeIds.length > 0) {
+      return student.featuredBadgeIds;
+    }
+    if ((student as any).featured_badge_ids && (student as any).featured_badge_ids.length > 0) {
+      return (student as any).featured_badge_ids;
+    }
+    return earnedBadgeIds.slice(0, 5);
+  }, [student.featuredBadgeIds, (student as any).featured_badge_ids, earnedBadgeIds]);
 
   const cardData: StudentCardData = {
     name: student.name,
     initials,
-    angkatan: student.angkatan ? `ANGKATAN ${student.angkatan}` : "ANGKATAN 2",
-    statusIcon: getStatusIcon(student.statusBadge),
+    angkatan: student.angkatan ? `ANGKATAN ${student.angkatan}` : undefined,
+    statusIcon: getStatusIcon(student.rawStatusBadge || student.statusBadge),
     status: student.statusBadge || "Open for Collab",
-    major: student.prodi || "Sistem Informasi",
-    skills:
-      student.skills && student.skills.length > 0
-        ? student.skills
-        : ["UI/UX Design", "Frontend Dev"],
-    bio: student.bio || "Mahasiswa kreatif STMIK Tazkia yang siap berkarya & berkolaborasi.",
+    major: student.prodi || undefined,
+    skills: student.skills && student.skills.length > 0 ? student.skills : [],
+    bio: student.bio || undefined,
     roleTitle: `Mahasiswa Angkatan ${student.angkatan || 2}`,
     serial: `KTZ-${student.angkatan || "2026"}-${(student.id || "001").slice(0, 4).toUpperCase()}`,
     avatarUrl: student.avatarUrl || null,
     socials: student.socials,
     contactEmail: student.contactEmail,
     badges: student.badges,
-    featuredBadgeIds:
-      (student as any).featuredBadgeIds ||
-      (student as any).featured_badge_ids || [9, 4, 7, 10, 14],
+    unlockedBadgeIds: earnedBadgeIds,
+    featuredBadgeIds: featuredBadgeIds,
+    projects: projects || [],
+    cardSkin: activeSkinId,
   };
 
   const handleContact = () => {
