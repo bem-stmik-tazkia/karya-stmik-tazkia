@@ -9,6 +9,10 @@ interface HexBadgeRistekMechaProps {
   locked?: boolean;
   hyperMode?: boolean;
   onClick?: () => void;
+  title?: string;
+  tooltip?: string;
+  showTooltip?: boolean;
+  tooltipAlign?: "center" | "left" | "right";
 }
 
 export const HexBadgeRistekMecha: React.FC<HexBadgeRistekMechaProps> = ({
@@ -16,6 +20,10 @@ export const HexBadgeRistekMecha: React.FC<HexBadgeRistekMechaProps> = ({
   locked = false,
   hyperMode = false,
   onClick,
+  title,
+  tooltip,
+  showTooltip = true,
+  tooltipAlign = "center",
 }) => {
   const rawId = useId();
   const uid = `mecha-${rawId.replace(/[^a-zA-Z0-9_-]/g, "")}`;
@@ -47,11 +55,11 @@ export const HexBadgeRistekMecha: React.FC<HexBadgeRistekMechaProps> = ({
               }
             : undefined
         }
-        className={`relative flex items-center justify-center transition-all duration-300 focus:outline-none ${
+        className={`relative flex items-center justify-center transition-transform duration-200 ease-out transform-gpu [backface-visibility:hidden] [transform:translateZ(0)] focus:outline-none ${
           onClick ? "cursor-pointer" : ""
         } ${sizeClass} ${
-          !isLarge ? "hover:scale-125" : ""
-        } ${locked ? "grayscale opacity-55" : hyperMode ? "badge-levitate-fast" : "badge-levitate-delayed"}`}
+          !isLarge ? "hover:scale-105 active:scale-95" : ""
+        } ${locked ? "grayscale opacity-55" : ""}`}
       >
         {/* 1. Strobing Neon Plasma Backlight + Dual Counter-Rotating Reactor Rings */}
         {!locked && (
@@ -234,23 +242,47 @@ export const HexBadgeRistekMecha: React.FC<HexBadgeRistekMechaProps> = ({
         )}
       </div>
 
-      {/* Rich Animated Tooltip on Card Hover */}
-      {(size === "xs" || size === "sm") && (
-        <div className="pointer-events-none absolute bottom-full mb-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 z-50 w-64 p-3 rounded-xl bg-slate-950/95 text-white shadow-[0_10px_30px_rgba(59,130,246,0.4)] border border-sky-400/70 font-mono">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-1.5 mb-1.5">
-            <span className="px-1.5 py-0.5 text-[9px] font-bold text-slate-950 rounded bg-gradient-to-r from-sky-400 via-blue-500 to-orange-400 flex items-center gap-1">
-              <Zap className="w-2.5 h-2.5 fill-slate-950" /> ANIMATED MECHA
+      {/* Sleek & Compact Tooltip on Card Hover */}
+      {showTooltip && (size === "xs" || size === "sm") && (
+        <div
+          className={`pointer-events-none absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-all duration-200 z-[80] w-52 sm:w-56 max-w-[240px] p-2.5 rounded-lg bg-slate-950/95 text-white shadow-[0_8px_24px_rgba(59,130,246,0.4)] border border-sky-400/70 text-left select-none ${
+            tooltipAlign === "left"
+              ? "left-0 translate-x-0"
+              : tooltipAlign === "right"
+              ? "right-0 left-auto translate-x-0"
+              : "left-1/2 -translate-x-1/2"
+          }`}
+        >
+          <div className="flex items-center justify-between border-b border-slate-800/80 pb-1 mb-1.5">
+            <span className="px-2 py-0.5 text-[8.5px] font-bold text-slate-950 rounded bg-gradient-to-r from-sky-400 via-blue-500 to-orange-400">
+              MECHA MYTHIC
             </span>
-            <span className="text-[10px] text-sky-400">SAPPHIRE '26</span>
           </div>
-          <p className="text-xs font-bold flex items-center gap-1.5 text-sky-200">
-            <PickaxeSvg className="w-3.5 h-3.5 text-orange-400" />
+          <p className="text-xs font-bold flex items-center gap-1 text-sky-200 mb-0.5 leading-snug">
+            <PickaxeSvg className="w-3 h-3 text-orange-400 shrink-0" />
             Mecha Sapphire Builder '26
           </p>
-          <p className="text-[10px] text-slate-300 leading-relaxed mt-1 font-sans">
-            Dilengkapi animasi <strong>Plasma Perimeter Orbit</strong>, <strong>Laser Scanline</strong>, & <strong>Radar HUD</strong> berputar.
+          <p className="text-[10px] font-semibold text-sky-300 mb-1 leading-tight">
+            Simbol: Mecha Chassis & Power Core
           </p>
-          <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-950 rotate-45 border-r border-b border-sky-400/70" />
+          <p className="text-[10px] text-slate-300 leading-relaxed font-sans">
+            Plasma Perimeter Orbit & Dual Reactor Rings.
+          </p>
+          <div className="mt-1.5 pt-1 border-t border-slate-800/80 flex items-center justify-between text-[8.5px] text-slate-400 font-medium">
+            <span className="text-emerald-400 font-semibold flex items-center gap-1">
+              {locked ? "🔒 Belum diraih" : "✓ Diraih"}
+            </span>
+            <span className="text-slate-400">Klik rincian &rarr;</span>
+          </div>
+          <div
+            className={`absolute -bottom-1 w-2 h-2 bg-slate-950 rotate-45 border-r border-b border-sky-400/70 ${
+              tooltipAlign === "left"
+                ? "left-3.5"
+                : tooltipAlign === "right"
+                ? "right-3.5 left-auto"
+                : "left-1/2 -translate-x-1/2"
+            }`}
+          />
         </div>
       )}
     </div>

@@ -24,6 +24,7 @@
 .DS_Store
 *.pem
 localhost_3000_.png
+.history/
 
 # debug
 npm-debug.log*

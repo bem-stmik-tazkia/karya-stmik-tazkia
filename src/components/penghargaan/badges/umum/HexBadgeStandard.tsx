@@ -56,7 +56,7 @@ export const HexBadgeStandard: React.FC<HexBadgeStandardProps> = ({
               }
             : undefined
         }
-        className={`${sizeClass} flex items-center justify-center transition-transform duration-300 hover:scale-115 focus:outline-none ${
+        className={`${sizeClass} flex items-center justify-center transition-transform duration-200 ease-out transform-gpu [backface-visibility:hidden] [transform:translateZ(0)] hover:scale-105 active:scale-95 focus:outline-none ${
           onClick ? "cursor-pointer" : ""
         }`}
       >

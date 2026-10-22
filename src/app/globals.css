@@ -945,12 +945,12 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
-.badge-float { animation: none; }
-.foil-sweep-anim { animation: none; }
+.badge-float { animation: badgeFloat 2.8s infinite ease-in-out; will-change: transform; }
+.foil-sweep-anim { animation: foilSweep 3.2s infinite ease-in-out; }
 .hex-orbit-anim { animation: hexOrbit 2.8s linear infinite; }
-.spin-slow { animation: spin 10s linear infinite; }
-.spin-fast { animation: spin 4.5s linear infinite; }
-.spin-reverse-slow { animation: spin 9s linear infinite reverse; }
+.spin-slow { animation: spin 10s linear infinite; transform-box: fill-box; will-change: transform; }
+.spin-fast { animation: spin 4.5s linear infinite; transform-box: fill-box; will-change: transform; }
+.spin-reverse-slow { animation: spin 9s linear infinite reverse; transform-box: fill-box; will-change: transform; }
 
 /* Exclusive 2026 Skins & Badges Animations */
 @keyframes ristekBorderPulse {

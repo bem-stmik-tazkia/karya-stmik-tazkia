@@ -501,24 +501,39 @@ export const StandardStudentCard: React.FC<StandardStudentCardProps> = ({
                     className="flex items-center justify-between gap-1 mb-3.5 px-0.5"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    {featuredBadges.map((badge, idx) => (
-                      <div
-                        key={badge.id || idx}
-                        onClick={() => {
-                          handleSelectBadge(badge);
-                          setIsFlipped(true);
-                        }}
-                        title={`${badge.name} (${badge.tierLabel}) · Klik untuk buka rincian`}
-                        className="cursor-pointer transition-transform hover:scale-115 flex items-center justify-center"
-                      >
-                        <TazkiaAchievementHexBadge
-                          badge={badge}
-                          size="xs"
-                          locked={false}
-                          animated={true}
-                        />
-                      </div>
-                    ))}
+                    {featuredBadges.map((badge, idx) => {
+                      const tooltipAlign =
+                        featuredBadges.length >= 4
+                          ? idx <= 1
+                            ? "left"
+                            : idx >= featuredBadges.length - 2
+                            ? "right"
+                            : "center"
+                          : idx === 0
+                          ? "left"
+                          : idx === featuredBadges.length - 1
+                          ? "right"
+                          : "center";
+
+                      return (
+                        <div
+                          key={badge.id || idx}
+                          onClick={() => {
+                            handleSelectBadge(badge);
+                            setIsFlipped(true);
+                          }}
+                          className="cursor-pointer flex items-center justify-center relative"
+                        >
+                          <TazkiaAchievementHexBadge
+                            badge={badge}
+                            size="xs"
+                            locked={false}
+                            animated={true}
+                            tooltipAlign={tooltipAlign}
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
 
                   {/* Action Buttons: Hubungi & Balik Kartu */}
@@ -684,6 +699,7 @@ export const StandardStudentCard: React.FC<StandardStudentCardProps> = ({
                               size="xs"
                               locked={!unlockedBadgeIds.includes(b.id)}
                               animated={isSelected}
+                              showTooltip={false}
                             />
                           </div>
                         );
