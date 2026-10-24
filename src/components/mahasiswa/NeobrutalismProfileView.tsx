@@ -708,7 +708,7 @@ export function NeobrutalismProfileView({
                   </a>
                 ) : (
                   <span
-                    className="w-9 h-9 rounded-lg border border-border bg-muted/40 flex items-center justify-center text-muted-foreground/40 cursor-not-allowed opacity-50 shadow-2xs"
+                    className="w-9 h-9 rounded-lg border border-border/80 bg-muted/60 flex items-center justify-center text-muted-foreground/70 cursor-not-allowed shadow-2xs"
                     title="Website / Portofolio belum ditautkan"
                     aria-label="Website belum ditautkan"
                   >
@@ -732,7 +732,7 @@ export function NeobrutalismProfileView({
                   </a>
                 ) : (
                   <span
-                    className="w-9 h-9 rounded-lg border border-border bg-muted/40 flex items-center justify-center text-muted-foreground/40 cursor-not-allowed opacity-50 shadow-2xs"
+                    className="w-9 h-9 rounded-lg border border-border/80 bg-muted/60 flex items-center justify-center text-muted-foreground/70 cursor-not-allowed shadow-2xs"
                     title="LinkedIn belum ditautkan"
                     aria-label="LinkedIn belum ditautkan"
                   >
@@ -758,7 +758,7 @@ export function NeobrutalismProfileView({
                   </a>
                 ) : (
                   <span
-                    className="w-9 h-9 rounded-lg border border-border bg-muted/40 flex items-center justify-center text-muted-foreground/40 cursor-not-allowed opacity-50 shadow-2xs"
+                    className="w-9 h-9 rounded-lg border border-border/80 bg-muted/60 flex items-center justify-center text-muted-foreground/70 cursor-not-allowed shadow-2xs"
                     title="GitHub belum ditautkan"
                     aria-label="GitHub belum ditautkan"
                   >
@@ -782,7 +782,7 @@ export function NeobrutalismProfileView({
                   </a>
                 ) : (
                   <span
-                    className="w-9 h-9 rounded-lg border border-border bg-muted/40 flex items-center justify-center text-muted-foreground/40 cursor-not-allowed opacity-50 shadow-2xs"
+                    className="w-9 h-9 rounded-lg border border-border/80 bg-muted/60 flex items-center justify-center text-muted-foreground/70 cursor-not-allowed shadow-2xs"
                     title="Instagram belum ditautkan"
                     aria-label="Instagram belum ditautkan"
                   >

@@ -462,18 +462,19 @@ export const StandardStudentCard: React.FC<StandardStudentCardProps> = ({
                     {/* Globe / Website */}
                     <button
                       type="button"
+                      disabled={!data.socials?.website}
                       onClick={() => {
                         if (data.socials?.website) {
                           window.open(data.socials.website, "_blank");
                         }
                       }}
-                      className={`w-7 h-7 rounded-full flex items-center justify-center border transition-all duration-200 ${
+                      className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 ${
                         data.socials?.website
-                          ? "bg-sky-500/20 border-sky-400/50 text-sky-400 hover:bg-sky-500/35 hover:border-sky-300 hover:scale-110 shadow-[0_0_10px_rgba(56,189,248,0.35)] cursor-pointer"
-                          : "bg-slate-500/10 border-slate-500/20 text-slate-400/40 dark:bg-slate-800/40 dark:border-slate-700/50 dark:text-slate-600"
+                          ? "bg-sky-500 border border-sky-400 text-white shadow-xs hover:bg-sky-600 hover:scale-110 active:scale-95 dark:bg-sky-500/30 dark:border-sky-400 dark:text-sky-300 dark:shadow-[0_0_12px_rgba(56,189,248,0.4)] cursor-pointer"
+                          : "border border-dashed border-slate-300/80 bg-slate-100/40 text-slate-300 dark:border-slate-700/60 dark:bg-slate-800/20 dark:text-slate-600 opacity-40 cursor-not-allowed"
                       }`}
                       aria-label="Website"
-                      title={data.socials?.website ? "Buka Website" : "Website belum ditautkan"}
+                      title={data.socials?.website ? `Buka Website: ${data.socials.website}` : "Website belum ditautkan"}
                     >
                       <Globe className="w-3.5 h-3.5" />
                     </button>
@@ -481,6 +482,7 @@ export const StandardStudentCard: React.FC<StandardStudentCardProps> = ({
                     {/* GitHub */}
                     <button
                       type="button"
+                      disabled={!data.socials?.github}
                       onClick={() => {
                         if (data.socials?.github) {
                           const url = data.socials.github.startsWith("http")
@@ -489,13 +491,13 @@ export const StandardStudentCard: React.FC<StandardStudentCardProps> = ({
                           window.open(url, "_blank");
                         }
                       }}
-                      className={`w-7 h-7 rounded-full flex items-center justify-center border transition-all duration-200 ${
+                      className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 ${
                         data.socials?.github
-                          ? "bg-white/20 border-white/50 text-white hover:bg-white/30 hover:border-white hover:scale-110 shadow-[0_0_10px_rgba(255,255,255,0.3)] cursor-pointer"
-                          : "bg-slate-500/10 border-slate-500/20 text-slate-400/40 dark:bg-slate-800/40 dark:border-slate-700/50 dark:text-slate-600"
+                          ? "bg-[#181717] border border-slate-900 text-white shadow-xs hover:bg-black hover:scale-110 active:scale-95 dark:bg-white/20 dark:border-white/60 dark:text-white dark:hover:bg-white/30 dark:shadow-[0_0_12px_rgba(255,255,255,0.35)] cursor-pointer"
+                          : "border border-dashed border-slate-300/80 bg-slate-100/40 text-slate-300 dark:border-slate-700/60 dark:bg-slate-800/20 dark:text-slate-600 opacity-40 cursor-not-allowed"
                       }`}
                       aria-label="GitHub"
-                      title={data.socials?.github ? "Buka GitHub" : "GitHub belum ditautkan"}
+                      title={data.socials?.github ? `Buka GitHub: ${data.socials.github}` : "GitHub belum ditautkan"}
                     >
                       <GithubIcon className="w-3.5 h-3.5" />
                     </button>
@@ -503,6 +505,7 @@ export const StandardStudentCard: React.FC<StandardStudentCardProps> = ({
                     {/* LinkedIn */}
                     <button
                       type="button"
+                      disabled={!data.socials?.linkedin}
                       onClick={() => {
                         if (data.socials?.linkedin) {
                           const url = data.socials.linkedin.startsWith("http")
@@ -511,13 +514,13 @@ export const StandardStudentCard: React.FC<StandardStudentCardProps> = ({
                           window.open(url, "_blank");
                         }
                       }}
-                      className={`w-7 h-7 rounded-full flex items-center justify-center border transition-all duration-200 ${
+                      className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 ${
                         data.socials?.linkedin
-                          ? "bg-blue-500/20 border-blue-400/50 text-blue-400 hover:bg-blue-500/35 hover:border-blue-300 hover:scale-110 shadow-[0_0_10px_rgba(59,130,246,0.35)] cursor-pointer"
-                          : "bg-slate-500/10 border-slate-500/20 text-slate-400/40 dark:bg-slate-800/40 dark:border-slate-700/50 dark:text-slate-600"
+                          ? "bg-[#0a66c2] border border-[#0a66c2] text-white shadow-xs hover:bg-[#084e96] hover:scale-110 active:scale-95 dark:bg-blue-600/30 dark:border-blue-400 dark:text-blue-300 dark:shadow-[0_0_12px_rgba(59,130,246,0.4)] cursor-pointer"
+                          : "border border-dashed border-slate-300/80 bg-slate-100/40 text-slate-300 dark:border-slate-700/60 dark:bg-slate-800/20 dark:text-slate-600 opacity-40 cursor-not-allowed"
                       }`}
                       aria-label="LinkedIn"
-                      title={data.socials?.linkedin ? "Buka LinkedIn" : "LinkedIn belum ditautkan"}
+                      title={data.socials?.linkedin ? `Buka LinkedIn: ${data.socials.linkedin}` : "LinkedIn belum ditautkan"}
                     >
                       <LinkedinIcon className="w-3.5 h-3.5" />
                     </button>
@@ -525,6 +528,7 @@ export const StandardStudentCard: React.FC<StandardStudentCardProps> = ({
                     {/* Instagram */}
                     <button
                       type="button"
+                      disabled={!data.socials?.instagram}
                       onClick={() => {
                         if (data.socials?.instagram) {
                           const url = data.socials.instagram.startsWith("http")
@@ -533,13 +537,13 @@ export const StandardStudentCard: React.FC<StandardStudentCardProps> = ({
                           window.open(url, "_blank");
                         }
                       }}
-                      className={`w-7 h-7 rounded-full flex items-center justify-center border transition-all duration-200 ${
+                      className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 ${
                         data.socials?.instagram
-                          ? "bg-pink-500/20 border-pink-400/50 text-pink-400 hover:bg-pink-500/35 hover:border-pink-300 hover:scale-110 shadow-[0_0_10px_rgba(244,63,94,0.35)] cursor-pointer"
-                          : "bg-slate-500/10 border-slate-500/20 text-slate-400/40 dark:bg-slate-800/40 dark:border-slate-700/50 dark:text-slate-600"
+                          ? "bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] border border-transparent text-white shadow-xs hover:opacity-90 hover:scale-110 active:scale-95 dark:bg-pink-600/30 dark:border-pink-400 dark:text-pink-300 dark:shadow-[0_0_12px_rgba(244,63,94,0.4)] cursor-pointer"
+                          : "border border-dashed border-slate-300/80 bg-slate-100/40 text-slate-300 dark:border-slate-700/60 dark:bg-slate-800/20 dark:text-slate-600 opacity-40 cursor-not-allowed"
                       }`}
                       aria-label="Instagram"
-                      title={data.socials?.instagram ? "Buka Instagram" : "Instagram belum ditautkan"}
+                      title={data.socials?.instagram ? `Buka Instagram: ${data.socials.instagram}` : "Instagram belum ditautkan"}
                     >
                       <InstagramIcon className="w-3.5 h-3.5" />
                     </button>
