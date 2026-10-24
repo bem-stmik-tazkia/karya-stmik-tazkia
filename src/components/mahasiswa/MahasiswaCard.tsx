@@ -4,7 +4,11 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Student } from "@/types/student";
 import StudentCardRenderer from "@/components/mahasiswa/cards/StudentCardRenderer";
 import type { StudentCardData } from "@/components/mahasiswa/cards/umum/StandardStudentCard";
-import { calculateStudentEarnedBadges } from "@/data/penghargaanCatalog";
+import {
+  calculateStudentEarnedBadges,
+  PENGHARGAAN_CATALOG,
+} from "@/data/penghargaanCatalog";
+import { getClaimedExclusiveBadgeIds } from "@/lib/badgeService";
 
 export interface MahasiswaCardProps {
   student: Student;
@@ -128,31 +132,145 @@ export default function MahasiswaCard({
     return "🚀";
   };
 
-  // Hitung badge yang benar-benar diraih mahasiswa berdasarkan karya, angkatan, & skill riil
+  // 1. Filter karya riil milik mahasiswa ini
   const studentUserId = student.userId || student.id;
+  const studentProjects = useMemo(() => {
+    if (!projects || projects.length === 0) return [];
+    return projects.filter((p: any) => {
+      if (studentUserId && (p.user_id === studentUserId || p.userId === studentUserId)) return true;
+      if (student.id && (p.user_id === student.id || p.userId === student.id)) return true;
+      if (student.name && p.team && Array.isArray(p.team)) {
+        return p.team.some(
+          (tm: any) =>
+            tm &&
+            tm.name &&
+            tm.name.toLowerCase() === student.name.toLowerCase() &&
+            tm.status !== "rejected"
+        );
+      }
+      return false;
+    });
+  }, [projects, studentUserId, student.id, student.name]);
+
+  // 2. Baca lencana eksklusif yang diklaim (misal BEM 2026, dll.)
+  const claimedExclusiveIds = useMemo(() => {
+    if (typeof window === "undefined") return [];
+    return getClaimedExclusiveBadgeIds(studentUserId, student.id);
+  }, [studentUserId, student.id]);
+
+  // 3. Hitung badge yang diraih mahasiswa
+  const studentUnlockedProp = (student as any)?.unlockedBadgeIds || (student as any)?.unlocked_badge_ids;
   const earnedBadgeIds = useMemo(() => {
     return calculateStudentEarnedBadges({
       userId: studentUserId,
-      projects: projects || [],
+      projects: studentProjects,
       angkatan: student.angkatan,
       skills: student.skills,
       bio: student.bio,
       statusBadge: student.rawStatusBadge || student.statusBadge,
       cardSkin: activeSkinId,
-      unlockedBadgeIds: (student as any).unlockedBadgeIds || (student as any).unlocked_badge_ids,
+      claimedBadgeIds: claimedExclusiveIds,
+      unlockedBadgeIds: studentUnlockedProp,
     });
-  }, [studentUserId, projects, student.angkatan, student.skills, student.bio, student.rawStatusBadge, student.statusBadge, activeSkinId, (student as any).unlockedBadgeIds, (student as any).unlocked_badge_ids]);
+  }, [
+    studentUserId,
+    studentProjects,
+    student.angkatan,
+    student.skills,
+    student.bio,
+    student.rawStatusBadge,
+    student.statusBadge,
+    activeSkinId,
+    claimedExclusiveIds,
+    studentUnlockedProp,
+  ]);
 
-  // Featured 5 badge: ambil dari pilihan custom mahasiswa atau 5 badge pertama yang diraihnya
+  // 4. Baca pengaturan rak sorotan dari localStorage (sinkron otomatis dengan "Rak Sorotan Kartu Profil")
+  const [savedFeaturedBadgeIds, setSavedFeaturedBadgeIds] = useState<number[] | null>(null);
+
+  useEffect(() => {
+    const readFeatured = () => {
+      try {
+        if (student.featuredBadgeIds && student.featuredBadgeIds.length > 0) {
+          setSavedFeaturedBadgeIds(student.featuredBadgeIds);
+          return;
+        }
+        const sid = student.id;
+        const uid = student.userId;
+        const saved =
+          (uid ? localStorage.getItem(`tazkia_featured_badges_${uid}`) : null) ||
+          (sid ? localStorage.getItem(`tazkia_featured_badges_${sid}`) : null) ||
+          localStorage.getItem("tazkia_featured_badges");
+
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const valid = parsed.filter((id: number) =>
+              PENGHARGAAN_CATALOG.some((b) => b.id === id)
+            );
+            if (valid.length > 0) {
+              setSavedFeaturedBadgeIds(valid.slice(0, 5));
+              return;
+            }
+          }
+        }
+        setSavedFeaturedBadgeIds(null);
+      } catch {
+        setSavedFeaturedBadgeIds(null);
+      }
+    };
+
+    readFeatured();
+
+    const handleBadgesUpdate = () => {
+      readFeatured();
+    };
+
+    window.addEventListener("tazkia_featured_badges_updated", handleBadgesUpdate);
+    window.addEventListener("storage", handleBadgesUpdate);
+    return () => {
+      window.removeEventListener("tazkia_featured_badges_updated", handleBadgesUpdate);
+      window.removeEventListener("storage", handleBadgesUpdate);
+    };
+  }, [student.id, student.userId, student.featuredBadgeIds]);
+
+  // 5. Featured 5 badge: ambil dari pilihan Rak custom atau peringkat prestisius (Terbatas & Emas terlebih dahulu)
+  const getPrestigeScore = (badgeId: number) => {
+    const b = PENGHARGAAN_CATALOG.find((x) => x.id === badgeId);
+    if (!b) return 0;
+    if (b.group === "terbatas" || b.tier === "khusus") return 100;
+    if (b.tier === "emas") return 50;
+    if (b.tier === "perak") return 20;
+    return 10;
+  };
+
+  const studentRawFeatured = (student as any)?.featured_badge_ids;
+
   const featuredBadgeIds = useMemo(() => {
+    // A. Dari kustomisasi Rak profil (localStorage & live event)
+    if (savedFeaturedBadgeIds && savedFeaturedBadgeIds.length > 0) {
+      return savedFeaturedBadgeIds;
+    }
+    // B. Dari props jika ada
     if (student.featuredBadgeIds && student.featuredBadgeIds.length > 0) {
       return student.featuredBadgeIds;
     }
-    if ((student as any).featured_badge_ids && (student as any).featured_badge_ids.length > 0) {
-      return (student as any).featured_badge_ids;
+    if (studentRawFeatured && studentRawFeatured.length > 0) {
+      return studentRawFeatured;
     }
-    return earnedBadgeIds.slice(0, 5);
-  }, [student.featuredBadgeIds, (student as any).featured_badge_ids, earnedBadgeIds]);
+    // C. Fallback default: urutkan berdasarkan peringkat prestisius (Terbatas & Emas terlebih dahulu), SAMA SEPERTI RAK DI PROFIL
+    if (earnedBadgeIds && earnedBadgeIds.length > 0) {
+      const sortedOwned = [...earnedBadgeIds].sort(
+        (a, b) => getPrestigeScore(b) - getPrestigeScore(a)
+      );
+      return sortedOwned.slice(0, 5);
+    }
+    return [];
+  }, [savedFeaturedBadgeIds, student.featuredBadgeIds, studentRawFeatured, earnedBadgeIds]);
+
+  const allUnlockedBadgeIds = useMemo(() => {
+    return Array.from(new Set([...earnedBadgeIds, ...(savedFeaturedBadgeIds || [])]));
+  }, [earnedBadgeIds, savedFeaturedBadgeIds]);
 
   const cardData: StudentCardData = {
     name: student.name,
@@ -169,9 +287,9 @@ export default function MahasiswaCard({
     socials: student.socials,
     contactEmail: student.contactEmail,
     badges: student.badges,
-    unlockedBadgeIds: earnedBadgeIds,
+    unlockedBadgeIds: allUnlockedBadgeIds,
     featuredBadgeIds: featuredBadgeIds,
-    projects: projects || [],
+    projects: studentProjects,
     cardSkin: activeSkinId,
   };
 

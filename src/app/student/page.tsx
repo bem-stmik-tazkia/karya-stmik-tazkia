@@ -147,6 +147,8 @@ function toStudent(m: MahasiswaProfile, allKarya: Karya[] = []): Student {
     followingCount: (m as any).following_count || 0,
     badges: getStudentBadges(m, allKarya),
     cardSkin: (m as any).card_skin || (m as any).cardSkin || (m as any).skin_id || undefined,
+    featuredBadgeIds: (m as any).featured_badge_ids || (m as any).featuredBadgeIds || undefined,
+    unlockedBadgeIds: (m as any).unlocked_badge_ids || (m as any).unlockedBadgeIds || undefined,
   };
 }
 
