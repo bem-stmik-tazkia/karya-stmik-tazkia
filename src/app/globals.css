@@ -82,6 +82,13 @@
   --color-card-foreground: var(--card-foreground);
   --color-ring: var(--ring);
 
+  --color-surface: var(--card);
+  --color-surface-variant: var(--surface-variant);
+  --color-on-surface: var(--foreground);
+  --color-on-surface-variant: var(--muted-foreground);
+  --color-outline: var(--border);
+  --color-outline-variant: var(--border);
+
   --font-heading: "Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif;
   --font-sans: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;

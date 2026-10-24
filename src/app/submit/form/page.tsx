@@ -104,7 +104,7 @@ export default function UploadKaryaFormPage() {
   useEffect(() => {
     const fetchData = async () => {
       const { data: { user: authUser } } = await supabase.auth.getUser();
-      const { data } = await supabase.from("mahasiswa_profiles").select("user_id, full_name, avatar_url");
+      const { data } = await supabase.from("mahasiswa_profiles").select("user_id, full_name, avatar_url, prodi, angkatan");
 
       if (data) {
         setMahasiswaList(data);
@@ -662,7 +662,10 @@ export default function UploadKaryaFormPage() {
                     <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div id={`input-team-${i}-name`} className={`rounded-xl transition-all ${invalidFields.includes(`input-team-${i}-name`) ? "ring-2 ring-red-500 ring-offset-1" : ""}`}>
                         <TeamMemberAutocomplete
+                          id={`input-team-${i}-name`}
                           value={anggota.name}
+                          userId={anggota.user_id}
+                          existingMemberUserIds={formData.team.map((t, idx) => idx !== i ? t.user_id : null).filter(Boolean) as string[]}
                           mahasiswaList={mahasiswaList}
                           onChange={(name, user_id, avatar) => {
                             const u = formData.team.map((item, idx) => {
@@ -674,7 +677,7 @@ export default function UploadKaryaFormPage() {
                             });
                             setFormData(prev => ({ ...prev, team: u }));
                           }}
-                          placeholder="Nama Lengkap..."
+                          placeholder="Cari mahasiswa STMIK Tazkia..."
                           disabled={i === 0}
                         />
                       </div>

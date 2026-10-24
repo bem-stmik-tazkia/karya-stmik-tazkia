@@ -148,7 +148,7 @@ export default function TechStackSelect({ value, onChange, error }: TechStackSel
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute z-50 w-full mt-2 bg-surface border border-outline-variant/30 rounded-2xl shadow-2xl overflow-hidden"
+            className="absolute z-50 w-full mt-2 bg-card dark:bg-[#0E2554] border border-border rounded-2xl shadow-2xl overflow-hidden"
           >
             {/* Search bar */}
             <div className="p-3 border-b border-outline-variant/20">
