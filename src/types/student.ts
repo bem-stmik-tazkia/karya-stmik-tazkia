@@ -30,6 +30,7 @@ export type Student = {
   followingCount?: number;
   badges?: StudentBadge[];
   featuredBadgeIds?: number[];
+  unlockedBadgeIds?: number[];
   cardSkin?: string;
 };
 
