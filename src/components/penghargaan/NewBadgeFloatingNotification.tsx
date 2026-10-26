@@ -23,6 +23,7 @@ export function NewBadgeFloatingNotification() {
   const router = useRouter();
 
   const [newBadgeIds, setNewBadgeIds] = useState<number[]>([]);
+  const [claimableGrantsState, setClaimableGrantsState] = useState<any[]>([]);
   const [isDismissed, setIsDismissed] = useState<boolean>(false);
 
   // Jangan tampilkan jika:
@@ -119,6 +120,7 @@ export function NewBadgeFloatingNotification() {
 
         if (isMounted) {
           setNewBadgeIds(allNewIds);
+          setClaimableGrantsState(claimableGrants);
           if (allNewIds.length > 0) {
             localStorage.setItem("tazkia_has_unopened_badge", "true");
           }
@@ -153,7 +155,10 @@ export function NewBadgeFloatingNotification() {
     if (e) e.stopPropagation();
     window.dispatchEvent(
       new CustomEvent("tazkia_open_reward_modal", {
-        detail: { badgeIds: newBadgeIds },
+        detail: {
+          badgeIds: newBadgeIds,
+          claimableGrants: claimableGrantsState,
+        },
       })
     );
   };

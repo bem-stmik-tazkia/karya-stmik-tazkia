@@ -110,11 +110,11 @@ export function DashboardBadgesGrid({
               type="button"
               key={badge.id}
               onClick={() => {
-                if (isCustomizingShelf) {
+                if (isClaimable) {
+                  onClaimBadge(badge.id);
+                } else if (isCustomizingShelf) {
                   if (isOwned) {
                     onToggleFeatured(badge.id);
-                  } else if (isClaimable) {
-                    onClaimBadge(badge.id);
                   }
                 } else {
                   if (isNewUnlock) {
@@ -217,20 +217,20 @@ export function DashboardBadgesGrid({
 
               {/* Status tag */}
               {isClaimable ? (
-                <span className="text-[8px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-tighter mt-0.5 flex items-center gap-0.5 animate-pulse">
-                  <span>🎁 Klaim</span>
+                <span className="text-[8.5px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-tight mt-0.5 animate-pulse">
+                  Klaim
                 </span>
               ) : isNewUnlock ? (
-                <span className="text-[8px] font-black text-red-500 dark:text-red-400 uppercase tracking-tighter mt-0.5 animate-pulse">
-                  🔴 Terbuka
+                <span className="text-[8.5px] font-bold text-primary uppercase tracking-tight mt-0.5 animate-pulse">
+                  Baru
                 </span>
               ) : isOwned ? (
-                <span className="text-[8px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-tighter mt-0.5">
-                  ✓ Diraih
+                <span className="text-[8.5px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-tight mt-0.5">
+                  Diraih
                 </span>
               ) : (
-                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter mt-0.5">
-                  🔒 Terkunci
+                <span className="text-[8.5px] font-medium text-muted-foreground uppercase tracking-tight mt-0.5">
+                  Terkunci
                 </span>
               )}
             </button>
