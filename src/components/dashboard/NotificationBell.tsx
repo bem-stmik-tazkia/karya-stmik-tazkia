@@ -525,7 +525,7 @@ export function NotificationBell() {
                           </span>
                         </button>
                         <Link
-                          href="/dashboard/profile"
+                          href="/dashboard"
                           onClick={() => setOpen(false)}
                           className="text-[11px] font-medium text-primary hover:underline"
                         >
@@ -568,7 +568,7 @@ export function NotificationBell() {
                       setOpen(false);
                     } else if (notif.type === "badge_granted") {
                       setOpen(false);
-                      window.location.href = "/dashboard/profile";
+                      window.location.href = "/dashboard";
                     } else if (notif.type === "badge_revoked") {
                       setOpen(false);
                       window.dispatchEvent(
@@ -654,7 +654,7 @@ export function NotificationBell() {
                             </button>
                           )}
                           <Link
-                            href="/dashboard/profile"
+                            href="/dashboard"
                             onClick={() => setOpen(false)}
                             className="text-[10px] font-semibold text-primary hover:underline"
                           >

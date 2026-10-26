@@ -99,14 +99,14 @@ export async function POST(req: NextRequest) {
           notifMessage += ` Catatan Pengelola: "${payload.note.trim()}".`;
         }
 
-        // 1. Masukkan notifikasi penarikan ke notifications
+        // 1. Masukkan notifikasi penarikan ke notifications (karya_id diisi null karena tipe kolom adalah UUID karya)
         await dbClient.from("notifications").insert([
           {
             user_id: authUserId,
             type: "badge_revoked",
             title: notifTitle,
             message: notifMessage,
-            karya_id: String(targetBadgeId),
+            karya_id: null,
           },
         ]);
 
@@ -115,8 +115,7 @@ export async function POST(req: NextRequest) {
           .from("notifications")
           .delete()
           .eq("user_id", authUserId)
-          .eq("type", "badge_granted")
-          .eq("karya_id", String(targetBadgeId));
+          .eq("type", "badge_granted");
 
         // 3. Jika skin yang ditarik, reset card_skin mahasiswa di DB ke classic
         if (isSkin && prof?.id) {
@@ -176,7 +175,7 @@ export async function POST(req: NextRequest) {
           type: "badge_granted",
           title: notifTitle,
           message: notifMessage,
-          karya_id: String(targetBadgeId),
+          karya_id: null,
         }));
 
         await dbClient.from("notifications").insert(notifRows);

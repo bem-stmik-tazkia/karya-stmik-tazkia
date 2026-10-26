@@ -118,7 +118,7 @@ export async function grantExclusiveBadge(grant: Omit<ExclusiveBadgeGrant, "id" 
             type: "badge_granted",
             title,
             message,
-            karya_id: String(grant.badgeId),
+            karya_id: null,
           },
         ]);
       } catch (notifErr) {
@@ -215,7 +215,7 @@ export async function grantExclusiveBadgeBatch(
           type: "badge_granted",
           title,
           message,
-          karya_id: String(g.badgeId),
+          karya_id: null,
         };
       });
 
@@ -299,7 +299,7 @@ export async function revokeExclusiveBadgeGrant(
             type: "badge_revoked",
             title,
             message,
-            karya_id: targetBadgeId ? String(targetBadgeId) : null,
+            karya_id: null,
           },
         ]);
 
@@ -309,7 +309,7 @@ export async function revokeExclusiveBadgeGrant(
           .delete()
           .eq("user_id", authUserId)
           .eq("type", "badge_granted")
-          .eq("karya_id", targetBadgeId ? String(targetBadgeId) : "101");
+          ;
       } catch (notifErr) {
         console.warn("Could not insert revoke notification:", notifErr);
       }

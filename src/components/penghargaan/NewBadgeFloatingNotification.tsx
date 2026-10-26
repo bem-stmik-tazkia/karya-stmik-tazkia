@@ -28,10 +28,11 @@ export function NewBadgeFloatingNotification() {
 
   // Jangan tampilkan jika:
   // 1. Belum login
-  // 2. Berada di halaman profil/dashboard itu sendiri
-  // 3. Berada di halaman auth/login atau maintenance
-  const isProfileOrDashboard = pathname?.startsWith("/dashboard");
-  const isAuthOrMaintenance = pathname?.startsWith("/login") || pathname?.startsWith("/maintenance");
+  // 2. Berada di halaman auth/login, maintenance, atau admin portal
+  const isExcludedPage =
+    pathname?.startsWith("/login") ||
+    pathname?.startsWith("/maintenance") ||
+    pathname?.startsWith("/admin");
 
   useEffect(() => {
     // Reset dismissal jika user berpindah halaman atau login
@@ -39,7 +40,7 @@ export function NewBadgeFloatingNotification() {
   }, [pathname, user?.id]);
 
   useEffect(() => {
-    if (!user || isProfileOrDashboard || isAuthOrMaintenance) {
+    if (!user || isExcludedPage) {
       setNewBadgeIds([]);
       return;
     }
@@ -115,7 +116,8 @@ export function NewBadgeFloatingNotification() {
         });
 
         const unreadEarned = earned.filter((id) => !seen.includes(id));
-        const unreadClaimable = claimableGrants.map((g) => g.badgeId).filter((id) => !seen.includes(id));
+        // Lencana/skin yang belum diklaim (claimable) selalu aktif & harus ditampilkan hingga diklaim
+        const unreadClaimable = claimableGrants.map((g) => Number(g.badgeId));
         const allNewIds = Array.from(new Set([...unreadEarned, ...unreadClaimable]));
 
         if (isMounted) {
@@ -141,7 +143,7 @@ export function NewBadgeFloatingNotification() {
       window.removeEventListener("tazkia_badges_updated", handleUpdate);
       window.removeEventListener("storage", handleUpdate);
     };
-  }, [user?.id, user?.email, isProfileOrDashboard, isAuthOrMaintenance]);
+  }, [user?.id, user?.email, isExcludedPage]);
 
   const handleDismiss = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -163,7 +165,7 @@ export function NewBadgeFloatingNotification() {
     );
   };
 
-  if (!user || isProfileOrDashboard || isAuthOrMaintenance || isDismissed || newBadgeIds.length === 0) {
+  if (!user || isExcludedPage || isDismissed || newBadgeIds.length === 0) {
     return null;
   }
 
