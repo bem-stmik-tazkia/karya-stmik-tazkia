@@ -123,16 +123,11 @@ export default function SkinPreviewModal({
     const uid = userId || studentId;
     if (uid) {
       getClaimedExclusiveBadgeIds(uid, studentId || undefined).forEach((id) => ids.add(Number(id)));
-      getPersistedEarnedBadges(uid).forEach((id) => ids.add(Number(id)));
-    }
-    if (typeof window !== "undefined") {
-      try {
-        const storedClaims = localStorage.getItem(`tazkia_claimed_badges_${uid || "user"}`);
-        if (storedClaims) {
-          const parsed = JSON.parse(storedClaims);
-          if (Array.isArray(parsed)) parsed.forEach((id: any) => ids.add(Number(id)));
+      getPersistedEarnedBadges(uid).forEach((id) => {
+        if (![14, 15, 16, 101].includes(Number(id))) {
+          ids.add(Number(id));
         }
-      } catch {}
+      });
     }
     return Array.from(ids).filter((n) => !isNaN(n));
   }, [propUnlockedBadgeIds, propFeaturedBadgeIds, studentId, userId]);

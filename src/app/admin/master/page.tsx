@@ -260,6 +260,8 @@ export default function AdminMasterPage() {
           rewardName: grantToRevoke.badgeName,
           category: isSkinGrant ? "Skin Kartu Mahasiswa 3D" : "Lencana Kehormatan Kampus",
           recipientName: grantToRevoke.recipientName,
+          recipientId: grantToRevoke.recipientId,
+          badgeId: grantToRevoke.badgeId,
           note: revokeReason.trim() || undefined,
         }),
       }).catch(() => {});

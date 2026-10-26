@@ -144,6 +144,8 @@ export default function CardSkinTab({
                     s.user_id === selectedStudentIds[0]
                 )?.full_name || "Mahasiswa"
               : `${selectedStudentIds.length} Mahasiswa`,
+          recipientIds: selectedStudentIds,
+          badgeId: selectedReward.badgeId,
           note: grantNote.trim() || undefined,
         }),
       }).catch(() => {});

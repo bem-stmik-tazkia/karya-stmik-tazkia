@@ -317,15 +317,27 @@ export function getPersistedEarnedBadges(userId?: string | null): number[] {
 }
 
 /**
- * Menyimpan lencana yang telah diraih secara permanen (union dengan yang sudah ada).
+ * Menyimpan lencana yang telah diraih secara permanen (union dengan yang sudah ada untuk lencana umum 1-13).
+ * Lencana terbatas/khusus (14, 15, 16, 101) dikelola oleh pengelola kampus dan tidak boleh dipaksa bertahan jika ditarik.
  */
 export function savePersistedEarnedBadges(userId?: string | null, badgeIds: number[] = []): number[] {
   if (typeof window === "undefined" || !userId) return badgeIds;
   try {
     const existing = getPersistedEarnedBadges(userId);
-    const merged = Array.from(new Set([...existing, ...badgeIds])).sort((a, b) => a - b);
-    localStorage.setItem(`${PERSISTED_BADGES_KEY_PREFIX}${userId}`, JSON.stringify(merged));
-    return merged;
+    // Pertahankan riwayat lencana umum 1-13
+    const commonExisting = existing.filter((id) => ![14, 15, 16, 101].includes(Number(id)));
+    const merged = Array.from(new Set([...commonExisting, ...badgeIds])).sort((a, b) => a - b);
+
+    // Hapus lencana terbatas/khusus jika tidak ada di badgeIds (artinya telah ditarik oleh Admin)
+    const cleaned = merged.filter((id) => {
+      if ([14, 15, 16, 101].includes(Number(id))) {
+        return badgeIds.includes(Number(id));
+      }
+      return true;
+    });
+
+    localStorage.setItem(`${PERSISTED_BADGES_KEY_PREFIX}${userId}`, JSON.stringify(cleaned));
+    return cleaned;
   } catch (err) {
     console.error("Gagal menyimpan lencana permanen:", err);
     return badgeIds;
@@ -367,7 +379,15 @@ export function calculateStudentEarnedBadges(params: StudentBadgeEvaluationParam
   // 1. Masukkan lencana yang pernah diraih sebelumnya (Lencana bersifat PERMANEN, tidak hilang jika posisi/skor turun)
   if (userId) {
     const persisted = getPersistedEarnedBadges(userId);
-    persisted.forEach((id) => earned.add(Number(id)));
+    // HANYA lencana umum (ID 1-13) yang bersifat permanen berdasarkan portofolio karya.
+    // Lencana terbatas/khusus (14, 15, 16, 101) adalah hak istimewa yang bisa ditarik oleh Admin,
+    // sehingga TIDAK boleh dipaksakan dari persisted jika sudah ditarik oleh Admin.
+    persisted.forEach((id) => {
+      const numId = Number(id);
+      if (![14, 15, 16, 101].includes(numId)) {
+        earned.add(numId);
+      }
+    });
   }
 
   // 2. Masukkan manual unlocked badge IDs jika ada (misal dari DB)

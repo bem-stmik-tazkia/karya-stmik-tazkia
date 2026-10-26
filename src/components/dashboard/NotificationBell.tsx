@@ -566,12 +566,21 @@ export function NotificationBell() {
                     if (!notif.is_read) markRead(notif.id);
                     if (notif.karya_id && notif.type.startsWith("karya_")) {
                       setOpen(false);
-                    } else if (
-                      notif.type === "badge_granted" ||
-                      notif.type === "badge_revoked"
-                    ) {
+                    } else if (notif.type === "badge_granted") {
                       setOpen(false);
                       window.location.href = "/dashboard/profile";
+                    } else if (notif.type === "badge_revoked") {
+                      setOpen(false);
+                      window.dispatchEvent(
+                        new CustomEvent("tazkia_open_revoke_modal", {
+                          detail: {
+                            id: notif.id,
+                            title: notif.title,
+                            message: notif.message,
+                            badgeId: notif.karya_id,
+                          },
+                        })
+                      );
                     }
                   }}
                 >
@@ -654,6 +663,34 @@ export function NotificationBell() {
                         </div>
                       );
                     })()}
+
+                    {/* Action button for badge revoked */}
+                    {notif.type === "badge_revoked" && (
+                      <div className="mt-2.5 pt-2 border-t border-border/60 flex items-center justify-between gap-2">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpen(false);
+                            if (!notif.is_read) markRead(notif.id);
+                            window.dispatchEvent(
+                              new CustomEvent("tazkia_open_revoke_modal", {
+                                detail: {
+                                  id: notif.id,
+                                  title: notif.title,
+                                  message: notif.message,
+                                  badgeId: notif.karya_id,
+                                },
+                              })
+                            );
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold text-xs flex items-center gap-1.5 border border-rose-500/20 transition-colors cursor-pointer"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          <span>Lihat Rincian Penarikan</span>
+                        </button>
+                      </div>
+                    )}
 
                     {/* Action buttons for collaboration request */}
                     {notif.type === "collab_request" && notif.karya_id && (

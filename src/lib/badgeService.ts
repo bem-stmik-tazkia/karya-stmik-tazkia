@@ -346,6 +346,32 @@ export async function revokeExclusiveBadgeGrant(
             }
           }
 
+          // Bersihkan lencana dari daftar tersimpan (persisted) agar tidak ter-generate kembali
+          const persistedKey = `tazkia_persisted_badges_${authUserId}`;
+          const rawPersisted = localStorage.getItem(persistedKey);
+          if (rawPersisted) {
+            const pArr = JSON.parse(rawPersisted);
+            if (Array.isArray(pArr)) {
+              localStorage.setItem(
+                persistedKey,
+                JSON.stringify(pArr.filter((id) => Number(id) !== Number(targetBadgeId)))
+              );
+            }
+          }
+
+          // Bersihkan dari rak sorotan lokal jika ada
+          const featKey = `tazkia_featured_badges_${authUserId}`;
+          const rawFeat = localStorage.getItem(featKey);
+          if (rawFeat) {
+            const fArr = JSON.parse(rawFeat);
+            if (Array.isArray(fArr)) {
+              localStorage.setItem(
+                featKey,
+                JSON.stringify(fArr.filter((id) => Number(id) !== Number(targetBadgeId)))
+              );
+            }
+          }
+
           // Bersihkan status lencana terlihat
           const seenKey = `tazkia_seen_badges_${authUserId}`;
           const rawSeen = localStorage.getItem(seenKey);

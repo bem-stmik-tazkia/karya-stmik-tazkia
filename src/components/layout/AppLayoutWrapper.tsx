@@ -6,7 +6,7 @@ import { Footer } from "./Footer";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { CommandPalette } from "../ui/CommandPalette";
 import { BypassIndicator } from "../ui/BypassIndicator";
-import { NewBadgeFloatingNotification, RewardClaimModal } from "../penghargaan";
+import { NewBadgeFloatingNotification, RewardClaimModal, BadgeRevokedModal } from "../penghargaan";
 
 export function AppLayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -29,6 +29,7 @@ export function AppLayoutWrapper({ children }: { children: React.ReactNode }) {
       <BypassIndicator />
       <NewBadgeFloatingNotification />
       <RewardClaimModal />
+      <BadgeRevokedModal />
     </>
   );
 }
