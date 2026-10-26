@@ -170,8 +170,26 @@ export function NotificationBell() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // Hanya tampilkan banner claimableGrants terpisah jika BELUM ADA notifikasi baris 'badge_granted'
+  // yang mewakilinya di dalam daftar notifikasi (mencegah duplikasi pesan di kotak masuk).
+  const unnotifiedClaimableGrants = useMemo(() => {
+    return claimableGrants.filter((grant) => {
+      const isSkin =
+        grant.badgeId === 101 ||
+        (grant.badgeName || "").toLowerCase().includes("skin");
+      return !notifications.some(
+        (n) =>
+          n.type === "badge_granted" &&
+          ((n.title && n.title.includes(grant.badgeName)) ||
+            (isSkin &&
+              ((n.title || "").toLowerCase().includes("tema") ||
+                (n.title || "").toLowerCase().includes("skin"))))
+      );
+    });
+  }, [claimableGrants, notifications]);
+
   const unreadCount = notifications.filter((n) => !n.is_read).length;
-  const totalUnreadCount = unreadCount + claimableGrants.length;
+  const totalUnreadCount = unreadCount + unnotifiedClaimableGrants.length;
 
   // Mark all as read
   const markAllRead = async () => {
@@ -485,8 +503,8 @@ export function NotificationBell() {
 
           {/* Body List */}
           <div className="max-h-[420px] overflow-y-auto divide-y divide-border/60">
-            {/* Pinned: Unclaimed Awards / Grants from Pengelola */}
-            {claimableGrants.length > 0 &&
+            {/* Pinned: Unclaimed Awards / Grants from Pengelola (hanya jika belum ada notifikasi reguler) */}
+            {unnotifiedClaimableGrants.length > 0 &&
               (activeCategory === "all" || activeCategory === "campus") && (
                 <div className="bg-primary/5 p-3.5 space-y-3 border-b border-border">
                   <div className="flex items-center justify-between text-xs font-bold text-foreground">
@@ -495,11 +513,11 @@ export function NotificationBell() {
                       <span>Penghargaan Siap Diklaim</span>
                     </span>
                     <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-semibold border border-primary/20">
-                      {claimableGrants.length} Tersedia
+                      {unnotifiedClaimableGrants.length} Tersedia
                     </span>
                   </div>
 
-                  {claimableGrants.map((grant) => (
+                  {unnotifiedClaimableGrants.map((grant) => (
                     <div
                       key={grant.id}
                       className="p-3 rounded-xl bg-card border border-border space-y-2 text-xs"
@@ -543,7 +561,7 @@ export function NotificationBell() {
                 <RefreshCw className="w-5 h-5 animate-spin text-primary" />
                 <span>Memuat pesan...</span>
               </div>
-            ) : filteredNotifications.length === 0 && claimableGrants.length === 0 ? (
+            ) : filteredNotifications.length === 0 && unnotifiedClaimableGrants.length === 0 ? (
               <div className="p-8 flex flex-col items-center gap-2 text-muted-foreground text-center">
                 <div className="w-10 h-10 rounded-xl bg-muted border border-border flex items-center justify-center">
                   <Mail className="w-5 h-5 text-muted-foreground" />

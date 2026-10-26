@@ -62,17 +62,17 @@ export const MahasiswaDrawerProjects: React.FC<MahasiswaDrawerProjectsProps> = (
               href={`/project/${proj.id}`}
               onClick={onClose}
               key={proj.id}
-              className="block bg-card p-3.5 rounded-xl border border-border hover:border-primary/40 hover:shadow-md transition-all duration-200 flex gap-3.5 group items-center shadow-xs"
+              className="bg-card p-3 sm:p-3.5 rounded-xl border border-border hover:border-primary/40 hover:shadow-md transition-all duration-200 flex gap-3 sm:gap-3.5 group items-center shadow-xs"
             >
               {proj.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={proj.image_url}
                   alt={proj.title}
-                  className="w-18 h-18 object-cover rounded-lg border border-border shrink-0"
+                  className="w-16 h-16 sm:w-18 sm:h-18 object-cover rounded-lg border border-border shrink-0"
                 />
               ) : (
-                <div className="w-18 h-18 rounded-lg border border-border shrink-0 bg-muted overflow-hidden">
+                <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-lg border border-border shrink-0 bg-muted overflow-hidden">
                   <ProjectCoverPlaceholder id={proj.id} title={proj.title} category={proj.category} />
                 </div>
               )}
