@@ -90,24 +90,30 @@ export function isSkinUnlocked(
   // Skin umum selalu terbuka
   if (skin.group === "umum") return true;
 
-  // Cek apakah ada kecocokan ID skin langsung (misal 'bem2026', 'skin:bem2026', atau 101)
+  // Cek apakah mahasiswa memiliki hak akses skin eksklusif ini
   const strIds = userBadgeIds.map((id) => String(id).toLowerCase());
+  const numericBadgeIds = userBadgeIds.map((id) => Number(id)).filter((id) => !isNaN(id));
+
+  // 1. Cek string ID spesifik skin ini
   if (
     strIds.includes(skin.id.toLowerCase()) ||
     strIds.includes(`skin_${skin.id.toLowerCase()}`) ||
-    strIds.includes(`skin:${skin.id.toLowerCase()}`) ||
-    strIds.includes("101")
+    strIds.includes(`skin:${skin.id.toLowerCase()}`)
   ) {
     return true;
   }
 
-  // Skin khusus memerlukan lencana terkait
-  if (skin.requiredBadgeId) {
-    const numericBadgeIds = userBadgeIds.map((id) => Number(id)).filter((id) => !isNaN(id));
-    return numericBadgeIds.includes(skin.requiredBadgeId);
+  // 2. Cek requiredBadgeId numerik jika ada
+  if (skin.requiredBadgeId && numericBadgeIds.includes(skin.requiredBadgeId)) {
+    return true;
   }
 
-  // Jika skin khusus tidak menetapkan requiredBadgeId, default ke terkunci (false)
+  // 3. Fallback khusus untuk ID 101 khusus skin BEM 2026
+  if (skin.id === "bem2026" && numericBadgeIds.includes(101)) {
+    return true;
+  }
+
+  // Jika skin khusus tidak terpenuhi syaratnya, terkunci
   return false;
 }
 

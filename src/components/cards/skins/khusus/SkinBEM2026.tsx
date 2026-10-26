@@ -82,6 +82,7 @@ export const SkinBEM2026: SkinDefinition = {
   badge: "BEM '26 · Mythic",
   tier: "mythic",
   group: "khusus",
+  requiredBadgeId: 101,
   unlockRequirement: "Dikhususkan untuk fungsionaris & penerima tema Skin BEM Tazkia 2026.",
   description:
     "Skin kehormatan kepengurusan BEM 2026 dengan bingkai emas berkilau, watermark 2026, lencana kepengurusan, dan lemari penghargaan eksklusif.",
