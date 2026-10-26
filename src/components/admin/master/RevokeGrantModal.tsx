@@ -34,7 +34,7 @@ export default function RevokeGrantModal({
         const itemName = reward?.name || grantToRevoke.badgeName;
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -42,13 +42,13 @@ export default function RevokeGrantModal({
               onClick={() => {
                 if (!isSubmitting) onClose();
               }}
-              className="absolute inset-0 bg-background/80 backdrop-blur-xs"
+              className="fixed inset-0 bg-background/80 backdrop-blur-xs"
             />
             <motion.div
               initial={{ scale: 0.95, y: 15, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.95, y: 15, opacity: 0 }}
-              className="relative bg-card border border-border rounded-2xl p-6 sm:p-7 max-w-md w-full shadow-2xl z-10 text-center space-y-4"
+              className="relative bg-card border border-border rounded-2xl p-5 sm:p-7 max-w-md w-full shadow-2xl z-10 text-center space-y-4 max-h-[calc(100dvh-2rem)] overflow-y-auto my-auto overscroll-contain"
             >
               <div className="w-12 h-12 rounded-2xl bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20 flex items-center justify-center mx-auto">
                 {isSkin ? <Crown className="w-6 h-6 text-rose-500" /> : <Award className="w-6 h-6 text-rose-500" />}

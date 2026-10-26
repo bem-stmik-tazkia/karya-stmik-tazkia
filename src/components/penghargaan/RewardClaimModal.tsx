@@ -446,7 +446,7 @@ export function RewardClaimModal() {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -462,7 +462,7 @@ export function RewardClaimModal() {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ type: "spring", stiffness: 360, damping: 26 }}
-          className="relative w-full max-w-[400px] rounded-3xl bg-card border border-border shadow-2xl overflow-hidden z-10 text-center flex flex-col my-auto"
+          className="relative w-full max-w-[390px] max-h-[calc(100dvh-2rem)] sm:max-h-[90dvh] rounded-3xl bg-card border border-border shadow-2xl overflow-hidden z-10 text-center flex flex-col my-auto"
         >
           {/* Subtle Ambient Glow */}
           <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-40 bg-gradient-to-b from-amber-500/15 via-primary/10 to-transparent blur-3xl pointer-events-none" />
@@ -471,17 +471,17 @@ export function RewardClaimModal() {
           <button
             type="button"
             onClick={handleClose}
-            className="absolute top-3.5 right-3.5 p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors z-20 cursor-pointer"
+            className="absolute top-3 right-3 p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors z-20 cursor-pointer touch-manipulation"
             title="Tutup overlay"
           >
             <X className="w-4 h-4" />
           </button>
 
           {/* Modal Header */}
-          <div className="pt-6 px-6 pb-2 relative z-10">
+          <div className="pt-5 sm:pt-6 px-5 sm:px-6 pb-2 relative z-10 shrink-0">
             {/* Step Counter if Multiple */}
             {items.length > 1 && (
-              <div className="flex items-center justify-center gap-1.5 mb-2.5">
+              <div className="flex items-center justify-center gap-1.5 mb-2">
                 <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-mono font-bold border border-primary/20">
                   Penghargaan {currentIndex + 1} dari {items.length}
                 </span>
@@ -494,19 +494,19 @@ export function RewardClaimModal() {
               <span>{currentItem.tierLabel || "PENGHARGAAN KAMPUS"}</span>
             </div>
 
-            <h3 className="text-lg sm:text-xl font-extrabold text-foreground tracking-tight leading-snug">
+            <h3 className="text-base sm:text-xl font-extrabold text-foreground tracking-tight leading-snug">
               {currentItem.title}
             </h3>
 
             {currentItem.subtitle && (
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {currentItem.subtitle}
               </p>
             )}
           </div>
 
           {/* Center Visual Item Display */}
-          <div className="px-6 py-4 flex flex-col items-center justify-center relative z-10">
+          <div className="px-4 sm:px-6 py-2 sm:py-3 flex flex-col items-center justify-start overflow-y-auto relative z-10 flex-1 overscroll-contain">
             {/* ─── CASE 1: SKIN KARTU 3D PREVIEW (Persis seperti thumbnail tema) ─── */}
             {currentItem.type === "skin" && (
               <div className="w-full flex justify-center py-1">
@@ -615,7 +615,7 @@ export function RewardClaimModal() {
           </div>
 
           {/* Modal Footer / Action Buttons */}
-          <div className="p-6 pt-2 pb-6 border-t border-border bg-muted/20 relative z-10 flex flex-col gap-2">
+          <div className="p-4 sm:p-6 pt-2 pb-4 sm:pb-6 border-t border-border bg-muted/20 relative z-10 flex flex-col gap-2 shrink-0">
             {/* If Skin & Claimable: Claim & Apply Button */}
             {currentItem.type === "skin" && currentItem.isClaimable && (
               <button

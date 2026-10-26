@@ -199,7 +199,7 @@ export default function ExclusiveBadgesTab({
                 </span>
               </div>
 
-              <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
                 {EXCLUSIVE_BADGE_REWARDS.map((item) => {
                   const isSelected = selectedRewardId === item.id;
                   const badgeData = getBadgeForReward(item);

@@ -199,7 +199,7 @@ export default function CardSkinTab({
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {EXCLUSIVE_SKIN_REWARDS.map((skinReward) => {
                   const isSelected = skinReward.id === selectedReward.id;
                   const skinDef = getSkinDefinition(skinReward.skinId);

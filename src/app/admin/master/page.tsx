@@ -306,14 +306,14 @@ export default function AdminMasterPage() {
       {/* Tabs & Search */}
       <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 mb-8 shadow-xs">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-1.5 bg-muted/60 p-1.5 rounded-xl border border-border">
+          <div className="flex items-center gap-1.5 bg-muted/60 p-1.5 rounded-xl border border-border overflow-x-auto max-w-full touch-pan-x">
             <button
               type="button"
               onClick={() => {
                 setActiveTab("prodi");
                 setSearchQuery("");
               }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all cursor-pointer shrink-0 whitespace-nowrap ${
                 activeTab === "prodi"
                   ? "bg-primary text-white shadow-xs"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -327,7 +327,7 @@ export default function AdminMasterPage() {
                 setActiveTab("angkatan");
                 setSearchQuery("");
               }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all cursor-pointer shrink-0 whitespace-nowrap ${
                 activeTab === "angkatan"
                   ? "bg-secondary text-secondary-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -341,7 +341,7 @@ export default function AdminMasterPage() {
                 setActiveTab("telegram");
                 setSearchQuery("");
               }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all cursor-pointer shrink-0 whitespace-nowrap ${
                 activeTab === "telegram"
                   ? "bg-blue-600 text-white shadow-xs"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -355,7 +355,7 @@ export default function AdminMasterPage() {
                 setActiveTab("card_skin");
                 setSearchQuery("");
               }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all cursor-pointer shrink-0 whitespace-nowrap ${
                 activeTab === "card_skin"
                   ? "bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 text-slate-950 font-black shadow-md shadow-amber-500/20 border border-amber-300"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -370,7 +370,7 @@ export default function AdminMasterPage() {
                 setActiveTab("lencana");
                 setSearchQuery("");
               }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all cursor-pointer shrink-0 whitespace-nowrap ${
                 activeTab === "lencana"
                   ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-xs shadow-orange-500/20 font-bold"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
