@@ -8,14 +8,25 @@ const supabase = createClient(
     "placeholder-key"
 );
 
+function cleanTelegramText(text: string): string {
+  return text
+    .replace(/&ldquo;/gi, "“")
+    .replace(/&rdquo;/gi, "”")
+    .replace(/&lsquo;/gi, "‘")
+    .replace(/&rsquo;/gi, "’")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#039;/gi, "'")
+    .replace(/&amp;/gi, "&");
+}
+
 export const escapeHtml = (unsafe: string | null | undefined): string => {
-  return (unsafe ?? "")
-    .toString()
+  if (!unsafe) return "";
+  const cleaned = cleanTelegramText(String(unsafe));
+  return cleaned
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    .replace(/"/g, "&quot;");
 };
 
 export interface TelegramNotificationData {
@@ -153,7 +164,7 @@ export function formatTelegramMessage(data: TelegramNotificationData | string): 
     if (note && note.trim()) {
       lines.push(
         `💬 <b>Catatan Pengelola:</b>`,
-        `<blockquote>&ldquo;${escapeHtml(note.trim())}&rdquo;</blockquote>`
+        `<blockquote>“${escapeHtml(note.trim())}”</blockquote>`
       );
     }
 
@@ -183,7 +194,7 @@ export function formatTelegramMessage(data: TelegramNotificationData | string): 
     if (note && note.trim()) {
       lines.push(
         `💬 <b>Catatan Pengelola:</b>`,
-        `<blockquote>&ldquo;${escapeHtml(note.trim())}&rdquo;</blockquote>`
+        `<blockquote>“${escapeHtml(note.trim())}”</blockquote>`
       );
     }
 
@@ -274,7 +285,7 @@ export function formatTelegramMessage(data: TelegramNotificationData | string): 
     if (reason && reason.trim()) {
       lines.push(
         `💬 <b>Catatan Review:</b>`,
-        `<blockquote>&ldquo;${escapeHtml(reason.trim())}&rdquo;</blockquote>`
+        `<blockquote>“${escapeHtml(reason.trim())}”</blockquote>`
       );
     }
 
