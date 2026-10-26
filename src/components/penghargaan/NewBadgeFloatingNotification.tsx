@@ -149,8 +149,13 @@ export function NewBadgeFloatingNotification() {
     }
   };
 
-  const handleGoToProfile = () => {
-    router.push("/dashboard");
+  const handleOpenRewardOverlay = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    window.dispatchEvent(
+      new CustomEvent("tazkia_open_reward_modal", {
+        detail: { badgeIds: newBadgeIds },
+      })
+    );
   };
 
   if (!user || isProfileOrDashboard || isAuthOrMaintenance || isDismissed || newBadgeIds.length === 0) {
@@ -167,8 +172,8 @@ export function NewBadgeFloatingNotification() {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 30, scale: 0.95 }}
         transition={{ type: "spring", stiffness: 380, damping: 26 }}
-        onClick={handleGoToProfile}
-        className="fixed z-50 bottom-20 sm:bottom-6 right-3 sm:right-6 max-w-[390px] w-[calc(100%-24px)] cursor-pointer group"
+        onClick={handleOpenRewardOverlay}
+        className="fixed z-50 bottom-[90px] sm:bottom-6 right-3 sm:right-6 max-w-[390px] w-[calc(100%-24px)] cursor-pointer group"
         role="alert"
         aria-live="polite"
       >
@@ -228,7 +233,7 @@ export function NewBadgeFloatingNotification() {
               </h4>
 
               <p className="text-[11.5px] text-slate-300 leading-snug line-clamp-2 mt-0.5">
-                Karyamu baru saja membuka penghargaan baru! Buka profilmu untuk melihat lencana &amp; memasangnya di kartu.
+                Karyamu baru saja membuka penghargaan baru! Klik untuk melihat rincian perolehan &amp; memasangnya.
               </p>
             </div>
           </div>
@@ -236,7 +241,7 @@ export function NewBadgeFloatingNotification() {
           {/* Action Footer Button */}
           <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between">
             <span className="text-[11px] font-bold text-amber-300 group-hover:underline flex items-center gap-1">
-              <span>Buka Profil &amp; Koleksi Lencana</span>
+              <span>Buka Hadiah Perolehan</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </span>
             <span className="text-[10px] font-mono text-slate-400">

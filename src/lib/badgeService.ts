@@ -85,12 +85,26 @@ export async function grantExclusiveBadge(grant: Omit<ExclusiveBadgeGrant, "id" 
     // Jika ada recipientId (user_id), buat notifikasi di public.notifications
     if (grant.recipientId) {
       try {
+        const isBEMSkin = grant.badgeId === 15;
+        const title = isBEMSkin
+          ? "Lencana Kehormatan & Skin Kartu BEM 2026"
+          : `Lencana Kehormatan: ${grant.badgeName}`;
+
+        let message = grant.note
+          ? `Pesan Pengelola: "${grant.note}"`
+          : `Pengelola STMIK Tazkia menganugerahkan Lencana Kehormatan "${grant.badgeName}" untuk Anda.`;
+
+        if (isBEMSkin) {
+          message += " (Membuka tema Skin Kartu BEM Tazkia 2026 di lemari tema kartu).";
+        }
+
         await supabase.from("notifications").insert([
           {
             user_id: grant.recipientId,
-            type: "info",
-            title: `👑 Lencana Kehormatan: ${grant.badgeName}`,
-            message: `Admin telah mengirimkan Lencana Eksklusif "${grant.badgeName}" untuk Anda! Buka menu Profil di dashboard untuk mengklaim lencana ini.`,
+            type: "badge_granted",
+            title,
+            message,
+            karya_id: String(grant.badgeId),
           },
         ]);
       } catch (notifErr) {
@@ -148,23 +162,23 @@ export async function grantExclusiveBadgeBatch(
       .map((g) => {
         const isBEMSkin = g.badgeId === 15;
         const title = isBEMSkin
-          ? `👑 Lencana Kehormatan & Skin Kartu Eksklusif: ${g.badgeName}`
-          : `👑 Lencana Kehormatan: ${g.badgeName}`;
+          ? "Lencana Kehormatan & Skin Kartu BEM 2026"
+          : `Lencana Kehormatan: ${g.badgeName}`;
 
-        let message = `Selamat! Admin telah menganugerahkan Lencana Kehormatan "${g.badgeName}" untuk Anda.`;
-        if (g.note) {
-          message += ` Pesan dari Admin: "${g.note}".`;
-        }
+        let message = g.note
+          ? `Pesan Pengelola: "${g.note}"`
+          : `Pengelola STMIK Tazkia menganugerahkan Lencana Kehormatan "${g.badgeName}" untuk Anda.`;
+
         if (isBEMSkin) {
-          message += ` Anda juga mendapatkan hak istimewa menggunakan Skin Kartu BEM Tazkia 2026!`;
+          message += " (Membuka tema Skin Kartu BEM Tazkia 2026 di lemari tema kartu).";
         }
-        message += ` Silakan buka menu Profil di dashboard untuk mengklaim lencana ini.`;
 
         return {
           user_id: g.recipientId,
-          type: "info",
+          type: "badge_granted",
           title,
           message,
+          karya_id: String(g.badgeId),
         };
       });
 
@@ -214,20 +228,20 @@ export async function revokeExclusiveBadgeGrant(
     // Kirimkan notifikasi resmi penarikan ke lonceng notifikasi mahasiswa
     if (targetUserId) {
       const isBEMSkin = targetBadgeId === 15;
-      const title = `ℹ️ Pemberitahuan Penarikan Lencana: ${badgeName}`;
-      let message = `Pemberitahuan resmi: Lencana Kehormatan "${badgeName}" telah ditarik kembali oleh pengelola kampus.`;
+      const title = `Pemberitahuan Penarikan: ${badgeName}`;
+      let message = `Lencana Kehormatan "${badgeName}" telah ditarik kembali oleh pengelola kampus.`;
       if (reason) {
-        message += ` Pesan dari Pengelola: "${reason}".`;
+        message += ` Alasan: "${reason}".`;
       }
       if (isBEMSkin) {
-        message += ` Hak istimewa Skin Kartu BEM Tazkia 2026 telah dinonaktifkan dan tampilan kartu Anda dikembalikan ke tema standar.`;
+        message += " Hak akses tema Skin Kartu BEM Tazkia 2026 telah dinonaktifkan.";
       }
 
       try {
         await supabase.from("notifications").insert([
           {
             user_id: targetUserId,
-            type: "info",
+            type: "badge_revoked",
             title,
             message,
           },

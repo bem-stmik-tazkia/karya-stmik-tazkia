@@ -179,36 +179,44 @@ export function useDashboardProfile({
     const uid = profile?.user_id || profile?.id || user?.id || "default";
     const success = await claimExclusiveBadge(badgeId, uid, grant?.id);
     if (success) {
-      const badgeObj = PENGHARGAAN_CATALOG.find((b) => b.id === badgeId);
-      if (badgeId === 15) {
-        toast.success(
-          `Lencana "${badgeObj?.name || ""}" berhasil diklaim. Skin Kartu BEM Tazkia 2026 kini dapat Anda pilih di Lemari Skin Kartu.`,
-          { duration: 5000 }
-        );
-      } else {
-        toast.success(`Lencana "${badgeObj?.name || ""}" berhasil diklaim dan terpasang di profil Anda.`);
-      }
       markBadgeAsSeen(badgeId);
       await refreshGrantsAndClaims();
+      window.dispatchEvent(
+        new CustomEvent("tazkia_open_reward_modal", {
+          detail: {
+            badgeIds: [badgeId],
+            grant,
+            skinId: badgeId === 15 ? "bem2026" : undefined,
+            note: grant?.note,
+          },
+        })
+      );
     }
   };
 
   const handleClaimAll = async () => {
     const uid = profile?.user_id || profile?.id || user?.id || "default";
     const hasBEM = claimableGrants.some((g) => g.badgeId === 15);
-    for (const grant of claimableGrants) {
+    const firstBEMGrant = claimableGrants.find((g) => g.badgeId === 15);
+    const grantsToClaim = [...claimableGrants];
+
+    for (const grant of grantsToClaim) {
       await claimExclusiveBadge(grant.badgeId, uid, grant.id);
       markBadgeAsSeen(grant.badgeId);
     }
-    if (hasBEM) {
-      toast.success(
-        "Seluruh lencana kehormatan berhasil diklaim. Skin Kartu BEM Tazkia 2026 kini aktif dan dapat Anda gunakan.",
-        { duration: 5000 }
-      );
-    } else {
-      toast.success("Seluruh lencana kehormatan berhasil diklaim dan aktif di profil Anda.");
-    }
+
     await refreshGrantsAndClaims();
+
+    window.dispatchEvent(
+      new CustomEvent("tazkia_open_reward_modal", {
+        detail: {
+          badgeIds: grantsToClaim.map((g) => g.badgeId),
+          grant: firstBEMGrant || grantsToClaim[0],
+          skinId: hasBEM ? "bem2026" : undefined,
+          note: firstBEMGrant?.note || grantsToClaim[0]?.note,
+        },
+      })
+    );
   };
 
   // Collab requests

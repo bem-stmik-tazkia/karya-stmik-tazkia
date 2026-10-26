@@ -112,8 +112,9 @@ export default function ExclusiveBadgesTab({
 
     const grantsPayload = selectedStudentIds.map((targetId) => {
       const s = studentsList.find((m) => m.id === targetId || m.user_id === targetId);
+      const recipientUserId = s?.user_id || s?.id || targetId;
       return {
-        recipientId: targetId,
+        recipientId: recipientUserId,
         recipientName: s?.full_name || "Mahasiswa",
         recipientEmail: s?.email || "",
         badgeId: selectedReward.badgeId,
