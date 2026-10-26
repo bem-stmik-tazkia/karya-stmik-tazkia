@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Trophy, ArrowRight, Mail, Sparkles } from "lucide-react";
+import { X, Trophy, ArrowRight, Mail, CreditCard } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { supabase } from "@/lib/supabase";
 import {
@@ -222,7 +222,7 @@ export function NewBadgeFloatingNotification() {
                 </div>
               ) : isSkin ? (
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 flex items-center justify-center shadow-md shadow-amber-500/30 text-slate-950 border border-amber-200">
-                  <Sparkles className="w-6 h-6 stroke-[2.2]" />
+                  <CreditCard className="w-6 h-6 stroke-[2.2]" />
                 </div>
               ) : (
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md shadow-orange-500/30">
