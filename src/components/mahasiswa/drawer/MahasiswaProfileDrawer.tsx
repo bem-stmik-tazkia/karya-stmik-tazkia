@@ -18,6 +18,7 @@ import type { Student } from "@/types/student";
 import type { Karya } from "@/types/karya";
 import { getTechTagColor } from "@/utils/techTagColor";
 import { calculateStudentEarnedBadges } from "@/data/penghargaanCatalog";
+import { getClaimedExclusiveBadgeIds } from "@/lib/badgeService";
 import ShareProfileModal from "@/components/mahasiswa/modals/ShareProfileModal";
 import SkinPreviewModal from "@/components/mahasiswa/modals/SkinPreviewModal";
 import { MahasiswaDrawerBadges } from "./MahasiswaDrawerBadges";
@@ -56,6 +57,7 @@ export default function MahasiswaProfileDrawer({
     statusBadge: student.rawStatusBadge || student.statusBadge,
     cardSkin: student.cardSkin,
     unlockedBadgeIds: (student as any).unlockedBadgeIds || (student as any).unlocked_badge_ids,
+    claimedBadgeIds: getClaimedExclusiveBadgeIds(student.userId, student.id),
   });
 
   const handleShare = () => {

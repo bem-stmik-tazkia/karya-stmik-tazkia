@@ -32,6 +32,8 @@ export interface ProfileViewData {
   website_url?: string;
   followers_count?: number;
   following_count?: number;
+  card_skin?: string;
+  cardSkin?: string;
 }
 
 interface DashboardProfileHeaderProps {

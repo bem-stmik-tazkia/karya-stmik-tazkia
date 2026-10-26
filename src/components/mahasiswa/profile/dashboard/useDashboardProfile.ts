@@ -280,11 +280,18 @@ export function useDashboardProfile({
     }
   };
 
-  // Saved skin & featured badges from localStorage
+  // Saved skin & featured badges from database & localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const savedSkin = localStorage.getItem("tazkia_profile_skin");
-      if (savedSkin) setActiveSkinId(savedSkin);
+      const dbSkin = profile?.card_skin || profile?.cardSkin;
+      const savedSkin =
+        (profile.user_id ? localStorage.getItem(`tazkia_profile_skin_${profile.user_id}`) : null) ||
+        (profile.id ? localStorage.getItem(`tazkia_profile_skin_${profile.id}`) : null) ||
+        (user?.id ? localStorage.getItem(`tazkia_profile_skin_${user.id}`) : null) ||
+        localStorage.getItem("tazkia_profile_skin");
+
+      const resolvedSkin = dbSkin || savedSkin || "classic";
+      setActiveSkinId(resolvedSkin);
 
       try {
         const savedBadges =

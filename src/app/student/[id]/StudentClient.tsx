@@ -20,6 +20,7 @@ import {
   calculateStudentEarnedBadges,
   type PenghargaanBadge,
 } from "@/data/penghargaanCatalog";
+import { getClaimedExclusiveBadgeIds } from "@/lib/badgeService";
 import ShareProfileModal from "@/components/mahasiswa/modals/ShareProfileModal";
 import SkinPreviewModal from "@/components/mahasiswa/modals/SkinPreviewModal";
 import { getSkinById } from "@/utils/skinConfig";
@@ -194,6 +195,7 @@ export default function StudentClient({ params }: { params: Promise<{ id: string
       cardSkin: activeSkinId,
       unlockedBadgeIds:
         (mahasiswa as any)?.unlockedBadgeIds || (mahasiswa as any)?.unlocked_badge_ids,
+      claimedBadgeIds: getClaimedExclusiveBadgeIds(studentUserId, mahasiswa?.id),
     });
   }, [
     studentUserId,

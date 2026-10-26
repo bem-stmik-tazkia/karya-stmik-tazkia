@@ -389,13 +389,15 @@ export function getClaimableGrantsForUser(
   const { userId, email, studentId } = userIdentities;
 
   // Lencana yang sudah diklaim secara lokal
-  let locallyClaimed: number[] = [];
+  let locallyClaimed: (number | string)[] = [];
   if (typeof window !== "undefined" && (userId || studentId)) {
     try {
       const raw = localStorage.getItem(`tazkia_claimed_badges_${userId || studentId}`);
       if (raw) locallyClaimed = JSON.parse(raw);
     } catch {}
   }
+
+  const locallyClaimedStrs = locallyClaimed.map(String);
 
   return grants.filter((g) => {
     // Cocokkan penerima
@@ -406,9 +408,13 @@ export function getClaimableGrantsForUser(
 
     if (!matchesUser) return false;
 
-    // Pastikan belum diklaim
-    const isAlreadyClaimedInDB = userId && g.claimedBy?.includes(userId);
-    const isAlreadyClaimedLocally = locallyClaimed.includes(g.badgeId);
+    // Pastikan belum diklaim di DB atau di lokal
+    const isAlreadyClaimedInDB =
+      (userId && g.claimedBy?.includes(userId)) ||
+      (studentId && g.claimedBy?.includes(studentId));
+    const isAlreadyClaimedLocally =
+      locallyClaimedStrs.includes(String(g.badgeId)) ||
+      (g.badgeId === 101 && locallyClaimedStrs.includes("bem2026"));
 
     return !isAlreadyClaimedInDB && !isAlreadyClaimedLocally;
   });
@@ -426,9 +432,9 @@ export function getClaimedExclusiveBadgeIds(userId?: string, studentId?: string)
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        const claimed = parsed.map(Number);
+        const claimed = parsed.map(Number).filter((n) => !isNaN(n));
 
-        // Jika cache riwayat lencana tersedia, pastikan lencana eksklusif (14, 15, 16)
+        // Jika cache riwayat lencana tersedia, pastikan lencana eksklusif (14, 15, 16, 101)
         // masih terdaftar sah dan belum ditarik oleh admin
         try {
           const cachedRaw = localStorage.getItem("tazkia_exclusive_grants_cache");
@@ -446,7 +452,7 @@ export function getClaimedExclusiveBadgeIds(userId?: string, studentId?: string)
               });
 
               return claimed.filter((bId) => {
-                if ([14, 15, 16].includes(bId)) {
+                if ([14, 15, 16, 101].includes(bId)) {
                   return activeExclusiveIds.has(bId);
                 }
                 return true;
@@ -476,42 +482,53 @@ export async function claimExclusiveBadge(
   const key = `tazkia_claimed_badges_${userId}`;
   try {
     const current = getClaimedExclusiveBadgeIds(userId);
-    if (!current.includes(badgeId)) {
-      const next = [...current, badgeId];
-      localStorage.setItem(key, JSON.stringify(next));
+    const badgeIdNum = Number(badgeId);
+    const toAdd = [badgeIdNum];
+    if (badgeIdNum === 101) {
+      toAdd.push("bem2026" as any);
     }
+
+    const next = Array.from(new Set([...current, ...toAdd]));
+    localStorage.setItem(key, JSON.stringify(next));
 
     // Tandai juga sebagai seen agar tidak merah
     const seenKey = `tazkia_seen_badges_${userId}`;
     try {
       const rawSeen = localStorage.getItem(seenKey);
       const seenArr = rawSeen ? JSON.parse(rawSeen) : [];
-      if (!seenArr.includes(badgeId)) {
-        localStorage.setItem(seenKey, JSON.stringify([...seenArr, badgeId]));
+      if (!seenArr.includes(badgeIdNum)) {
+        localStorage.setItem(seenKey, JSON.stringify([...seenArr, badgeIdNum]));
       }
     } catch {}
 
-    // Update grant di server jika ada grantId
-    if (grantId) {
-      try {
-        const grants = await getExclusiveBadgeGrants();
-        const updated = grants.map((g) => {
-          if (g.id === grantId) {
-            const currentClaimed = g.claimedBy || [];
-            if (!currentClaimed.includes(userId)) {
-              return { ...g, claimedBy: [...currentClaimed, userId] };
-            }
-          }
-          return g;
-        });
+    // Sinkronkan klaim ke server system_settings
+    try {
+      const grants = await getExclusiveBadgeGrants();
+      let hasChanges = false;
+      const updated = grants.map((g) => {
+        const isMatch = grantId
+          ? g.id === grantId
+          : Number(g.badgeId) === badgeIdNum && g.recipientId === userId;
 
+        if (isMatch) {
+          const currentClaimed = g.claimedBy || [];
+          if (!currentClaimed.includes(userId)) {
+            hasChanges = true;
+            return { ...g, claimedBy: [...currentClaimed, userId] };
+          }
+        }
+        return g;
+      });
+
+      if (hasChanges) {
         await supabase.from("system_settings").upsert({
           key: SETTINGS_KEY,
           value: JSON.stringify(updated),
         });
-      } catch (err) {
-        console.warn("Could not sync claim to server:", err);
+        localStorage.setItem("tazkia_exclusive_grants_cache", JSON.stringify(updated));
       }
+    } catch (err) {
+      console.warn("Could not sync claim to server:", err);
     }
 
     window.dispatchEvent(new Event("tazkia_badges_updated"));
