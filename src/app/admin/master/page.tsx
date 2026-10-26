@@ -257,11 +257,10 @@ export default function AdminMasterPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "exclusive_badge_revoked",
-          message: `Pemberitahuan Penarikan: "${grantToRevoke.badgeName}" ditarik dari ${
-            grantToRevoke.recipientName
-          }.${revokeReason.trim() ? `\nCatatan Pengelola: "${revokeReason.trim()}"` : ""}${
-            isSkinGrant ? "\nHak akses Skin Kartu dinonaktifkan." : ""
-          }`,
+          rewardName: grantToRevoke.badgeName,
+          category: isSkinGrant ? "Skin Kartu Mahasiswa 3D" : "Lencana Kehormatan Kampus",
+          recipientName: grantToRevoke.recipientName,
+          note: revokeReason.trim() || undefined,
         }),
       }).catch(() => {});
 

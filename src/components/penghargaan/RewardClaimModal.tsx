@@ -343,6 +343,22 @@ export function RewardClaimModal() {
       window.dispatchEvent(new Event("tazkia_skin_updated"));
       window.dispatchEvent(new Event("tazkia_badges_updated"));
 
+      // Kirim notifikasi ke Telegram bot
+      fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "reward_claimed",
+          rewardName: currentItem.title,
+          category: "Skin Kartu Mahasiswa 3D",
+          recipientName:
+            user.user_metadata?.full_name ||
+            user.user_metadata?.name ||
+            user.email ||
+            "Mahasiswa",
+        }),
+      }).catch(() => {});
+
       toast.success("Tema Skin Kartu BEM 2026 berhasil diklaim & aktif di profil!", {
         id: toastId,
       });
@@ -381,6 +397,23 @@ export function RewardClaimModal() {
       );
 
       window.dispatchEvent(new Event("tazkia_badges_updated"));
+
+      // Kirim notifikasi ke Telegram bot
+      fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "reward_claimed",
+          rewardName: currentItem.title,
+          category: "Lencana Kehormatan Kampus",
+          recipientName:
+            user.user_metadata?.full_name ||
+            user.user_metadata?.name ||
+            user.email ||
+            "Mahasiswa",
+        }),
+      }).catch(() => {});
+
       toast.success(`Lencana "${currentItem.title}" berhasil diklaim!`, { id: toastId });
 
       if (currentIndex < items.length - 1) {

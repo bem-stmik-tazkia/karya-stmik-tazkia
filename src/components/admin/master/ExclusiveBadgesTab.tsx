@@ -126,6 +126,26 @@ export default function ExclusiveBadgesTab({
     const res = await grantExclusiveBadgeBatch(grantsPayload);
 
     if (res.success) {
+      // Kirim notifikasi ke Telegram bot
+      fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "exclusive_badge_granted",
+          rewardName: selectedReward.name,
+          category: "Lencana Kehormatan Kampus",
+          recipientName:
+            selectedStudentIds.length === 1
+              ? studentsList.find(
+                  (s) =>
+                    s.id === selectedStudentIds[0] ||
+                    s.user_id === selectedStudentIds[0]
+                )?.full_name || "Mahasiswa"
+              : `${selectedStudentIds.length} Mahasiswa`,
+          note: grantNote.trim() || undefined,
+        }),
+      }).catch(() => {});
+
       toast.success(
         selectedStudentIds.length === 1
           ? `Lencana "${selectedReward.name}" berhasil dianugerahkan!`
