@@ -111,26 +111,42 @@ export default function SkinPreviewModal({
     return () => window.removeEventListener("mouseup", handleGlobalMouseUp);
   }, []);
 
-  // Kumpulan ID badge yang dimiliki / diklaim oleh mahasiswa ini
+  // Kumpulan ID badge yang dimiliki / diklaim secara sah oleh mahasiswa ini
   const availableBadgeIds = useMemo<number[]>(() => {
     const ids = new Set<number>();
-    if (Array.isArray(propUnlockedBadgeIds)) {
-      propUnlockedBadgeIds.forEach((id) => ids.add(Number(id)));
-    }
-    if (Array.isArray(propFeaturedBadgeIds)) {
-      propFeaturedBadgeIds.forEach((id) => ids.add(Number(id)));
-    }
     const uid = userId || studentId;
-    if (uid) {
-      getClaimedExclusiveBadgeIds(uid, studentId || undefined).forEach((id) => ids.add(Number(id)));
-      getPersistedEarnedBadges(uid).forEach((id) => {
-        if (![14, 15, 16, 101].includes(Number(id))) {
-          ids.add(Number(id));
+    const claimedExclusive = new Set(
+      uid ? getClaimedExclusiveBadgeIds(uid, studentId || undefined) : []
+    );
+
+    // Badge umum dari props (ID 1-13)
+    if (Array.isArray(propUnlockedBadgeIds)) {
+      propUnlockedBadgeIds.forEach((id) => {
+        const num = Number(id);
+        // Khusus badge eksklusif (14, 15, 16, 101): HANYA jika benar-benar ada di claimedExclusive
+        if ([14, 15, 16, 101].includes(num)) {
+          if (claimedExclusive.has(num)) ids.add(num);
+        } else {
+          ids.add(num);
         }
       });
     }
+
+    // Badge umum dari persisted
+    if (uid) {
+      getPersistedEarnedBadges(uid).forEach((id) => {
+        const num = Number(id);
+        if (![14, 15, 16, 101].includes(num)) {
+          ids.add(num);
+        }
+      });
+    }
+
+    // Masukkan badge eksklusif yang sah sudah diklaim
+    claimedExclusive.forEach((id) => ids.add(id));
+
     return Array.from(ids).filter((n) => !isNaN(n));
-  }, [propUnlockedBadgeIds, propFeaturedBadgeIds, studentId, userId]);
+  }, [propUnlockedBadgeIds, studentId, userId]);
 
   // Filter kategori tema: semua, umum, atau khusus (eksklusif)
   const [activeCategoryTab, setActiveCategoryTab] = useState<"semua" | "umum" | "khusus">("semua");

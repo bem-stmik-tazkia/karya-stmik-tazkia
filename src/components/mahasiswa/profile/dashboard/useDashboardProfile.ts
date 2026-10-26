@@ -48,18 +48,22 @@ export function useDashboardProfile({
   const refreshGrantsAndClaims = useCallback(async () => {
     if (typeof window === "undefined") return;
     const uid = profile?.user_id || profile?.id || user?.id;
-    const claimed = getClaimedExclusiveBadgeIds(uid, profile?.id);
-    setClaimedExclusiveBadgeIds(claimed);
 
     try {
       const grants = await getExclusiveBadgeGrants();
+      const claimed = getClaimedExclusiveBadgeIds(uid, profile?.id);
+      setClaimedExclusiveBadgeIds(claimed);
+
       const claimable = getClaimableGrantsForUser(grants, {
         userId: uid,
         email: profile?.email || user?.email,
         studentId: profile?.id,
       });
       setClaimableGrants(claimable);
-    } catch {}
+    } catch {
+      const claimed = getClaimedExclusiveBadgeIds(uid, profile?.id);
+      setClaimedExclusiveBadgeIds(claimed);
+    }
   }, [profile?.user_id, profile?.id, profile?.email, user?.id, user?.email]);
 
   useEffect(() => {

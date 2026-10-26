@@ -8,6 +8,7 @@ import {
   Check,
   Info,
   UserCheck,
+  Clock,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import type { MahasiswaProfile } from "@/types/karya";
@@ -368,26 +369,46 @@ export default function CardSkinTab({
                     const isMe =
                       myStudentProfile &&
                       (s.id === myStudentProfile.id || s.user_id === myStudentProfile.user_id);
-                    const hasSelectedSkin = skinGrants.some(
+                    const existingGrant = skinGrants.find(
                       (g) =>
-                        (g.recipientId === s.id || g.recipientId === s.user_id) &&
+                        (g.recipientId === s.id || (s.user_id && g.recipientId === s.user_id)) &&
                         g.badgeId === selectedReward.badgeId
                     );
+                    const isClaimed = !!(
+                      existingGrant &&
+                      ((s.id && existingGrant.claimedBy?.includes(s.id)) ||
+                        (s.user_id && existingGrant.claimedBy?.includes(s.user_id)))
+                    );
+                    const isPending = !!(existingGrant && !isClaimed);
 
                     return (
                       <div
                         key={studentId}
-                        onClick={() => toggleSelectStudent(studentId)}
-                        className={`flex items-center justify-between p-2.5 text-xs cursor-pointer transition-colors ${
-                          isSelected
-                            ? "bg-amber-500/10 dark:bg-amber-500/15"
-                            : "hover:bg-muted/50"
+                        onClick={() => {
+                          if (existingGrant) {
+                            toast.error(
+                              isClaimed
+                                ? `${s.full_name} sudah memiliki skin ini.`
+                                : `${s.full_name} sudah diberikan skin ini (menunggu dibuka).`
+                            );
+                            return;
+                          }
+                          toggleSelectStudent(studentId);
+                        }}
+                        className={`flex items-center justify-between p-2.5 text-xs transition-colors ${
+                          existingGrant
+                            ? "opacity-80 cursor-default bg-muted/20"
+                            : isSelected
+                            ? "bg-amber-500/10 dark:bg-amber-500/15 cursor-pointer"
+                            : "hover:bg-muted/50 cursor-pointer"
                         }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           <div
                             className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
-                              isSelected
+                              existingGrant
+                                ? "border-muted-foreground/30 bg-muted/50 text-muted-foreground"
+                                : isSelected
                                 ? "bg-amber-500 border-amber-500 text-slate-950 font-bold"
                                 : "border-muted-foreground/40 bg-background"
                             }`}
@@ -410,10 +431,17 @@ export default function CardSkinTab({
                           </div>
                         </div>
 
-                        {hasSelectedSkin && (
-                          <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400/20 to-yellow-400/20 text-amber-700 dark:text-amber-300 font-bold border border-amber-400/40 flex items-center gap-1">
-                            <Crown className="w-3 h-3 text-amber-500" />
+                        {isClaimed && (
+                          <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-bold border border-emerald-500/30 flex items-center gap-1">
+                            <Crown className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                             <span>Sudah Memiliki Skin Ini</span>
+                          </span>
+                        )}
+
+                        {isPending && (
+                          <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 font-bold border border-amber-500/30 flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-amber-500" />
+                            <span>Menunggu Klaim</span>
                           </span>
                         )}
                       </div>

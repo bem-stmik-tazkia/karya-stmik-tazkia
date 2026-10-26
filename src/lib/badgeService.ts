@@ -414,17 +414,6 @@ export function getClaimableGrantsForUser(
 ): ExclusiveBadgeGrant[] {
   const { userId, email, studentId } = userIdentities;
 
-  // Lencana yang sudah diklaim secara lokal
-  let locallyClaimed: (number | string)[] = [];
-  if (typeof window !== "undefined" && (userId || studentId)) {
-    try {
-      const raw = localStorage.getItem(`tazkia_claimed_badges_${userId || studentId}`);
-      if (raw) locallyClaimed = JSON.parse(raw);
-    } catch {}
-  }
-
-  const locallyClaimedStrs = locallyClaimed.map(String);
-
   return grants.filter((g) => {
     // Cocokkan penerima
     const matchesUser =
@@ -434,68 +423,87 @@ export function getClaimableGrantsForUser(
 
     if (!matchesUser) return false;
 
-    // Pastikan belum diklaim di DB atau di lokal
+    // Pastikan belum diklaim di database (claimedBy)
     const isAlreadyClaimedInDB =
       (userId && g.claimedBy?.includes(userId)) ||
       (studentId && g.claimedBy?.includes(studentId));
-    const isAlreadyClaimedLocally =
-      locallyClaimedStrs.includes(String(g.badgeId)) ||
-      (g.badgeId === 101 && locallyClaimedStrs.includes("bem2026"));
 
-    return !isAlreadyClaimedInDB && !isAlreadyClaimedLocally;
+    return !isAlreadyClaimedInDB;
   });
 }
 
 /**
- * Ambil daftar badge ID eksklusif yang SUDAH diklaim oleh user
+ * Ambil daftar badge ID eksklusif yang SUDAH diklaim oleh user.
+ * Sumber kebenaran mutlak (single source of truth) adalah array `claimedBy`
+ * pada grants di database (atau cache grants server).
  */
 export function getClaimedExclusiveBadgeIds(userId?: string, studentId?: string): number[] {
   if (typeof window === "undefined" || (!userId && !studentId)) return [];
 
   const key = `tazkia_claimed_badges_${userId || studentId}`;
-  const claimedSet = new Set<number>();
+  const EXCLUSIVE_IDS = [14, 15, 16, 101];
 
+  let cachedGrants: ExclusiveBadgeGrant[] | null = null;
+  try {
+    const cachedRaw = localStorage.getItem("tazkia_exclusive_grants_cache");
+    if (cachedRaw) {
+      const parsed = JSON.parse(cachedRaw);
+      if (Array.isArray(parsed)) cachedGrants = parsed;
+    }
+  } catch {}
+
+  const claimedFromGrants = new Set<number>();
+
+  if (cachedGrants) {
+    cachedGrants.forEach((g) => {
+      const matches =
+        (userId && g.recipientId === userId) ||
+        (studentId && g.recipientId === studentId);
+      if (matches) {
+        const bId = Number(g.badgeId);
+        const isClaimedInDB =
+          (userId && g.claimedBy?.includes(userId)) ||
+          (studentId && g.claimedBy?.includes(studentId));
+
+        if (isClaimedInDB) {
+          claimedFromGrants.add(bId);
+        }
+      }
+    });
+  }
+
+  // Baca klaim lokal dan filter hanya yang valid
+  const claimedSet = new Set<number>();
   try {
     const raw = localStorage.getItem(key);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        parsed.map(Number).filter((n) => !isNaN(n)).forEach((id) => claimedSet.add(id));
+        parsed
+          .map(Number)
+          .filter((n) => !isNaN(n))
+          .forEach((id) => {
+            // Lencana eksklusif (14, 15, 16, 101):
+            // HANYA boleh dipertahankan jika terbukti sudah tercatat di claimedFromGrants (DB).
+            // Cache lokal basi dari pengujian sebelumnya TIDAK BOLEH memalsukan status klaim.
+            if (EXCLUSIVE_IDS.includes(id)) {
+              if (claimedFromGrants.has(id)) {
+                claimedSet.add(id);
+              }
+            } else {
+              claimedSet.add(id);
+            }
+          });
       }
     }
   } catch {}
 
-  // Juga periksa apakah sudah tercatat diklaim di grants cache (claimedBy)
-  try {
-    const cachedRaw = localStorage.getItem("tazkia_exclusive_grants_cache");
-    if (cachedRaw) {
-      const grants: ExclusiveBadgeGrant[] = JSON.parse(cachedRaw);
-      if (Array.isArray(grants)) {
-        const activeExclusiveIds = new Set<number>();
-        grants.forEach((g) => {
-          const matches =
-            (userId && g.recipientId === userId) ||
-            (studentId && g.recipientId === studentId);
-          if (matches) {
-            activeExclusiveIds.add(Number(g.badgeId));
-            const isClaimedInDB =
-              (userId && g.claimedBy?.includes(userId)) ||
-              (studentId && g.claimedBy?.includes(studentId));
-            if (isClaimedInDB) {
-              claimedSet.add(Number(g.badgeId));
-            }
-          }
-        });
+  // Tambahkan semua lencana eksklusif yang sah dari grants
+  claimedFromGrants.forEach((id) => claimedSet.add(id));
 
-        // Filter: lencana eksklusif yang ditarik oleh admin tidak boleh masuk
-        return Array.from(claimedSet).filter((bId) => {
-          if ([14, 15, 16, 101].includes(bId)) {
-            return activeExclusiveIds.has(bId);
-          }
-          return true;
-        });
-      }
-    }
+  // Bersihkan kembali storage lokal dari data basi
+  try {
+    localStorage.setItem(key, JSON.stringify(Array.from(claimedSet)));
   } catch {}
 
   return Array.from(claimedSet);
@@ -507,21 +515,25 @@ export function getClaimedExclusiveBadgeIds(userId?: string, studentId?: string)
 export async function claimExclusiveBadge(
   badgeId: number,
   userId: string,
-  grantId?: string
+  grantId?: string,
+  studentId?: string
 ): Promise<boolean> {
   if (typeof window === "undefined") return false;
 
   const key = `tazkia_claimed_badges_${userId}`;
   try {
-    const current = getClaimedExclusiveBadgeIds(userId);
     const badgeIdNum = Number(badgeId);
     const toAdd = [badgeIdNum];
     if (badgeIdNum === 101) {
       toAdd.push("bem2026" as any);
     }
 
+    const current = getClaimedExclusiveBadgeIds(userId, studentId);
     const next = Array.from(new Set([...current, ...toAdd]));
     localStorage.setItem(key, JSON.stringify(next));
+    if (studentId && studentId !== userId) {
+      localStorage.setItem(`tazkia_claimed_badges_${studentId}`, JSON.stringify(next));
+    }
 
     // Tandai juga sebagai seen agar tidak merah
     const seenKey = `tazkia_seen_badges_${userId}`;
@@ -537,16 +549,38 @@ export async function claimExclusiveBadge(
     try {
       const grants = await getExclusiveBadgeGrants();
       let hasChanges = false;
+
+      // Temukan profile id jika belum diteruskan
+      let studentProfileId = studentId;
+      if (!studentProfileId && userId) {
+        try {
+          const { data: prof } = await supabase
+            .from("mahasiswa_profiles")
+            .select("id")
+            .eq("user_id", userId)
+            .maybeSingle();
+          if (prof?.id) {
+            studentProfileId = prof.id;
+          }
+        } catch {}
+      }
+
+      const idsToAdd = [userId, studentId, studentProfileId].filter(Boolean) as string[];
+
       const updated = grants.map((g) => {
         const isMatch = grantId
           ? g.id === grantId
-          : Number(g.badgeId) === badgeIdNum && g.recipientId === userId;
+          : Number(g.badgeId) === badgeIdNum &&
+            (g.recipientId === userId ||
+              (studentProfileId && g.recipientId === studentProfileId) ||
+              (studentId && g.recipientId === studentId));
 
         if (isMatch) {
           const currentClaimed = g.claimedBy || [];
-          if (!currentClaimed.includes(userId)) {
+          const missing = idsToAdd.filter((id) => !currentClaimed.includes(id));
+          if (missing.length > 0) {
             hasChanges = true;
-            return { ...g, claimedBy: [...currentClaimed, userId] };
+            return { ...g, claimedBy: [...currentClaimed, ...missing] };
           }
         }
         return g;
