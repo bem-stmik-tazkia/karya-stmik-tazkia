@@ -174,30 +174,30 @@ export function useDashboardProfile({
     toast.success("Semua notifikasi penghargaan telah ditandai sudah dilihat.");
   };
 
-  const handleClaimBadge = async (badgeId: number) => {
+  const handleClaimBadge = (badgeId: number) => {
     const grant = claimableGrants.find((g) => g.badgeId === badgeId);
-    const uid = profile?.user_id || profile?.id || user?.id || "default";
-    const success = await claimExclusiveBadge(badgeId, uid, grant?.id);
-    if (success) {
-      markBadgeAsSeen(badgeId);
-      await refreshGrantsAndClaims();
-      window.dispatchEvent(
-        new CustomEvent("tazkia_open_reward_modal", {
-          detail: {
-            badgeIds: [badgeId],
-            grant,
-            skinId: badgeId === 15 ? "bem2026" : undefined,
-            note: grant?.note,
-          },
-        })
-      );
-    }
+    const isSkin =
+      badgeId === 101 ||
+      (grant?.badgeName || "").toLowerCase().includes("skin");
+
+    window.dispatchEvent(
+      new CustomEvent("tazkia_open_reward_modal", {
+        detail: {
+          badgeIds: isSkin ? [101] : [badgeId],
+          grant,
+          skinId: isSkin ? "bem2026" : undefined,
+          note: grant?.note,
+        },
+      })
+    );
   };
 
   const handleClaimAll = async () => {
     const uid = profile?.user_id || profile?.id || user?.id || "default";
-    const hasBEM = claimableGrants.some((g) => g.badgeId === 15);
-    const firstBEMGrant = claimableGrants.find((g) => g.badgeId === 15);
+    const skinGrant = claimableGrants.find(
+      (g) => g.badgeId === 101 || (g.badgeName || "").toLowerCase().includes("skin")
+    );
+    const hasSkin = Boolean(skinGrant);
     const grantsToClaim = [...claimableGrants];
 
     for (const grant of grantsToClaim) {
@@ -211,9 +211,9 @@ export function useDashboardProfile({
       new CustomEvent("tazkia_open_reward_modal", {
         detail: {
           badgeIds: grantsToClaim.map((g) => g.badgeId),
-          grant: firstBEMGrant || grantsToClaim[0],
-          skinId: hasBEM ? "bem2026" : undefined,
-          note: firstBEMGrant?.note || grantsToClaim[0]?.note,
+          grant: skinGrant || grantsToClaim[0],
+          skinId: hasSkin ? "bem2026" : undefined,
+          note: skinGrant?.note || grantsToClaim[0]?.note,
         },
       })
     );

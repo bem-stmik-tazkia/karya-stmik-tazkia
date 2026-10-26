@@ -247,22 +247,27 @@ export default function AdminMasterPage() {
       revokeReason.trim() || undefined
     );
     if (ok) {
+      const isSkinGrant =
+        grantToRevoke.badgeId === 101 ||
+        grantToRevoke.badgeId === 15 ||
+        (grantToRevoke.badgeName || "").toLowerCase().includes("skin");
+
       fetch("/api/notify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "exclusive_badge_revoked",
-          message: `ðŸ”„ Lencana Kehormatan "${grantToRevoke.badgeName}" ditarik dari ${
+          message: `Pemberitahuan Penarikan: "${grantToRevoke.badgeName}" ditarik dari ${
             grantToRevoke.recipientName
-          }.${revokeReason.trim() ? `\nðŸ’¬ Alasan penarikan: "${revokeReason.trim()}"` : ""}${
-            grantToRevoke.badgeId === 15 ? "\nðŸ”’ Skin Kartu BEM Tazkia 2026 dinonaktifkan." : ""
+          }.${revokeReason.trim() ? `\nCatatan Pengelola: "${revokeReason.trim()}"` : ""}${
+            isSkinGrant ? "\nHak akses Skin Kartu dinonaktifkan." : ""
           }`,
         }),
       }).catch(() => {});
 
       toast.success(
-        grantToRevoke.badgeId === 15
-          ? `Hak Skin Kartu BEM 2026 berhasil ditarik kembali dari ${grantToRevoke.recipientName}. Kartu kembali ke Tazkia Classic.`
+        isSkinGrant
+          ? `Hak Skin Kartu "${grantToRevoke.badgeName}" berhasil ditarik kembali dari ${grantToRevoke.recipientName}. Kartu kembali ke Tazkia Classic.`
           : `Lencana "${grantToRevoke.badgeName}" berhasil ditarik kembali dari ${grantToRevoke.recipientName}.`,
         { id: toastId, duration: 5000 }
       );

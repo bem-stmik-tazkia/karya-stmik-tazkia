@@ -27,7 +27,10 @@ export default function RevokeGrantModal({
     <AnimatePresence>
       {grantToRevoke && (() => {
         const reward = grantToRevoke.badgeId ? getExclusiveRewardByBadgeId(grantToRevoke.badgeId) : undefined;
-        const isSkin = !!reward?.skinId || grantToRevoke.badgeId === 15;
+        const isSkin =
+          !!reward?.skinId ||
+          grantToRevoke.badgeId === 101 ||
+          (grantToRevoke.badgeName || "").toLowerCase().includes("skin");
         const itemName = reward?.name || grantToRevoke.badgeName;
 
         return (
@@ -62,15 +65,15 @@ export default function RevokeGrantModal({
                 </p>
                 <div className="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11.5px] text-amber-800 dark:text-amber-200 text-left leading-relaxed">
                   {isSkin
-                    ? "Hak akses skin kartu dan lencana kehormatan terkait akan langsung dinonaktifkan dari profil mahasiswa. Tampilan kartu mahasiswa akan otomatis kembali ke default."
-                    : "Lencana ini akan langsung hilang dari rak profil mahasiswa."}
+                    ? "Hak akses skin kartu ini akan dinonaktifkan dari profil mahasiswa. Tampilan kartu mahasiswa akan otomatis kembali ke tema classic."
+                    : "Lencana ini akan langsung ditarik dari rak profil mahasiswa."}
                 </div>
               </div>
 
               {/* Form Pesan / Alasan Penarikan */}
               <div className="text-left space-y-1.5 pt-1">
                 <label className="text-xs font-semibold text-foreground flex items-center justify-between">
-                  <span>💬 Pesan / Alasan Penarikan</span>
+                  <span>Catatan Pengelola / Alasan Penarikan</span>
                   <span className="text-[10px] text-muted-foreground font-normal">(opsional)</span>
                 </label>
                 <textarea

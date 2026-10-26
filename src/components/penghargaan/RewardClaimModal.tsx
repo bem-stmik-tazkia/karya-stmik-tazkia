@@ -89,37 +89,63 @@ export function RewardClaimModal() {
       const detail = customEvent.detail || {};
       const newItems: RewardItem[] = [];
 
-      // Fetch or use claimable grants for the active user
-      let activeGrants: ExclusiveBadgeGrant[] = detail.claimableGrants || [];
-      if (activeGrants.length === 0 && user?.id) {
-        try {
-          const allG = await getExclusiveBadgeGrants();
-          activeGrants = getClaimableGrantsForUser(allG, {
-            userId: user.id,
-            email: user.email,
-          });
-        } catch {}
-      }
-
-      // ─── 1. HANDLE SKIN GRANTS (Card Skin BEM 2026) ───
-      // Hanya jika memang ada grant skin atau detail.skinId
-      const skinGrant = activeGrants.find(
-        (g) =>
-          g.badgeId === 101 ||
-          (g.badgeName || "").toLowerCase().includes("skin")
-      );
-
-      const hasExplicitSkin =
+      // Periksa apakah ini permintaan tertarget tunggal (Grant, Skin, atau Badge tertentu)
+      const hasSingleGrant = Boolean(detail.grant);
+      const isTargetedSkin =
         detail.skinId === "bem2026" ||
         detail.grant?.badgeId === 101 ||
         (detail.grant?.badgeName || "").toLowerCase().includes("skin") ||
-        Boolean(skinGrant) ||
-        (detail.badgeIds && detail.badgeIds.includes(101));
+        (detail.badgeIds?.length === 1 && detail.badgeIds[0] === 101);
+      const isTargetedSingleBadge =
+        Boolean(detail.badgeIds?.length === 1 && detail.badgeIds[0] !== 101 && !detail.skinId);
 
-      if (hasExplicitSkin) {
+      // Ambil grants yang relevan
+      let activeGrants: ExclusiveBadgeGrant[] = detail.claimableGrants || [];
+
+      // ─── KASUS 1: TARGET TUNGGAL GRANT SPESIFIK ───
+      if (hasSingleGrant && detail.grant) {
+        const g = detail.grant;
+        const isSkin =
+          g.badgeId === 101 ||
+          (g.badgeName || "").toLowerCase().includes("skin") ||
+          detail.skinId === "bem2026";
+
+        if (isSkin) {
+          const skinDef = getSkinDefinition("bem2026");
+          newItems.push({
+            id: `skin_${g.id || "bem2026"}`,
+            type: "skin",
+            skin: skinDef,
+            title: "BEM Tazkia 2026",
+            subtitle: "Tema Kartu 3D Eksklusif",
+            tierLabel: "HAK AKSES TEMA KARTU",
+            note: g.note || detail.note,
+            grantId: g.id,
+            badgeId: 101,
+            skinId: "bem2026",
+            isClaimable: true,
+          });
+        } else {
+          const b = getBadgeById(g.badgeId);
+          if (b) {
+            newItems.push({
+              id: `exclusive_grant_${g.id}`,
+              type: "badge",
+              badge: b,
+              title: b.name,
+              subtitle: "Penghargaan Kehormatan Pengelola Kampus",
+              tierLabel: `TINGKAT ${b.tierLabel}`,
+              note: g.note || detail.note,
+              grantId: g.id,
+              badgeId: b.id,
+              isClaimable: true,
+            });
+          }
+        }
+      }
+      // ─── KASUS 2: TARGET TUNGGAL SKIN KARTU ───
+      else if (isTargetedSkin && !isTargetedSingleBadge) {
         const skinDef = getSkinDefinition("bem2026");
-        const grantNote = skinGrant?.note || detail.note || detail.grant?.note;
-
         newItems.push({
           id: "skin_bem2026",
           type: "skin",
@@ -127,84 +153,128 @@ export function RewardClaimModal() {
           title: "BEM Tazkia 2026",
           subtitle: "Tema Kartu 3D Eksklusif",
           tierLabel: "HAK AKSES TEMA KARTU",
-          note: grantNote,
-          grantId: skinGrant?.id || (detail.grant?.badgeId === 101 ? detail.grant.id : undefined),
+          note: detail.note,
           badgeId: 101,
           skinId: "bem2026",
-          isClaimable: Boolean(skinGrant || detail.grant?.badgeId === 101),
+          isClaimable: true,
         });
       }
-
-      // ─── 2. HANDLE EXCLUSIVE BADGES (Hanya Lencana Kehormatan Murni) ───
-      // Khusus untuk lencana yang bukan skin (misal Badge 15 Vanguard BEM, Badge 14, Badge 16)
-      activeGrants.forEach((g) => {
-        if (g.badgeId === 101 || (g.badgeName || "").toLowerCase().includes("skin")) {
-          return; // ini skin, sudah ditangani di atas
-        }
-        if (newItems.some((it) => it.badgeId === g.badgeId)) return;
-
-        const b = getBadgeById(g.badgeId);
+      // ─── KASUS 3: TARGET TUNGGAL LENCANA SPESIFIK ───
+      else if (isTargetedSingleBadge) {
+        const bId = detail.badgeIds![0];
+        const b = getBadgeById(bId);
         if (b) {
+          // Cari grant untuk note jika ada
+          if (activeGrants.length === 0 && user?.id) {
+            try {
+              const allG = await getExclusiveBadgeGrants();
+              activeGrants = getClaimableGrantsForUser(allG, {
+                userId: user.id,
+                email: user.email,
+              });
+            } catch {}
+          }
+          const matchingGrant = activeGrants.find((g) => g.badgeId === bId);
+          const isActuallyClaimable = Boolean(matchingGrant) || b.group === "terbatas";
+
           newItems.push({
-            id: `exclusive_grant_${g.id}`,
+            id: `badge_${b.id}`,
             type: "badge",
             badge: b,
             title: b.name,
-            subtitle: "Penghargaan Kehormatan Pengelola Kampus",
+            subtitle:
+              b.group === "terbatas"
+                ? "Penghargaan Kehormatan Pengelola Kampus"
+                : "Lencana Berhasil Diraih dari Portofolio",
             tierLabel: `TINGKAT ${b.tierLabel}`,
-            note: g.note || detail.note,
-            grantId: g.id,
+            note: matchingGrant?.note || detail.note,
+            grantId: matchingGrant?.id,
             badgeId: b.id,
-            isClaimable: true,
+            isClaimable: isActuallyClaimable,
           });
         }
-      });
+      }
+      // ─── KASUS 4: KLAIM SEMUA / MULTIPLE NOTIFIKASI ───
+      else {
+        if (activeGrants.length === 0 && user?.id) {
+          try {
+            const allG = await getExclusiveBadgeGrants();
+            activeGrants = getClaimableGrantsForUser(allG, {
+              userId: user.id,
+              email: user.email,
+            });
+          } catch {}
+        }
 
-      // ─── 3. HANDLE EXPLICIT BADGE IN DETAIL ───
-      if (
-        detail.grant &&
-        detail.grant.badgeId !== 101 &&
-        !(detail.grant.badgeName || "").toLowerCase().includes("skin")
-      ) {
-        if (!newItems.some((it) => it.badgeId === detail.grant!.badgeId)) {
-          const b = getBadgeById(detail.grant.badgeId);
+        // 1. Skin grants
+        const skinGrants = activeGrants.filter(
+          (g) => g.badgeId === 101 || (g.badgeName || "").toLowerCase().includes("skin")
+        );
+        if (
+          skinGrants.length > 0 ||
+          detail.skinId === "bem2026" ||
+          (detail.badgeIds && detail.badgeIds.includes(101))
+        ) {
+          const skinDef = getSkinDefinition("bem2026");
+          const sg = skinGrants[0];
+          newItems.push({
+            id: "skin_bem2026",
+            type: "skin",
+            skin: skinDef,
+            title: "BEM Tazkia 2026",
+            subtitle: "Tema Kartu 3D Eksklusif",
+            tierLabel: "HAK AKSES TEMA KARTU",
+            note: sg?.note || detail.note,
+            grantId: sg?.id,
+            badgeId: 101,
+            skinId: "bem2026",
+            isClaimable: Boolean(sg),
+          });
+        }
+
+        // 2. Lencana kehormatan eksklusif (bukan skin)
+        activeGrants.forEach((g) => {
+          if (g.badgeId === 101 || (g.badgeName || "").toLowerCase().includes("skin")) return;
+          if (newItems.some((it) => it.badgeId === g.badgeId)) return;
+
+          const b = getBadgeById(g.badgeId);
           if (b) {
             newItems.push({
-              id: `grant_${detail.grant.id}`,
+              id: `exclusive_grant_${g.id}`,
               type: "badge",
               badge: b,
               title: b.name,
               subtitle: "Penghargaan Kehormatan Pengelola Kampus",
               tierLabel: `TINGKAT ${b.tierLabel}`,
-              note: detail.grant.note || detail.note,
-              grantId: detail.grant.id,
+              note: g.note || detail.note,
+              grantId: g.id,
               badgeId: b.id,
               isClaimable: true,
             });
           }
-        }
-      }
-
-      // ─── 4. HANDLE REGULAR PORTFOLIO BADGES ───
-      if (detail.badgeIds && detail.badgeIds.length > 0) {
-        detail.badgeIds.forEach((bId) => {
-          if (bId === 101) return; // skin ID
-          if (newItems.some((it) => it.badgeId === bId)) return;
-
-          const b = getBadgeById(bId);
-          if (b) {
-            newItems.push({
-              id: `earned_badge_${b.id}`,
-              type: "badge",
-              badge: b,
-              title: b.name,
-              subtitle: "Lencana Berhasil Diraih dari Portofolio",
-              tierLabel: `TINGKAT ${b.tierLabel}`,
-              badgeId: b.id,
-              isClaimable: false,
-            });
-          }
         });
+
+        // 3. Portfolio badges
+        if (detail.badgeIds && detail.badgeIds.length > 0) {
+          detail.badgeIds.forEach((bId) => {
+            if (bId === 101) return;
+            if (newItems.some((it) => it.badgeId === bId)) return;
+
+            const b = getBadgeById(bId);
+            if (b) {
+              newItems.push({
+                id: `earned_badge_${b.id}`,
+                type: "badge",
+                badge: b,
+                title: b.name,
+                subtitle: "Lencana Berhasil Diraih dari Portofolio",
+                tierLabel: `TINGKAT ${b.tierLabel}`,
+                badgeId: b.id,
+                isClaimable: false,
+              });
+            }
+          });
+        }
       }
 
       if (newItems.length > 0) {

@@ -78,7 +78,7 @@ export const CardSkinTable: React.FC<CardSkinTableProps> = ({
             <tbody className="divide-y divide-border/60">
               {filteredGrants.map((grant) => {
                 const isClaimed = Boolean(grant.claimedBy && grant.claimedBy.length > 0);
-                const isBem = grant.badgeId === 15;
+                const isBem = grant.badgeId === 101 || grant.badgeId === 15;
                 const formattedDate = new Date(grant.grantedAt).toLocaleDateString("id-ID", {
                   day: "numeric",
                   month: "short",
@@ -165,6 +165,8 @@ export const CardSkinTable: React.FC<CardSkinTableProps> = ({
                             id: grant.id,
                             badgeName: grant.badgeName,
                             recipientName: grant.recipientName || "Mahasiswa",
+                            recipientId: grant.recipientId,
+                            badgeId: grant.badgeId,
                           })
                         }
                         disabled={isSubmitting}

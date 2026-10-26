@@ -85,6 +85,18 @@ export async function grantExclusiveBadge(grant: Omit<ExclusiveBadgeGrant, "id" 
     // Jika ada recipientId (user_id), buat notifikasi di public.notifications
     if (grant.recipientId) {
       try {
+        let authUserId = grant.recipientId;
+        try {
+          const { data: prof } = await supabase
+            .from("mahasiswa_profiles")
+            .select("user_id")
+            .or(`id.eq.${grant.recipientId},user_id.eq.${grant.recipientId}`)
+            .maybeSingle();
+          if (prof?.user_id) {
+            authUserId = prof.user_id;
+          }
+        } catch {}
+
         const isSkin = grant.badgeId === 101 || (grant.badgeName || "").toLowerCase().includes("skin");
         const title = isSkin
           ? `Hak Akses Tema: ${grant.badgeName}`
@@ -102,7 +114,7 @@ export async function grantExclusiveBadge(grant: Omit<ExclusiveBadgeGrant, "id" 
 
         await supabase.from("notifications").insert([
           {
-            user_id: grant.recipientId,
+            user_id: authUserId,
             type: "badge_granted",
             title,
             message,
@@ -158,10 +170,31 @@ export async function grantExclusiveBadgeBatch(
       window.dispatchEvent(new Event("tazkia_badges_updated"));
     }
 
+    // Resolusi user_id penerima ke auth.users(id) agar notifikasi tersimpan valid
+    const rawRecipientIds = Array.from(
+      new Set(grants.map((g) => g.recipientId).filter(Boolean) as string[])
+    );
+    const userIdMap: Record<string, string> = {};
+
+    if (rawRecipientIds.length > 0) {
+      try {
+        const { data: profs } = await supabase
+          .from("mahasiswa_profiles")
+          .select("id, user_id")
+          .or(rawRecipientIds.map((id) => `id.eq.${id},user_id.eq.${id}`).join(","));
+
+        (profs || []).forEach((p: any) => {
+          if (p.id && p.user_id) userIdMap[p.id] = p.user_id;
+          if (p.user_id) userIdMap[p.user_id] = p.user_id;
+        });
+      } catch {}
+    }
+
     // Kirimkan notifikasi ke mahasiswa
     const notifRows = grants
       .filter((g) => !!g.recipientId)
       .map((g) => {
+        const targetUserId = (g.recipientId && userIdMap[g.recipientId]) || g.recipientId;
         const isSkin = g.badgeId === 101 || (g.badgeName || "").toLowerCase().includes("skin");
         const title = isSkin
           ? `Hak Akses Tema: ${g.badgeName}`
@@ -178,7 +211,7 @@ export async function grantExclusiveBadgeBatch(
         }
 
         return {
-          user_id: g.recipientId,
+          user_id: targetUserId,
           type: "badge_granted",
           title,
           message,
@@ -225,33 +258,70 @@ export async function revokeExclusiveBadgeGrant(
         value: JSON.stringify(updated),
       });
 
-    const targetUserId = recipientId || grantToRevoke?.recipientId;
+    const rawUserId = recipientId || grantToRevoke?.recipientId;
     const targetBadgeId = badgeId || grantToRevoke?.badgeId;
-    const badgeName = grantToRevoke?.badgeName || "Lencana Kehormatan";
+    const badgeName = grantToRevoke?.badgeName || "Penghargaan";
+    const isSkin = targetBadgeId === 101 || (badgeName || "").toLowerCase().includes("skin");
 
-    // Kirimkan notifikasi resmi penarikan ke lonceng notifikasi mahasiswa
-    if (targetUserId) {
-      const isBEMSkin = targetBadgeId === 15;
-      const title = `Pemberitahuan Penarikan: ${badgeName}`;
-      let message = `Lencana Kehormatan "${badgeName}" telah ditarik kembali oleh pengelola kampus.`;
-      if (reason) {
-        message += ` Alasan: "${reason}".`;
-      }
-      if (isBEMSkin) {
-        message += " Hak akses tema Skin Kartu BEM Tazkia 2026 telah dinonaktifkan.";
+    // Pastikan ID penerima adalah auth.users(id) agar notifikasi tersimpan valid
+    let authUserId = rawUserId;
+    if (rawUserId) {
+      try {
+        const { data: prof } = await supabase
+          .from("mahasiswa_profiles")
+          .select("user_id")
+          .or(`id.eq.${rawUserId},user_id.eq.${rawUserId}`)
+          .maybeSingle();
+        if (prof?.user_id) {
+          authUserId = prof.user_id;
+        }
+      } catch {}
+    }
+
+    // Kirimkan notifikasi resmi penarikan ke Kotak Pesan mahasiswa
+    if (authUserId) {
+      const title = isSkin
+        ? `Pemberitahuan Penarikan Tema: ${badgeName}`
+        : `Pemberitahuan Penarikan Lencana: ${badgeName}`;
+
+      let message = isSkin
+        ? `Hak akses tema "${badgeName}" telah dinonaktifkan oleh pengelola kampus.`
+        : `Lencana Kehormatan "${badgeName}" telah ditarik kembali oleh pengelola kampus.`;
+
+      if (reason && reason.trim()) {
+        message += ` Catatan Pengelola: "${reason.trim()}".`;
       }
 
       try {
         await supabase.from("notifications").insert([
           {
-            user_id: targetUserId,
+            user_id: authUserId,
             type: "badge_revoked",
             title,
             message,
+            karya_id: targetBadgeId ? String(targetBadgeId) : null,
           },
         ]);
+
+        // Hapus notifikasi pemberian sebelumnya yang belum dibaca agar tidak membingungkan
+        await supabase
+          .from("notifications")
+          .delete()
+          .eq("user_id", authUserId)
+          .eq("type", "badge_granted")
+          .eq("karya_id", targetBadgeId ? String(targetBadgeId) : "101");
       } catch (notifErr) {
         console.warn("Could not insert revoke notification:", notifErr);
+      }
+
+      // Jika skin kartu yang ditarik, reset card_skin mahasiswa di database profil ke classic
+      if (isSkin) {
+        try {
+          await supabase
+            .from("mahasiswa_profiles")
+            .update({ card_skin: "classic" })
+            .eq("user_id", authUserId);
+        } catch {}
       }
     }
 
@@ -259,20 +329,25 @@ export async function revokeExclusiveBadgeGrant(
       localStorage.setItem("tazkia_exclusive_grants_cache", JSON.stringify(updated));
 
       // Bersihkan klaim lokal jika mahasiswa ada di browser ini
-      if (targetUserId && targetBadgeId) {
+      if (authUserId && targetBadgeId) {
         try {
-          const key = `tazkia_claimed_badges_${targetUserId}`;
+          const key = `tazkia_claimed_badges_${authUserId}`;
           const raw = localStorage.getItem(key);
           if (raw) {
             const parsed = JSON.parse(raw);
             if (Array.isArray(parsed)) {
-              const next = parsed.filter((id: number) => Number(id) !== Number(targetBadgeId));
+              const next = parsed.filter(
+                (id: number | string) =>
+                  Number(id) !== Number(targetBadgeId) &&
+                  String(id) !== "bem2026" &&
+                  String(id) !== "101"
+              );
               localStorage.setItem(key, JSON.stringify(next));
             }
           }
 
           // Bersihkan status lencana terlihat
-          const seenKey = `tazkia_seen_badges_${targetUserId}`;
+          const seenKey = `tazkia_seen_badges_${authUserId}`;
           const rawSeen = localStorage.getItem(seenKey);
           if (rawSeen) {
             const seenArr = JSON.parse(rawSeen);
@@ -284,20 +359,17 @@ export async function revokeExclusiveBadgeGrant(
             }
           }
 
-          // Jika lencana yang ditarik adalah lencana BEM (#15) dan skin yang aktif bem2026, kembalikan ke classic
-          if (targetBadgeId === 15) {
-            const skinKey = `tazkia_profile_skin_${targetUserId}`;
-            if (localStorage.getItem(skinKey) === "bem2026") {
-              localStorage.setItem(skinKey, "classic");
-            }
-            if (localStorage.getItem("tazkia_profile_skin") === "bem2026") {
-              localStorage.setItem("tazkia_profile_skin", "classic");
-            }
+          // Jika skin ditarik dan sedang aktif, kembalikan ke classic
+          if (isSkin) {
+            const skinKey = `tazkia_profile_skin_${authUserId}`;
+            localStorage.setItem(skinKey, "classic");
+            localStorage.setItem("tazkia_profile_skin", "classic");
           }
         } catch {}
       }
 
       window.dispatchEvent(new Event("tazkia_badges_updated"));
+      window.dispatchEvent(new Event("tazkia_skin_updated"));
       window.dispatchEvent(new Event("tazkia_profile_skin_updated"));
     }
 

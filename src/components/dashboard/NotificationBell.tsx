@@ -199,8 +199,12 @@ export function NotificationBell() {
     setIsClaimingBadge(notif.id);
     const toastId = toast.loading("Mengklaim lencana & hak akses...");
     try {
-      const badgeIdNum = notif.karya_id ? parseInt(notif.karya_id, 10) : 15;
-      const validBadgeId = isNaN(badgeIdNum) ? 15 : badgeIdNum;
+      const badgeIdNum = notif.karya_id ? parseInt(notif.karya_id, 10) : undefined;
+      const isSkinNotif =
+        badgeIdNum === 101 ||
+        (notif.title || "").toLowerCase().includes("tema") ||
+        (notif.title || "").toLowerCase().includes("skin");
+      const validBadgeId = badgeIdNum ?? (isSkinNotif ? 101 : 15);
 
       const ok = await claimExclusiveBadge(validBadgeId, user.id);
       if (ok) {
@@ -211,8 +215,8 @@ export function NotificationBell() {
         window.dispatchEvent(
           new CustomEvent("tazkia_open_reward_modal", {
             detail: {
-              badgeIds: [validBadgeId],
-              skinId: validBadgeId === 15 ? "bem2026" : undefined,
+              badgeIds: isSkinNotif ? [101] : [validBadgeId],
+              skinId: isSkinNotif ? "bem2026" : undefined,
               note: notif.message,
             },
           })
@@ -233,6 +237,9 @@ export function NotificationBell() {
     setIsClaimingBadge(grant.id);
     const toastId = toast.loading("Mengklaim lencana & hak akses...");
     try {
+      const isSkin =
+        grant.badgeId === 101 ||
+        (grant.badgeName || "").toLowerCase().includes("skin");
       const ok = await claimExclusiveBadge(grant.badgeId, user.id, grant.id);
       if (ok) {
         toast.dismiss(toastId);
@@ -241,9 +248,9 @@ export function NotificationBell() {
         window.dispatchEvent(
           new CustomEvent("tazkia_open_reward_modal", {
             detail: {
-              badgeIds: [grant.badgeId],
+              badgeIds: isSkin ? [101] : [grant.badgeId],
               grant,
-              skinId: grant.badgeId === 15 ? "bem2026" : undefined,
+              skinId: isSkin ? "bem2026" : undefined,
               note: grant.note,
             },
           })
