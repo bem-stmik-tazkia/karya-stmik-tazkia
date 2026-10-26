@@ -154,18 +154,14 @@ export function BadgeRevokedModal() {
   const matchedReward = EXCLUSIVE_REWARDS_CATALOG.find(
     (r) =>
       (detail.badgeId && String(r.badgeId) === String(detail.badgeId)) ||
+      (rewardName && r.name.toLowerCase() === rewardName.toLowerCase()) ||
       (rewardName && r.name.toLowerCase().includes(rewardName.toLowerCase())) ||
       (rewardName && rewardName.toLowerCase().includes(r.name.toLowerCase()))
   );
 
-  const isSkin =
-    matchedReward?.category === "skin" ||
-    String(detail.badgeId) === "101" ||
-    (rewardName || "").toLowerCase().includes("skin") ||
-    (rewardName || "").toLowerCase().includes("tema") ||
-    (detail.title || "").toLowerCase().includes("tema");
-
   const badgeObj =
+    (matchedReward && matchedReward.category === "badge" ? getBadgeById(matchedReward.badgeId) : null) ||
+    (detail.badgeId && [14, 15, 16].includes(Number(detail.badgeId)) ? getBadgeById(Number(detail.badgeId)) : null) ||
     (matchedReward ? getBadgeById(matchedReward.badgeId) : null) ||
     (detail.badgeId ? getBadgeById(Number(detail.badgeId)) : null) ||
     PENGHARGAAN_CATALOG.find(
@@ -173,6 +169,21 @@ export function BadgeRevokedModal() {
         rewardName.toLowerCase().includes(b.name.toLowerCase()) ||
         b.name.toLowerCase().includes(rewardName.toLowerCase())
     );
+
+  // Jika item cocok dengan badge di catalog atau bertipe badge, WAJIB tampilkan preview badge
+  const isExplicitBadge =
+    matchedReward?.category === "badge" ||
+    !!badgeObj ||
+    (rewardName || "").toLowerCase().includes("lencana") ||
+    [14, 15, 16].includes(Number(detail.badgeId));
+
+  const isSkin =
+    !isExplicitBadge &&
+    (matchedReward?.category === "skin" ||
+      String(detail.badgeId) === "101" ||
+      (rewardName || "").toLowerCase().includes("skin") ||
+      (rewardName || "").toLowerCase().includes("tema") ||
+      (detail.title || "").toLowerCase().includes("tema"));
 
   return (
     <AnimatePresence>
@@ -289,7 +300,7 @@ export function BadgeRevokedModal() {
                 <div className="relative shrink-0">
                   {badgeObj ? (
                     <div className="relative flex items-center justify-center">
-                      <div className="opacity-60 grayscale contrast-125">
+                      <div className="opacity-80 drop-shadow-md">
                         <TazkiaAchievementHexBadge
                           badge={badgeObj}
                           size="md"
@@ -299,7 +310,7 @@ export function BadgeRevokedModal() {
                         />
                       </div>
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-7 h-7 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-md border-2 border-white">
+                        <div className="w-7 h-7 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-lg border-2 border-white">
                           <Ban className="w-3.5 h-3.5 stroke-[3]" />
                         </div>
                       </div>

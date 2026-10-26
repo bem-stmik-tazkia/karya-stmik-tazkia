@@ -80,10 +80,17 @@ export async function POST(req: NextRequest) {
           authUserId = prof.user_id;
         }
 
+        const isBadge =
+          (payload.rewardName || "").toLowerCase().includes("lencana") ||
+          Number(payload.badgeId) === 14 ||
+          Number(payload.badgeId) === 15 ||
+          Number(payload.badgeId) === 16;
+
         const isSkin =
-          Number(payload.badgeId) === 101 ||
-          (payload.rewardName || "").toLowerCase().includes("skin") ||
-          (payload.category || "").toLowerCase().includes("skin");
+          !isBadge &&
+          (Number(payload.badgeId) === 101 ||
+            (payload.rewardName || "").toLowerCase().includes("skin") ||
+            (payload.category || "").toLowerCase().includes("skin"));
 
         const targetBadgeId = payload.badgeId ? Number(payload.badgeId) : isSkin ? 101 : 15;
 
@@ -149,10 +156,17 @@ export async function POST(req: NextRequest) {
           if (p.user_id) userIdMap[p.user_id] = p.user_id;
         });
 
+        const isBadge =
+          (payload.rewardName || "").toLowerCase().includes("lencana") ||
+          Number(payload.badgeId) === 14 ||
+          Number(payload.badgeId) === 15 ||
+          Number(payload.badgeId) === 16;
+
         const isSkin =
-          Number(payload.badgeId) === 101 ||
-          (payload.rewardName || "").toLowerCase().includes("skin") ||
-          (payload.category || "").toLowerCase().includes("skin");
+          !isBadge &&
+          (Number(payload.badgeId) === 101 ||
+            (payload.rewardName || "").toLowerCase().includes("skin") ||
+            (payload.category || "").toLowerCase().includes("skin"));
 
         const targetBadgeId = payload.badgeId ? Number(payload.badgeId) : isSkin ? 101 : 15;
 

@@ -249,7 +249,6 @@ export default function AdminMasterPage() {
     if (ok) {
       const isSkinGrant =
         grantToRevoke.badgeId === 101 ||
-        grantToRevoke.badgeId === 15 ||
         (grantToRevoke.badgeName || "").toLowerCase().includes("skin");
 
       fetch("/api/notify", {

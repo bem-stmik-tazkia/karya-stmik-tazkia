@@ -165,12 +165,21 @@ export function NewBadgeFloatingNotification() {
     return null;
   }
 
-  const firstBadge = getBadgeById(newBadgeIds[0]);
   const matchedExclusive = EXCLUSIVE_REWARDS_CATALOG.find(
     (r) => r.badgeId === newBadgeIds[0]
   );
-  const badgeTitle = firstBadge?.name || matchedExclusive?.name || "Penghargaan Baru";
-  const isSkin = matchedExclusive?.category === "skin" || newBadgeIds[0] === 101;
+  const badgeObj =
+    getBadgeById(newBadgeIds[0]) ||
+    (matchedExclusive ? getBadgeById(matchedExclusive.badgeId) : null);
+
+  const isSkin =
+    !badgeObj &&
+    (matchedExclusive?.category === "skin" ||
+      newBadgeIds[0] === 101 ||
+      (matchedExclusive?.name || "").toLowerCase().includes("skin"));
+
+  const badgeTitle =
+    badgeObj?.name || matchedExclusive?.name || (isSkin ? "Skin BEM Tazkia 2026" : "Penghargaan Baru");
   const otherCount = newBadgeIds.length - 1;
 
   return (
@@ -205,10 +214,10 @@ export function NewBadgeFloatingNotification() {
           <div className="flex items-start gap-3.5 pr-6">
             {/* Medallion Preview / Badge Icon */}
             <div className="relative shrink-0 pt-0.5">
-              {firstBadge ? (
+              {badgeObj ? (
                 <div className="relative flex items-center justify-center">
                   <TazkiaAchievementHexBadge
-                    badge={firstBadge}
+                    badge={badgeObj}
                     size="sm"
                     locked={false}
                     animated={true}
@@ -221,8 +230,21 @@ export function NewBadgeFloatingNotification() {
                   )}
                 </div>
               ) : isSkin ? (
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 flex items-center justify-center shadow-md shadow-amber-500/30 text-slate-950 border border-amber-200">
-                  <CreditCard className="w-6 h-6 stroke-[2.2]" />
+                <div className="relative w-13 h-11 rounded-xl overflow-hidden bg-gradient-to-b from-[#071936] to-[#12284e] border-2 border-amber-400/80 shadow-md shadow-amber-500/25 flex flex-col justify-between p-1 shrink-0">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[7px] font-black uppercase tracking-tighter bg-amber-400 text-slate-950 px-1 rounded-[2px] leading-tight">
+                      BEM &apos;26
+                    </span>
+                    <span className="text-[6.5px] font-mono font-bold text-amber-300">
+                      Mythic
+                    </span>
+                  </div>
+                  {/* Bottom gold curve preview matching Screenshot 3 */}
+                  <div className="relative flex items-center justify-between z-10 pt-0.5">
+                    <CreditCard className="w-3.5 h-3.5 text-amber-400" />
+                    <span className="text-[7px] font-bold font-mono text-amber-300/80">3D</span>
+                  </div>
+                  <div className="absolute -bottom-1 -left-1 -right-1 h-2.5 bg-amber-400/30 rounded-t-full blur-[1px]" />
                 </div>
               ) : (
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md shadow-orange-500/30">
