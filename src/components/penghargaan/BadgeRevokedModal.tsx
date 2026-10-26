@@ -2,9 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, RotateCcw, ShieldAlert, ArrowRight } from "lucide-react";
+import { X, RotateCcw, ShieldAlert, ArrowRight, Ban, Award } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { TazkiaAchievementHexBadge } from "@/components/penghargaan/TazkiaAchievementBadge";
+import { PENGHARGAAN_CATALOG, getBadgeById } from "@/data/penghargaanCatalog";
+import { EXCLUSIVE_REWARDS_CATALOG } from "@/data/exclusiveRewardsCatalog";
 
 export interface RevokeModalDetail {
   id?: string;
@@ -147,6 +150,30 @@ export function BadgeRevokedModal() {
     }
   }
 
+  // Identifikasi apakah yang ditarik adalah skin atau lencana
+  const matchedReward = EXCLUSIVE_REWARDS_CATALOG.find(
+    (r) =>
+      (detail.badgeId && String(r.badgeId) === String(detail.badgeId)) ||
+      (rewardName && r.name.toLowerCase().includes(rewardName.toLowerCase())) ||
+      (rewardName && rewardName.toLowerCase().includes(r.name.toLowerCase()))
+  );
+
+  const isSkin =
+    matchedReward?.category === "skin" ||
+    String(detail.badgeId) === "101" ||
+    (rewardName || "").toLowerCase().includes("skin") ||
+    (rewardName || "").toLowerCase().includes("tema") ||
+    (detail.title || "").toLowerCase().includes("tema");
+
+  const badgeObj =
+    (matchedReward ? getBadgeById(matchedReward.badgeId) : null) ||
+    (detail.badgeId ? getBadgeById(Number(detail.badgeId)) : null) ||
+    PENGHARGAAN_CATALOG.find(
+      (b) =>
+        rewardName.toLowerCase().includes(b.name.toLowerCase()) ||
+        b.name.toLowerCase().includes(rewardName.toLowerCase())
+    );
+
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -204,15 +231,105 @@ export function BadgeRevokedModal() {
               Hak akses atau lencana kehormatan kampus telah dinonaktifkan
             </p>
 
-            {/* Reward Target Card */}
-            <div className="w-full mt-4 p-3.5 rounded-2xl bg-muted/60 border border-border/80 text-left">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
-                Lencana / Hak Akses Terkait:
+            {/* Visual Preview Container */}
+            {isSkin ? (
+              <div className="w-full mt-4 p-3 rounded-2xl bg-muted/40 border border-border/80 flex flex-col gap-2.5 text-left">
+                <div
+                  className="relative h-24 sm:h-28 rounded-xl overflow-hidden border border-amber-500/40 shadow-inner flex flex-col justify-between p-3"
+                  style={{
+                    background: "linear-gradient(135deg, #071936 0%, #132a56 50%, #2e1f10 100%)",
+                  }}
+                >
+                  <div className="absolute -right-6 -top-6 w-28 h-28 bg-amber-400/20 rounded-full blur-xl pointer-events-none" />
+                  <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#f59e0b_1.2px,transparent_1.2px)] [background-size:12px_12px] pointer-events-none" />
+
+                  <div className="relative z-10 flex items-center justify-between">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 shadow-xs border border-amber-200">
+                      BEM EKSEKUTIF &apos;26
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-slate-950/70 border border-amber-400/40 text-amber-300">
+                      Mythic 3D
+                    </span>
+                  </div>
+
+                  <div className="relative z-10 flex items-center justify-between">
+                    <span className="text-white text-xs font-bold tracking-wide">
+                      {matchedReward?.name || rewardName}
+                    </span>
+                    <span className="text-amber-500/25 font-black text-3xl font-mono select-none">
+                      2026
+                    </span>
+                  </div>
+
+                  {/* Overlaid Revoke Badge */}
+                  <div className="absolute inset-0 bg-slate-950/65 backdrop-blur-[1px] flex items-center justify-center z-20">
+                    <div className="px-3 py-1 rounded-full bg-rose-500/95 text-white font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5 shadow-md border border-white/20">
+                      <Ban className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <span>Akses Tema Dinonaktifkan</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs px-0.5 pt-0.5">
+                  <div className="min-w-0 pr-2">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Tema Skin Kartu:
+                    </div>
+                    <div className="text-sm font-black text-foreground truncate mt-0.5">
+                      {matchedReward?.name || rewardName}
+                    </div>
+                  </div>
+                  <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                    Kembali ke Classic
+                  </span>
+                </div>
               </div>
-              <div className="text-sm font-extrabold text-foreground">
-                {rewardName}
+            ) : (
+              <div className="w-full mt-4 p-3.5 rounded-2xl bg-muted/40 border border-border/80 flex items-center gap-3.5 text-left">
+                <div className="relative shrink-0">
+                  {badgeObj ? (
+                    <div className="relative flex items-center justify-center">
+                      <div className="opacity-60 grayscale contrast-125">
+                        <TazkiaAchievementHexBadge
+                          badge={badgeObj}
+                          size="md"
+                          locked={false}
+                          animated={false}
+                          showTooltip={false}
+                        />
+                      </div>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-7 h-7 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-md border-2 border-white">
+                          <Ban className="w-3.5 h-3.5 stroke-[3]" />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-500 shadow-inner">
+                      <Award className="w-7 h-7 stroke-[2]" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Lencana Kehormatan:
+                  </div>
+                  <div className="text-sm font-black text-foreground truncate mt-0.5">
+                    {badgeObj?.name || rewardName}
+                  </div>
+                  {badgeObj?.tierLabel && (
+                    <div className="inline-block mt-1 text-[9.5px] font-bold px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border">
+                      {badgeObj.tierLabel}
+                    </div>
+                  )}
+                  <div className="text-[10px] text-rose-600 dark:text-rose-400 font-semibold mt-1 flex items-center gap-1">
+                    <Ban className="w-3 h-3" />
+                    <span>Dilepas dari rak profil</span>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Note / Reason from Admin */}
             {cleanNote && (
