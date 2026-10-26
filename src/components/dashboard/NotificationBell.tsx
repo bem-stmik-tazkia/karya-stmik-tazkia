@@ -135,6 +135,23 @@ export function NotificationBell() {
     };
   }, [user]);
 
+  // Listen for open inbox event (e.g. from floating notification)
+  useEffect(() => {
+    const handleOpenInbox = () => {
+      setOpen(true);
+      fetchNotifications();
+      fetchClaimableGrants();
+      refreshClaimedBadges();
+      if (typeof window !== "undefined" && window.scrollY > 80) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    };
+    window.addEventListener("tazkia_open_inbox", handleOpenInbox);
+    return () => {
+      window.removeEventListener("tazkia_open_inbox", handleOpenInbox);
+    };
+  }, [user]);
+
   // Realtime subscription for incoming notifications
   useEffect(() => {
     if (!user) return;
