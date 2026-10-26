@@ -211,10 +211,12 @@ export default function MahasiswaCard({
         }
         const sid = student.id;
         const uid = student.userId;
+        // PENTING: JANGAN PERNAH fallback ke generic "tazkia_featured_badges"!
+        // Key tanpa ID adalah konfigurasi global milik user yang sedang login di browser ini,
+        // sehingga jika dibaca di sini akan membocorkan lencana akun tersebut ke seluruh kartu mahasiswa lain.
         const saved =
           (uid ? localStorage.getItem(`tazkia_featured_badges_${uid}`) : null) ||
-          (sid ? localStorage.getItem(`tazkia_featured_badges_${sid}`) : null) ||
-          localStorage.getItem("tazkia_featured_badges");
+          (sid ? localStorage.getItem(`tazkia_featured_badges_${sid}`) : null);
 
         if (saved) {
           const parsed = JSON.parse(saved);
@@ -259,32 +261,46 @@ export default function MahasiswaCard({
   };
 
   const studentRawFeatured = (student as any)?.featured_badge_ids;
+  const earnedBadgeIdsSet = useMemo(() => new Set(earnedBadgeIds), [earnedBadgeIds]);
 
   const featuredBadgeIds = useMemo(() => {
-    // A. Dari kustomisasi Rak profil (localStorage & live event)
+    let candidates: number[] = [];
+
+    // A. Dari kustomisasi Rak profil spesifik mahasiswa ini (localStorage & live event)
     if (savedFeaturedBadgeIds && savedFeaturedBadgeIds.length > 0) {
-      return savedFeaturedBadgeIds;
+      candidates = savedFeaturedBadgeIds;
     }
-    // B. Dari props jika ada
-    if (student.featuredBadgeIds && student.featuredBadgeIds.length > 0) {
-      return student.featuredBadgeIds;
+    // B. Dari props / database profile
+    else if (student.featuredBadgeIds && student.featuredBadgeIds.length > 0) {
+      candidates = student.featuredBadgeIds;
+    } else if (studentRawFeatured && studentRawFeatured.length > 0) {
+      candidates = studentRawFeatured;
     }
-    if (studentRawFeatured && studentRawFeatured.length > 0) {
-      return studentRawFeatured;
+
+    // FILTER MUTLAK: Hanya badge yang BENAR-BENAR telah diraih oleh mahasiswa ini (earnedBadgeIdsSet)
+    // yang boleh dipajang di rak kartu depan! Mahasiswa tidak bisa memajang lencana yang belum diraih.
+    const validEarned = candidates.filter((id) => earnedBadgeIdsSet.has(id));
+    if (validEarned.length > 0) {
+      return validEarned.slice(0, 5);
     }
-    // C. Fallback default: urutkan berdasarkan peringkat prestisius (Terbatas & Emas terlebih dahulu), SAMA SEPERTI RAK DI PROFIL
+
+    // C. Fallback default jika belum pernah kustomisasi rak:
+    // Urutkan badge yang SUDAH DIRAIH berdasarkan tingkat prestisius (Terbatas & Khusus -> Emas -> Perak -> Perunggu)
     if (earnedBadgeIds && earnedBadgeIds.length > 0) {
       const sortedOwned = [...earnedBadgeIds].sort(
         (a, b) => getPrestigeScore(b) - getPrestigeScore(a)
       );
       return sortedOwned.slice(0, 5);
     }
-    return [];
-  }, [savedFeaturedBadgeIds, student.featuredBadgeIds, studentRawFeatured, earnedBadgeIds]);
 
+    // D. Jika belum ada badge yang diraih, rak kosong
+    return [];
+  }, [savedFeaturedBadgeIds, student.featuredBadgeIds, studentRawFeatured, earnedBadgeIds, earnedBadgeIdsSet]);
+
+  // Badge yang diraih HANYA berasal dari evaluasi riil mahasiswa bersangkutan (TIDAK menyusupkan savedFeaturedBadgeIds)
   const allUnlockedBadgeIds = useMemo(() => {
-    return Array.from(new Set([...earnedBadgeIds, ...(savedFeaturedBadgeIds || [])]));
-  }, [earnedBadgeIds, savedFeaturedBadgeIds]);
+    return earnedBadgeIds;
+  }, [earnedBadgeIds]);
 
   const cardData: StudentCardData = {
     name: student.name,

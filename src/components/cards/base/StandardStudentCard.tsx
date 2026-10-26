@@ -11,7 +11,7 @@ import type { StudentCardData, StandardStudentCardProps } from "./types";
 
 export type { StudentCardData, StandardStudentCardProps };
 
-const DEFAULT_FEATURED_IDS = [9, 4, 7, 10, 14];
+const DEFAULT_FEATURED_IDS: number[] = [];
 const VISIBLE_COUNT = 4;
 
 export const StandardStudentCard: React.FC<StandardStudentCardProps> = ({
