@@ -85,17 +85,19 @@ export async function grantExclusiveBadge(grant: Omit<ExclusiveBadgeGrant, "id" 
     // Jika ada recipientId (user_id), buat notifikasi di public.notifications
     if (grant.recipientId) {
       try {
-        const isBEMSkin = grant.badgeId === 15;
-        const title = isBEMSkin
-          ? "Lencana Kehormatan & Skin Kartu BEM 2026"
+        const isSkin = grant.badgeId === 101 || (grant.badgeName || "").toLowerCase().includes("skin");
+        const title = isSkin
+          ? `Hak Akses Tema: ${grant.badgeName}`
           : `Lencana Kehormatan: ${grant.badgeName}`;
 
         let message = grant.note
           ? `Pesan Pengelola: "${grant.note}"`
+          : isSkin
+          ? `Pengelola STMIK Tazkia menganugerahkan hak akses tema ${grant.badgeName} untuk Anda.`
           : `Pengelola STMIK Tazkia menganugerahkan Lencana Kehormatan "${grant.badgeName}" untuk Anda.`;
 
-        if (isBEMSkin) {
-          message += " (Membuka tema Skin Kartu BEM Tazkia 2026 di lemari tema kartu).";
+        if (isSkin) {
+          message += " (Membuka tema Skin Kartu di lemari tema kartu).";
         }
 
         await supabase.from("notifications").insert([
@@ -160,17 +162,19 @@ export async function grantExclusiveBadgeBatch(
     const notifRows = grants
       .filter((g) => !!g.recipientId)
       .map((g) => {
-        const isBEMSkin = g.badgeId === 15;
-        const title = isBEMSkin
-          ? "Lencana Kehormatan & Skin Kartu BEM 2026"
+        const isSkin = g.badgeId === 101 || (g.badgeName || "").toLowerCase().includes("skin");
+        const title = isSkin
+          ? `Hak Akses Tema: ${g.badgeName}`
           : `Lencana Kehormatan: ${g.badgeName}`;
 
         let message = g.note
           ? `Pesan Pengelola: "${g.note}"`
+          : isSkin
+          ? `Pengelola STMIK Tazkia menganugerahkan hak akses tema ${g.badgeName} untuk Anda.`
           : `Pengelola STMIK Tazkia menganugerahkan Lencana Kehormatan "${g.badgeName}" untuk Anda.`;
 
-        if (isBEMSkin) {
-          message += " (Membuka tema Skin Kartu BEM Tazkia 2026 di lemari tema kartu).";
+        if (isSkin) {
+          message += " (Membuka tema Skin Kartu di lemari tema kartu).";
         }
 
         return {

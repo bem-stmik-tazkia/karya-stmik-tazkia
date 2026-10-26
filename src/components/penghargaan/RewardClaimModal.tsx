@@ -101,41 +101,46 @@ export function RewardClaimModal() {
         } catch {}
       }
 
-      const bemGrant =
-        activeGrants.find((g) => g.badgeId === 15) ||
-        (detail.grant?.badgeId === 15 ? (detail.grant as ExclusiveBadgeGrant) : undefined);
+      // ─── 1. HANDLE SKIN GRANTS (Card Skin BEM 2026) ───
+      // Hanya jika memang ada grant skin atau detail.skinId
+      const skinGrant = activeGrants.find(
+        (g) =>
+          g.badgeId === 101 ||
+          (g.badgeName || "").toLowerCase().includes("skin")
+      );
 
-      // 1. If BEM Skin (badge 15 or explicit skinId "bem2026")
-      const includesBEM =
+      const hasExplicitSkin =
         detail.skinId === "bem2026" ||
-        detail.grant?.badgeId === 15 ||
-        Boolean(bemGrant) ||
-        (detail.badgeIds && detail.badgeIds.includes(15));
+        detail.grant?.badgeId === 101 ||
+        (detail.grant?.badgeName || "").toLowerCase().includes("skin") ||
+        Boolean(skinGrant) ||
+        (detail.badgeIds && detail.badgeIds.includes(101));
 
-      if (includesBEM) {
+      if (hasExplicitSkin) {
         const skinDef = getSkinDefinition("bem2026");
-        const bemBadge = getBadgeById(15);
-        const grantNote = bemGrant?.note || detail.note || detail.grant?.note;
+        const grantNote = skinGrant?.note || detail.note || detail.grant?.note;
 
         newItems.push({
           id: "skin_bem2026",
           type: "skin",
           skin: skinDef,
-          badge: bemBadge,
-          title: "Lencana Kehormatan & Skin BEM 2026",
-          subtitle: "Pesan Resmi Apresiasi Fungsionaris BEM STMIK Tazkia",
-          tierLabel: "HAK AKSES RESMI BEM",
+          title: "BEM Tazkia 2026",
+          subtitle: "Tema Kartu 3D Eksklusif",
+          tierLabel: "HAK AKSES TEMA KARTU",
           note: grantNote,
-          grantId: bemGrant?.id,
-          badgeId: 15,
+          grantId: skinGrant?.id || (detail.grant?.badgeId === 101 ? detail.grant.id : undefined),
+          badgeId: 101,
           skinId: "bem2026",
-          isClaimable: Boolean(bemGrant),
+          isClaimable: Boolean(skinGrant || detail.grant?.badgeId === 101),
         });
       }
 
-      // 2. Handle other claimable exclusive grants (e.g. badge 14 or 16)
+      // ─── 2. HANDLE EXCLUSIVE BADGES (Hanya Lencana Kehormatan Murni) ───
+      // Khusus untuk lencana yang bukan skin (misal Badge 15 Vanguard BEM, Badge 14, Badge 16)
       activeGrants.forEach((g) => {
-        if (g.badgeId === 15) return; // already added above
+        if (g.badgeId === 101 || (g.badgeName || "").toLowerCase().includes("skin")) {
+          return; // ini skin, sudah ditangani di atas
+        }
         if (newItems.some((it) => it.badgeId === g.badgeId)) return;
 
         const b = getBadgeById(g.badgeId);
@@ -155,8 +160,12 @@ export function RewardClaimModal() {
         }
       });
 
-      // 3. Handle explicit grant passed in detail (if not badge 15)
-      if (detail.grant && detail.grant.badgeId !== 15) {
+      // ─── 3. HANDLE EXPLICIT BADGE IN DETAIL ───
+      if (
+        detail.grant &&
+        detail.grant.badgeId !== 101 &&
+        !(detail.grant.badgeName || "").toLowerCase().includes("skin")
+      ) {
         if (!newItems.some((it) => it.badgeId === detail.grant!.badgeId)) {
           const b = getBadgeById(detail.grant.badgeId);
           if (b) {
@@ -176,9 +185,10 @@ export function RewardClaimModal() {
         }
       }
 
-      // 4. Handle remaining earned badges from portfolio (like Karya Perdana, etc.)
+      // ─── 4. HANDLE REGULAR PORTFOLIO BADGES ───
       if (detail.badgeIds && detail.badgeIds.length > 0) {
         detail.badgeIds.forEach((bId) => {
+          if (bId === 101) return; // skin ID
           if (newItems.some((it) => it.badgeId === bId)) return;
 
           const b = getBadgeById(bId);
@@ -228,7 +238,7 @@ export function RewardClaimModal() {
     try {
       const skinId = currentItem.skinId;
 
-      // 1. Claim in badgeService
+      // 1. Claim in badgeService (claims 101 & 'bem2026', NOT badge 15)
       if (currentItem.badgeId) {
         await claimExclusiveBadge(currentItem.badgeId, user.id, currentItem.grantId);
       }
@@ -349,10 +359,10 @@ export function RewardClaimModal() {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ type: "spring", stiffness: 360, damping: 26 }}
-          className="relative w-full max-w-[420px] rounded-3xl bg-card border border-border shadow-2xl overflow-hidden z-10 text-center flex flex-col my-auto"
+          className="relative w-full max-w-[400px] rounded-3xl bg-card border border-border shadow-2xl overflow-hidden z-10 text-center flex flex-col my-auto"
         >
           {/* Subtle Ambient Glow */}
-          <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-40 bg-gradient-to-b from-amber-500/20 via-primary/10 to-transparent blur-3xl pointer-events-none" />
+          <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-40 bg-gradient-to-b from-amber-500/15 via-primary/10 to-transparent blur-3xl pointer-events-none" />
 
           {/* Close Button */}
           <button
@@ -394,81 +404,68 @@ export function RewardClaimModal() {
 
           {/* Center Visual Item Display */}
           <div className="px-6 py-4 flex flex-col items-center justify-center relative z-10">
-            {/* ─── CASE 1: SKIN KARTU 3D PREVIEW (UNLOCKED) ─── */}
+            {/* ─── CASE 1: SKIN KARTU 3D PREVIEW (Persis seperti thumbnail tema) ─── */}
             {currentItem.type === "skin" && (
-              <div className="w-full space-y-3">
-                {/* Mini Card Preview with Golden Unlocked Theme */}
-                <div className="relative w-full rounded-2xl border-2 border-amber-500/80 bg-gradient-to-b from-slate-900 to-[#071936] p-4 text-white shadow-[0_12px_30px_rgba(245,158,11,0.25)] overflow-hidden">
-                  <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:12px_12px] pointer-events-none" />
+              <div className="w-full flex justify-center py-1">
+                {/* Mini Card Preview Container (Persis seperti lemari tema mahasiswa) */}
+                <div className="w-full max-w-[270px] border-[1.5px] border-amber-500/40 bg-card rounded-[16px] p-2.5 shadow-sm text-left relative transition-all">
+                  {/* Top right pill: Preview */}
+                  <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[9px] font-bold shadow-xs z-10 leading-none">
+                    Preview
+                  </span>
 
-                  {/* Top Header Row */}
-                  <div className="flex items-center justify-between mb-3 relative z-10">
-                    <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40 text-[9.5px] font-mono font-bold flex items-center gap-1">
-                      <Crown className="w-3 h-3 text-amber-400" />
-                      <span>EDISI BEM 2026</span>
+                  {/* Mini Card Header Graphic */}
+                  <div
+                    className="h-[62px] rounded-[10px] relative overflow-hidden"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #071936 0%, #132a56 50%, #2e1f10 100%)",
+                    }}
+                  >
+                    {/* Mini Top-Right Tag */}
+                    <span
+                      className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded text-[7.5px] font-mono font-black border backdrop-blur-xs"
+                      style={{
+                        backgroundColor: "rgba(245, 158, 11, 0.35)",
+                        borderColor: "rgba(251, 191, 36, 0.7)",
+                        color: "#fef08a",
+                      }}
+                    >
+                      BEM &apos;26
                     </span>
 
-                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 text-[10px] font-bold flex items-center gap-1">
-                      <Check className="w-3 h-3 stroke-[3]" />
-                      <span>{currentItem.isClaimable ? "Siap Diklaim" : "Hak Akses Aktif"}</span>
-                    </span>
+                    {/* Bottom Accent Strip Line */}
+                    <div
+                      className="absolute left-0 right-0 bottom-0 h-[3px]"
+                      style={{
+                        background:
+                          "linear-gradient(90deg, #f59e0b, #fde047, #f59e0b)",
+                      }}
+                    />
+
+                    {/* Mini Avatar Ring */}
+                    <div
+                      className="absolute left-2.5 -bottom-2.5 w-6 h-6 rounded-full bg-slate-900 border-2 border-amber-500"
+                      style={{
+                        boxShadow: "0 0 8px rgba(245, 158, 11, 0.5)",
+                      }}
+                    />
                   </div>
 
-                  {/* Header Banner Graphic */}
-                  <div className="h-16 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 relative flex items-center px-4 overflow-hidden shadow-inner">
-                    <div className="absolute inset-0 bg-[radial-gradient(#00000020_1px,transparent_1px)] [background-size:8px_8px]" />
-                    <div className="relative z-10">
-                      <div className="text-[10px] font-black uppercase text-slate-950 tracking-wider">
-                        Skin Kartu 3D
-                      </div>
-                      <div className="text-xs font-bold text-slate-900 truncate">
-                        BEM STMIK Tazkia 2026
-                      </div>
+                  {/* Text & Metadata */}
+                  <div className="mt-2.5 px-0.5">
+                    <div className="font-bold text-xs text-foreground truncate">
+                      BEM Tazkia 2026
                     </div>
-                  </div>
-
-                  {/* Avatar Ring & Info */}
-                  <div className="flex items-center gap-3 mt-3 relative z-10">
-                    <div className="w-10 h-10 rounded-full border-2 border-amber-400 bg-slate-900 shadow-md flex items-center justify-center font-black text-amber-400 text-xs shrink-0">
-                      26
-                    </div>
-                    <div className="text-left min-w-0 flex-1">
-                      <div className="font-bold text-xs text-slate-100 truncate">
-                        Tema Emas &amp; Glow 3D
-                      </div>
-                      <div className="text-[10.5px] text-slate-400 truncate">
-                        Tampil di direktori mahasiswa &amp; profil
-                      </div>
+                    <div className="text-[10px] text-muted-foreground truncate mt-0.5">
+                      BEM &apos;26 · Mythic
                     </div>
                   </div>
                 </div>
-
-                {/* Accompanying Hex Badge */}
-                {currentItem.badge && (
-                  <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-left text-xs">
-                    <div className="shrink-0">
-                      <TazkiaAchievementHexBadge
-                        badge={currentItem.badge}
-                        size="sm"
-                        locked={false}
-                        animated={true}
-                        showTooltip={false}
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-bold text-foreground text-xs truncate">
-                        + Lencana Kehormatan: {currentItem.badge.name}
-                      </div>
-                      <div className="text-[11px] text-muted-foreground truncate">
-                        {currentItem.badge.mission}
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 
-            {/* ─── CASE 2: BADGE / MEDALI PREVIEW ─── */}
+            {/* ─── CASE 2: BADGE / MEDALI PREVIEW (Hanya Lencana Kehormatan) ─── */}
             {currentItem.type === "badge" && currentItem.badge && (
               <div className="flex flex-col items-center space-y-3 w-full">
                 <div className="relative p-4 flex items-center justify-center">
@@ -526,7 +523,7 @@ export function RewardClaimModal() {
               >
                 <Check className="w-4 h-4 stroke-[3]" />
                 <span>
-                  {isProcessing ? "Mengklaim..." : "Klaim & Gunakan Tema BEM Sekarang"}
+                  {isProcessing ? "Mengklaim..." : "Gunakan Tema Kartu Ini Sekarang"}
                 </span>
               </button>
             )}
@@ -580,7 +577,9 @@ export function RewardClaimModal() {
                 <span>
                   {currentIndex < items.length - 1
                     ? "Penghargaan Berikutnya"
-                    : "Selesai & Tutup"}
+                    : currentItem.type === "skin"
+                    ? "Simpan ke Lemari Tema"
+                    : "Pajang di Galeri Profil"}
                 </span>
                 {currentIndex < items.length - 1 ? (
                   <ChevronRight className="w-4 h-4" />

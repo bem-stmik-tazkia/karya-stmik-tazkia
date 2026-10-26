@@ -90,12 +90,13 @@ export function isSkinUnlocked(
   // Skin umum selalu terbuka
   if (skin.group === "umum") return true;
 
-  // Cek apakah ada kecocokan ID skin langsung (misal 'bem2026' atau 'skin:bem2026')
+  // Cek apakah ada kecocokan ID skin langsung (misal 'bem2026', 'skin:bem2026', atau 101)
   const strIds = userBadgeIds.map((id) => String(id).toLowerCase());
   if (
     strIds.includes(skin.id.toLowerCase()) ||
     strIds.includes(`skin_${skin.id.toLowerCase()}`) ||
-    strIds.includes(`skin:${skin.id.toLowerCase()}`)
+    strIds.includes(`skin:${skin.id.toLowerCase()}`) ||
+    strIds.includes("101")
   ) {
     return true;
   }

@@ -50,7 +50,7 @@ export default function ExclusiveBadgesTab({
   const [studentFilter, setStudentFilter] = useState<string>("");
 
   const badgeGrants = exclusiveGrants.filter(
-    (g) => !(g.badgeName || "").toLowerCase().includes("skin")
+    (g) => g.badgeId !== 101 && !(g.badgeName || "").toLowerCase().includes("skin")
   );
 
   const selectedReward: ExclusiveRewardItem =

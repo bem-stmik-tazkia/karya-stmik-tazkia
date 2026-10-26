@@ -52,7 +52,11 @@ export default function CardSkinTab({
     getExclusiveRewardById(selectedRewardId) || EXCLUSIVE_SKIN_REWARDS[0];
 
   const skinBadgeIds = EXCLUSIVE_SKIN_REWARDS.map((r) => r.badgeId);
-  const skinGrants = exclusiveGrants.filter((g) => skinBadgeIds.includes(g.badgeId));
+  const skinGrants = exclusiveGrants.filter(
+    (g) =>
+      skinBadgeIds.includes(g.badgeId) ||
+      (g.badgeName || "").toLowerCase().includes("skin")
+  );
 
   const filteredStudents = studentsList.filter((s) => {
     if (!studentFilter.trim()) return true;
