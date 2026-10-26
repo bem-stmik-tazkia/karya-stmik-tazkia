@@ -43,8 +43,10 @@ export async function POST(req: NextRequest) {
     const { message, type } = parsed.data;
 
     let icon = "🔔";
-    if (type === "submission") icon = "🚀";
-    if (type === "error") icon = "🚨";
+    if (type === "submission") icon = "📄";
+    if (type === "exclusive_badge_granted") icon = "🎖️";
+    if (type === "exclusive_badge_revoked") icon = "🔄";
+    if (type === "error") icon = "⚠️";
     if (type === "info") icon = "ℹ️";
 
     await sendTelegramNotification(`${icon} <b>Pemberitahuan Sistem</b>\n\n${message}`);

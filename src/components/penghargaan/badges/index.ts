@@ -21,10 +21,9 @@ export { default as BadgePeloporTazkia } from "./umum/BadgePeloporTazkia";
 // Standard Placeholder
 export { HexBadgeStandard } from "./umum/HexBadgeStandard";
 
-// Badges Khusus / Terbatas Edisi 2026 (15-17)
+// Badges Khusus / Terbatas Edisi 2026 (15-16)
 export { HexBadgeBEM2026 } from "./khusus/HexBadgeBEM2026";
 export { HexBadgeRistekQuantum } from "./khusus/HexBadgeRistekQuantum";
-export { HexBadgeRistekMecha } from "./khusus/HexBadgeRistekMecha";
 
 // Registry & Helper
 export { getBadgeComponent, BADGE_COMPONENTS, BADGE_BY_CODE, BADGE_BY_SYMBOL } from "./registry";

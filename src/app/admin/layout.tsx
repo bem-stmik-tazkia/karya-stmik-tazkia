@@ -4,7 +4,7 @@ import Link from "next/link";
 import { AdminLogoutButton } from "@/components/admin/AdminLogoutButton";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { AdminNav } from "@/components/admin/AdminNav";
-import { Shield, Home } from "lucide-react";
+import { ShieldCheck, Home } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -31,13 +31,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="container mx-auto px-4 py-3.5 max-w-7xl flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-4 sm:gap-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs">
-                <Shield className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs">
+                <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-base font-heading font-extrabold tracking-tight text-foreground">
-                    Admin Panel
+                  <h1 className="text-sm sm:text-base font-heading font-extrabold tracking-tight text-foreground">
+                    Admin Portal
                   </h1>
                   <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
                     {adminRecord.role || "Admin"}

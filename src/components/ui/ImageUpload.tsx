@@ -32,12 +32,12 @@ export default function ImageUpload({ value, onChange, className = "" }: ImageUp
 
     if (file.size > 2 * 1024 * 1024) {
       setError("Ukuran file maksimal 2MB");
-      toast.error("Ukuran file maksimal 2MB!");
+      toast.error("Ukuran foto maksimal 2 MB. Silakan gunakan foto yang lebih kecil.");
       return;
     }
     if (!file.type.startsWith("image/")) {
       setError("Hanya file gambar yang diperbolehkan");
-      toast.error("Hanya file gambar yang diperbolehkan!");
+      toast.error("Mohon pilih berkas berupa gambar (JPG, PNG, atau WEBP).");
       return;
     }
 
@@ -66,7 +66,7 @@ export default function ImageUpload({ value, onChange, className = "" }: ImageUp
       console.error("Upload error:", err);
       setError(err.message || "Gagal mengunggah gambar");
       toast.dismiss();
-      toast.error(err.message || "Gagal mengunggah gambar!");
+      toast.error("Mohon maaf, foto belum berhasil diunggah. Silakan periksa koneksi Anda dan coba lagi.");
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";

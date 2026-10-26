@@ -235,14 +235,6 @@ export function Navbar() {
                             <span>Dashboard Mahasiswa</span>
                           </Link>
                           <Link
-                            href="/dashboard/profile"
-                            onClick={() => setIsDropdownOpen(false)}
-                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-muted font-medium text-xs text-foreground transition-colors"
-                          >
-                            <User className="w-4 h-4 text-[#FF8A2B]" />
-                            <span>Profil &amp; Skin Kartu</span>
-                          </Link>
-                          <Link
                             href="/submit"
                             onClick={() => setIsDropdownOpen(false)}
                             className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-muted font-medium text-xs text-foreground transition-colors"

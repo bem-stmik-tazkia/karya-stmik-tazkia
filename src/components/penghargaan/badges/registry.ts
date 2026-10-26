@@ -19,10 +19,9 @@ import BadgeInovatorIoT from "./umum/BadgeInovatorIoT";
 import BadgeMaster5Kategori from "./umum/BadgeMaster5Kategori";
 import BadgePeloporTazkia from "./umum/BadgePeloporTazkia";
 
-// Badges Khusus (15-17)
+// Badges Khusus (15-16)
 import HexBadgeBEM2026 from "./khusus/HexBadgeBEM2026";
 import HexBadgeRistekQuantum from "./khusus/HexBadgeRistekQuantum";
-import HexBadgeRistekMecha from "./khusus/HexBadgeRistekMecha";
 
 export interface IndividualBadgeProps {
   badge?: PenghargaanBadge;
@@ -58,7 +57,6 @@ export const BADGE_COMPONENTS: Record<number, BadgeComponent> = {
   14: BadgePeloporTazkia,
   15: HexBadgeBEM2026 as any,
   16: HexBadgeRistekQuantum as any,
-  17: HexBadgeRistekMecha as any,
 };
 
 export const BADGE_BY_CODE: Record<string, BadgeComponent> = {
@@ -78,7 +76,6 @@ export const BADGE_BY_CODE: Record<string, BadgeComponent> = {
   pelopor_tazkia: BadgePeloporTazkia,
   bem_2026: HexBadgeBEM2026 as any,
   ristek_quantum_2026: HexBadgeRistekQuantum as any,
-  ristek_mecha_2026: HexBadgeRistekMecha as any,
 };
 
 export const BADGE_BY_SYMBOL: Record<string, BadgeComponent> = {
@@ -98,7 +95,6 @@ export const BADGE_BY_SYMBOL: Record<string, BadgeComponent> = {
   eternal_torch: BadgePeloporTazkia,
   bem_crown_26: HexBadgeBEM2026 as any,
   ristek_quantum: HexBadgeRistekQuantum as any,
-  ristek_mecha: HexBadgeRistekMecha as any,
 };
 
 export function getBadgeComponent(badge: PenghargaanBadge): BadgeComponent {

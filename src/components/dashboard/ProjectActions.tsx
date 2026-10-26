@@ -49,7 +49,7 @@ export function ProjectActions({ projectId, isApproved, karyaObj }: ProjectActio
 
   const handleDelete = async () => {
     setIsDeleting(true);
-    const toastId = toast.loading("Menghapus karya...");
+    const toastId = toast.loading("Sedang memproses pengajuan...");
     
     // Instead of hard delete, submit a request to delete
     const { error } = await supabase
@@ -64,10 +64,10 @@ export function ProjectActions({ projectId, isApproved, karyaObj }: ProjectActio
     closeConfirm();
 
     if (!error) {
-      toast.success("Pengajuan hapus karya berhasil dikirim.", { id: toastId });
+      toast.success("Permintaan penghapusan karya berhasil dikirim ke admin.", { id: toastId });
       router.refresh();
     } else {
-      toast.error("Gagal mengirim pengajuan hapus. Silakan coba lagi.", { id: toastId });
+      toast.error("Mohon maaf, pengajuan penghapusan belum berhasil dikirim. Silakan coba kembali.", { id: toastId });
     }
   };
 

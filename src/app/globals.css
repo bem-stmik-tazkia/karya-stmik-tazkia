@@ -955,9 +955,10 @@
 .badge-float { animation: badgeFloat 2.8s infinite ease-in-out; will-change: transform; }
 .foil-sweep-anim { animation: foilSweep 3.2s infinite ease-in-out; }
 .hex-orbit-anim { animation: hexOrbit 2.8s linear infinite; }
-.spin-slow { animation: spin 10s linear infinite; transform-box: fill-box; will-change: transform; }
-.spin-fast { animation: spin 4.5s linear infinite; transform-box: fill-box; will-change: transform; }
-.spin-reverse-slow { animation: spin 9s linear infinite reverse; transform-box: fill-box; will-change: transform; }
+.spin-slow { animation: spin 10s linear infinite; will-change: transform; }
+.spin-fast { animation: spin 4.5s linear infinite; will-change: transform; }
+.spin-reverse-slow { animation: spin 9s linear infinite reverse; will-change: transform; }
+svg .spin-slow, svg .spin-fast, svg .spin-reverse-slow { transform-box: fill-box; transform-origin: center; }
 
 /* Exclusive 2026 Skins & Badges Animations */
 @keyframes ristekBorderPulse {
@@ -1046,6 +1047,10 @@
   0%, 100% { transform: translateY(0px) scale(1); }
   50% { transform: translateY(-1.5px) scale(1.1); }
 }
+@keyframes corePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
 @keyframes iconCyberPulse {
   0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px #00f0ff); }
   50% { transform: scale(1.12); filter: drop-shadow(0 0 12px #f97316); }
@@ -1093,11 +1098,11 @@
 .svg-laser-scan-fast { animation: svgLaserScan 1.2s infinite ease-in-out; }
 .badge-dash-march { animation: badgeDashMarch 3s linear infinite; }
 .badge-dash-march-reverse { animation: badgeDashMarch 2.5s linear infinite reverse; }
-.vertex-sparkle-1 { animation: vertexSparkle 1.4s infinite ease-in-out; }
-.vertex-sparkle-2 { animation: vertexSparkle 1.4s infinite ease-in-out 0.45s; }
-.vertex-sparkle-3 { animation: vertexSparkle 1.4s infinite ease-in-out 0.9s; }
+.vertex-sparkle-1 { animation: vertexSparkle 1.4s infinite ease-in-out; transform-box: fill-box; transform-origin: center; }
+.vertex-sparkle-2 { animation: vertexSparkle 1.4s infinite ease-in-out 0.45s; transform-box: fill-box; transform-origin: center; }
+.vertex-sparkle-3 { animation: vertexSparkle 1.4s infinite ease-in-out 0.9s; transform-box: fill-box; transform-origin: center; }
 .badge-crown-bob { animation: crownBob 2s infinite ease-in-out; }
-.badge-core-pulse { animation: pulse 2s infinite ease-in-out; }
+.badge-core-pulse { animation: corePulse 2.4s infinite ease-in-out; }
 .badge-icon-cyber-pulse { animation: iconCyberPulse 2.2s infinite ease-in-out; }
 .ristek-plasma-aura { animation: plasmaAura 2.4s infinite ease-in-out; }
 .ristek-plasma-aura-fast { animation: plasmaAura 1.1s infinite ease-in-out; }

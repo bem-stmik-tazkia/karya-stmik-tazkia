@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         if (!isStudent && !isStaff) {
           // Sign out immediately if domain is not valid
           await supabase.auth.signOut();
-          return NextResponse.redirect(`${publicOrigin}/login?error=Akses ditolak. Silakan gunakan email kampus STMIK Tazkia.`);
+          return NextResponse.redirect(`${publicOrigin}/login?error=Akses belum dapat diberikan. Silakan gunakan email resmi kampus STMIK Tazkia.`);
         }
       }
 
@@ -33,5 +33,5 @@ export async function GET(request: NextRequest) {
   }
 
   // Return the user to login page if there's an error
-  return NextResponse.redirect(`${publicOrigin}/login?error=Gagal login. Silakan coba lagi.`);
+  return NextResponse.redirect(`${publicOrigin}/login?error=Mohon maaf, proses masuk akun belum berhasil. Silakan coba kembali.`);
 }

@@ -1,8 +1,8 @@
 import React from "react";
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
-import { NeobrutalismProfileView } from "@/components/mahasiswa/NeobrutalismProfileView";
-import { CompleteProfileModalWrapper } from "@/components/mahasiswa/CompleteProfileModalWrapper";
+import { NeobrutalismProfileView } from "@/components/mahasiswa";
+import { CompleteProfileModalWrapper } from "@/components/mahasiswa/modals/CompleteProfileModalWrapper";
 
 export const revalidate = 0;
 

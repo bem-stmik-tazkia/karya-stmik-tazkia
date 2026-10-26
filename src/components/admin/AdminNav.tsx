@@ -26,7 +26,7 @@ export function AdminNav() {
   ];
 
   return (
-    <div className="flex items-center gap-2">
+    <nav className="flex items-center gap-1.5 p-1 rounded-2xl bg-muted/40 border border-border/60 shadow-2xs">
       {navItems.map((item) => {
         const Icon = item.icon;
         const isActive = pathname === item.href || (item.href !== "/admin" && pathname?.startsWith(item.href));
@@ -35,17 +35,17 @@ export function AdminNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all border ${
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-150 ${
               isActive
-                ? "bg-primary text-white border-primary shadow-xs"
-                : "bg-card text-muted-foreground border-border hover:border-primary/30 hover:bg-muted/70 hover:text-foreground"
+                ? "bg-card text-foreground shadow-xs border border-border"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
             }`}
           >
-            <Icon className="w-4 h-4" />
+            <Icon className={`w-4 h-4 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
             <span>{item.label}</span>
           </Link>
         );
       })}
-    </div>
+    </nav>
   );
 }

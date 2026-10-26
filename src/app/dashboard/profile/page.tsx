@@ -9,7 +9,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import toast from "react-hot-toast";
 import { fetchMasterProdiOptions, fetchMasterAngkatanOptions } from "@/utils/prodiOptions";
 import { PREDEFINED_SKILLS } from "@/utils/skillOptions";
-import { SkillPicker } from "@/components/mahasiswa/SkillPicker";
+import { SkillPicker } from "@/components/mahasiswa/modals/SkillPicker";
 import { useUnsavedChangesWarning } from "@/hooks/useUnsavedChangesWarning";
 import { UnsavedChangesModal } from "@/components/ui/UnsavedChangesModal";
 
@@ -226,7 +226,7 @@ export default function ProfileSettingsPage() {
     setSaving(false);
 
     if (error) {
-      toast.error(`Gagal menyimpan: ${error.message}`);
+      toast.error("Mohon maaf, perubahan profil belum berhasil disimpan. Silakan periksa kembali data Anda dan coba lagi.");
     } else {
       setIsDirty(false);
       allowNavigation();

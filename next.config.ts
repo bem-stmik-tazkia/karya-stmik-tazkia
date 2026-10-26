@@ -56,6 +56,26 @@ const nextConfig: NextConfig = {
         destination: "/student",
         permanent: true,
       },
+      {
+        source: "/mahasiswa",
+        destination: "/student",
+        permanent: true,
+      },
+      {
+        source: "/mahasiswa/:path*",
+        destination: "/student/:path*",
+        permanent: true,
+      },
+      {
+        source: "/karya",
+        destination: "/explore",
+        permanent: true,
+      },
+      {
+        source: "/karya/:path*",
+        destination: "/project/:path*",
+        permanent: true,
+      },
     ];
   },
 };

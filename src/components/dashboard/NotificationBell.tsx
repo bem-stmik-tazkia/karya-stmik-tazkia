@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Bell, CheckCheck, X, Clock, CheckCircle, XCircle, RefreshCw, Trash, Users, Check } from "lucide-react";
+import { Bell, CheckCheck, X, Clock, CheckCircle, XCircle, RefreshCw, Trash, Users, Check, Award, RotateCcw } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { formatDistanceToNow } from "date-fns";
@@ -12,7 +12,7 @@ import { respondCollabRequest } from "@/lib/collabService";
 
 interface Notification {
   id: string;
-  type: "karya_approved" | "karya_rejected" | "karya_pending" | "info" | "collab_request" | "collab_accepted" | "collab_rejected" | string;
+  type: "karya_approved" | "karya_rejected" | "karya_pending" | "info" | "collab_request" | "collab_accepted" | "collab_rejected" | "badge_granted" | "badge_revoked" | string;
   title: string;
   message: string;
   karya_id: string | null;
@@ -28,6 +28,8 @@ const NOTIF_ICON: Record<string, React.ReactNode> = {
   collab_request: <Users className="w-5 h-5 text-amber-500 shrink-0" />,
   collab_accepted: <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />,
   collab_rejected: <XCircle className="w-5 h-5 text-rose-500 shrink-0" />,
+  badge_granted: <Award className="w-5 h-5 text-amber-500 shrink-0" />,
+  badge_revoked: <RotateCcw className="w-5 h-5 text-rose-500 shrink-0" />,
 };
 
 export function NotificationBell() {
@@ -161,10 +163,10 @@ export function NotificationBell() {
           )
         );
       } else {
-        toast.error(res.error || "Gagal merespons kolaborasi", { id: toastId });
+        toast.error("Mohon maaf, respon kolaborasi belum berhasil dikirim. Silakan coba sesaat lagi.", { id: toastId });
       }
     } catch {
-      toast.error("Terjadi kesalahan sistem", { id: toastId });
+      toast.error("Mohon maaf, terjadi kendala saat memproses permintaan. Silakan coba kembali.", { id: toastId });
     } finally {
       setIsRespondingCollab(null);
     }
@@ -264,6 +266,9 @@ export function NotificationBell() {
                       if (!notif.is_read) markRead(notif.id);
                       if (notif.karya_id) {
                         setOpen(false);
+                      } else if (notif.type === "badge_granted" || notif.type === "badge_revoked") {
+                        setOpen(false);
+                        window.location.href = "/dashboard/profile";
                       }
                     }}
                   >

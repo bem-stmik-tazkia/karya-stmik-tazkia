@@ -6,6 +6,7 @@ import { Loader2, AlertCircle } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
 
 function LoginContent() {
   const searchParams = useSearchParams();
@@ -32,6 +33,7 @@ function LoginContent() {
 
     if (error) {
       console.error(error);
+      toast.error("Mohon maaf, proses masuk akun belum berhasil. Silakan coba kembali.");
       setIsLoading(false);
     }
   };

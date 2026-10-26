@@ -2,7 +2,18 @@ import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import { AdminReviewActions } from "@/components/admin/AdminReviewActions";
 import AiStatusWidget from "@/components/admin/AiStatusWidget";
-import { Layers, Clock, Cpu, CheckCircle2, XCircle, Search, RotateCcw, ExternalLink } from "lucide-react";
+import {
+  Layers,
+  Clock,
+  FileSearch,
+  CheckCircle2,
+  XCircle,
+  Search,
+  RotateCcw,
+  ExternalLink,
+  FolderKanban,
+  Filter,
+} from "lucide-react";
 import Link from "next/link";
 
 export const revalidate = 0;
@@ -14,9 +25,9 @@ const STATUS_CONFIG = {
 };
 
 const AI_STATUS_CONFIG = {
-  processing: { label: "Diperiksa AI", className: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 animate-pulse" },
+  processing: { label: "Sedang Ditinjau", className: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 animate-pulse" },
   pending_review: { label: "Dalam Antrean", className: "bg-muted text-muted-foreground border-border" },
-  reviewed: { label: "Selesai", className: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" },
+  reviewed: { label: "Selesai Evaluasi", className: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" },
 };
 
 interface PageProps {
@@ -100,35 +111,35 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
 
   const statCards = [
     { 
-      label: "Semua", 
+      label: "Semua Karya", 
       value: totalAll, 
       icon: Layers, 
       iconColor: "text-primary bg-primary/10 border-primary/20", 
       statusKey: "all" 
     },
     { 
-      label: "Menunggu", 
+      label: "Menunggu Kurasi", 
       value: totalPending, 
       icon: Clock, 
       iconColor: "text-amber-500 bg-amber-500/10 border-amber-500/20", 
       statusKey: "pending" 
     },
     { 
-      label: "Diperiksa AI", 
+      label: "Sedang Ditinjau", 
       value: totalAiProcessing, 
-      icon: Cpu, 
+      icon: FileSearch, 
       iconColor: "text-blue-500 bg-blue-500/10 border-blue-500/20", 
       statusKey: "ai_processing" 
     },
     { 
-      label: "Disetujui", 
+      label: "Telah Disetujui", 
       value: totalApproved, 
       icon: CheckCircle2, 
       iconColor: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20", 
       statusKey: "approved" 
     },
     { 
-      label: "Ditolak", 
+      label: "Perlu Revisi / Ditolak", 
       value: totalRejected, 
       icon: XCircle, 
       iconColor: "text-rose-500 bg-rose-500/10 border-rose-500/20", 
@@ -136,12 +147,42 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
     },
   ];
 
+  const hasActiveFilters = activeStatus !== "all" || activeCategory !== "all" || searchQuery !== "";
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      {/* AI Status Widget */}
+      {/* Friendly Welcome & Header */}
+      <div className="mb-6 p-6 rounded-3xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 shadow-xs relative overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold mb-2.5">
+              <span className="w-2 h-2 rounded-full bg-primary" />
+              <span>Portal Kurasi Portofolio</span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-heading font-extrabold text-foreground tracking-tight">
+              Selamat datang kembali, Admin! 👋
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-2xl leading-relaxed">
+              Kelola peninjauan karya, verifikasi permohonan edit & hapus, serta pantau kualitas karya mahasiswa STMIK Tazkia dengan mudah.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="px-4 py-2.5 rounded-2xl bg-card border border-border text-center shadow-xs">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Total Karya</span>
+              <span className="text-lg font-heading font-extrabold text-foreground">{totalAll}</span>
+            </div>
+            <div className="px-4 py-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-center shadow-xs">
+              <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider block">Perlu Ditinjau</span>
+              <span className="text-lg font-heading font-extrabold text-amber-600 dark:text-amber-400">{totalPending}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Friendly System Status Widget */}
       <AiStatusWidget />
 
-      {/* Stat Cards (Clickable Filter) */}
+      {/* Friendly Stat Cards (Clickable Filter) */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5 mb-6">
         {statCards.map((stat, i) => {
           const isActive = activeStatus === stat.statusKey;
@@ -175,25 +216,30 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
         })}
       </div>
 
-      <div className="bg-card border border-border rounded-2xl shadow-xs overflow-hidden">
-        {/* Header + Filter Kategori */}
+      {/* Main Table Card */}
+      <div className="bg-card border border-border rounded-3xl shadow-xs overflow-hidden">
+        {/* Header + Search + Filter Kategori */}
         <div className="p-4 sm:p-5 border-b border-border flex flex-col xl:flex-row xl:items-center gap-4 justify-between bg-muted/20">
           <div className="flex-shrink-0">
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <h2 className="text-base sm:text-lg font-heading font-extrabold text-foreground tracking-tight">
                 Daftar Kurasi Karya
               </h2>
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-primary/10 text-primary border border-primary/20">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/20">
                 {filteredKarya.length} karya
               </span>
-              {activeStatus !== "all" && (
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-muted text-muted-foreground border border-border capitalize">
-                  Filter: {activeStatus === "ai_processing" ? "Diperiksa AI" : activeStatus}
-                </span>
+              {hasActiveFilters && (
+                <Link
+                  href="/admin/karya"
+                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-colors"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Bersihkan Filter</span>
+                </Link>
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-0.5 font-medium">
-              Kelola peninjauan, status publikasi, dan verifikasi AI karya mahasiswa
+              Kelola peninjauan, persetujuan publikasi, dan verifikasi kelayakan karya mahasiswa
             </p>
           </div>
 
@@ -208,7 +254,7 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
                   type="text" 
                   name="q" 
                   defaultValue={searchQuery} 
-                  placeholder="Cari judul atau deskripsi..." 
+                  placeholder="Cari judul atau ringkasan karya..." 
                   className="w-full pl-9 pr-3.5 py-2 rounded-xl border border-border bg-background text-xs font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-xs transition-colors"
                 />
               </div>
@@ -229,8 +275,12 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
               )}
             </form>
 
-            {/* Filter Kategori */}
+            {/* Filter Kategori Pills */}
             <div className="flex items-center gap-1.5 flex-wrap flex-1 justify-start xl:justify-end">
+              <span className="text-[11px] font-bold text-muted-foreground mr-1 flex items-center gap-1">
+                <Filter className="w-3 h-3" />
+                Kategori:
+              </span>
               <Link
                 href={buildUrl(activeStatus, "all", 1, searchQuery)}
                 className={`px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
@@ -258,24 +308,45 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
           </div>
         </div>
 
+        {/* Tabel Karya */}
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[1050px]">
             <thead className="bg-muted/40 border-b border-border">
               <tr className="text-muted-foreground text-[11px] font-bold uppercase tracking-wider">
-                <th className="py-3.5 px-4">Judul Karya</th>
+                <th className="py-3.5 px-4">Judul & Ringkasan</th>
                 <th className="py-3.5 px-3">Kategori</th>
-                <th className="py-3.5 px-3 text-center">Status Karya</th>
-                <th className="py-3.5 px-3 text-center">Status AI</th>
-                <th className="py-3.5 px-3 text-center">Skor AI</th>
-                <th className="py-3.5 px-4">Catatan AI</th>
-                <th className="py-3.5 px-4 text-center">Aksi Admin</th>
+                <th className="py-3.5 px-3 text-center">Status Publikasi</th>
+                <th className="py-3.5 px-3 text-center">Pemeriksaan Sistem</th>
+                <th className="py-3.5 px-3 text-center">Skor Kelayakan</th>
+                <th className="py-3.5 px-4">Catatan Evaluasi</th>
+                <th className="py-3.5 px-4 text-center">Aksi Kurasi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {paginatedKarya.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-12 text-center text-muted-foreground font-medium">
-                    Tidak ada karya yang cocok dengan filter ini.
+                  <td colSpan={7} className="py-16 px-4 text-center">
+                    <div className="max-w-md mx-auto flex flex-col items-center">
+                      <div className="w-12 h-12 rounded-2xl bg-muted/60 border border-border flex items-center justify-center text-muted-foreground mb-3 shadow-xs">
+                        <FolderKanban className="w-6 h-6" />
+                      </div>
+                      <h3 className="font-heading font-bold text-sm sm:text-base text-foreground">
+                        Belum ada karya yang sesuai
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                        {hasActiveFilters
+                          ? "Kriteria filter atau pencarian saat ini tidak menemukan karya yang cocok."
+                          : "Belum ada pengajuan karya dari mahasiswa di dalam sistem."}
+                      </p>
+                      {hasActiveFilters && (
+                        <Link
+                          href="/admin/karya"
+                          className="mt-4 px-4 py-2 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary-hover transition-colors shadow-xs"
+                        >
+                          Reset Semua Filter
+                        </Link>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -309,17 +380,17 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
                             href={`/project/${karya.id}`}
                             target="_blank"
                             className="font-heading font-bold text-sm text-foreground hover:text-primary transition-colors line-clamp-1 group inline-flex items-center gap-1"
-                            title="Lihat halaman karya publik"
+                            title="Buka halaman karya publik"
                           >
                             <span>{karya.title}</span>
                             <ExternalLink className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                           </Link>
                           {karya.pending_edits && karya.pending_edits.type === "delete" ? (
-                            <span className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-[9px] px-1.5 py-0.5 rounded-md uppercase font-bold">HAPUS</span>
+                            <span className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-[9px] px-1.5 py-0.5 rounded-md uppercase font-bold">Pengajuan Hapus</span>
                           ) : karya.pending_edits ? (
-                            <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[9px] px-1.5 py-0.5 rounded-md uppercase font-bold">EDIT</span>
+                            <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[9px] px-1.5 py-0.5 rounded-md uppercase font-bold">Pengajuan Edit</span>
                           ) : karya.status === 'pending' ? (
-                            <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[9px] px-1.5 py-0.5 rounded-md uppercase font-bold">BARU</span>
+                            <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[9px] px-1.5 py-0.5 rounded-md uppercase font-bold">Karya Baru</span>
                           ) : null}
                         </div>
                         <div className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">{karya.description}</div>
@@ -335,7 +406,9 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
                           {statusCfg.label}
                         </span>
                         {karya.status === "rejected" && karya.reject_reason && (
-                          <div className="text-[10px] text-rose-500 mt-1 max-w-[120px] mx-auto line-clamp-2">{karya.reject_reason}</div>
+                          <div className="text-[10px] text-rose-500 mt-1 max-w-[130px] mx-auto line-clamp-2" title={karya.reject_reason}>
+                            {karya.reject_reason}
+                          </div>
                         )}
                       </td>
                       <td className="py-3.5 px-3 text-center whitespace-nowrap">
@@ -356,7 +429,7 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
                         )}
                       </td>
                       <td className="py-3.5 px-4 max-w-[200px]">
-                        <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">
+                        <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed" title={karya.ai_review_reason || ""}>
                           {karya.ai_review_reason || "-"}
                         </p>
                       </td>
@@ -387,7 +460,7 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
                 href={currentPage > 1 ? buildUrl(activeStatus, activeCategory, currentPage - 1, searchQuery) : "#"}
                 className={`px-4 py-2 rounded-xl border text-xs font-semibold uppercase transition-all ${
                   currentPage > 1
-                    ? "bg-card border-border hover:bg-muted text-foreground shadow-xs"
+                    ? "bg-card border-border hover:bg-muted text-foreground shadow-xs cursor-pointer"
                     : "bg-muted border-border/50 text-muted-foreground opacity-50 cursor-not-allowed pointer-events-none"
                 }`}
               >
@@ -397,7 +470,7 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
                 href={currentPage < totalPages ? buildUrl(activeStatus, activeCategory, currentPage + 1, searchQuery) : "#"}
                 className={`px-4 py-2 rounded-xl border text-xs font-semibold uppercase transition-all ${
                   currentPage < totalPages
-                    ? "bg-card border-border hover:bg-muted text-foreground shadow-xs"
+                    ? "bg-card border-border hover:bg-muted text-foreground shadow-xs cursor-pointer"
                     : "bg-muted border-border/50 text-muted-foreground opacity-50 cursor-not-allowed pointer-events-none"
                 }`}
               >

@@ -312,13 +312,13 @@ export default function UploadKaryaFormPage() {
     if (fields.length > 0) {
       setInvalidFields(fields);
       setErrorMsg("Mohon lengkapi semua field yang wajib diisi.");
-      toast.error("Mohon lengkapi semua field yang wajib diisi.");
+      toast.error("Mohon lengkapi seluruh kolom yang wajib diisi.");
       document.getElementById(fields[0])?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 
     if (!user) {
-      toast.error("Sesi telah habis, silakan login kembali.");
+      toast.error("Sesi Anda telah berakhir, silakan masuk kembali ke akun.");
       router.push("/login");
       return;
     }
@@ -440,13 +440,13 @@ export default function UploadKaryaFormPage() {
         colors: ["#f97316", "#1e3a8a", "#fbbf24", "#ffffff"]
       });
       
-      toast.success(editId ? "Karya berhasil diperbarui!" : "Karya berhasil diupload!", { id: toastId, duration: 5000 });
+      toast.success(editId ? "Karya Anda berhasil diperbarui! 🎉" : "Karya Anda berhasil diunggah! 🎉", { id: toastId, duration: 5000 });
       allowNavigation();
       setTimeout(() => { router.push("/dashboard/projects"); }, 2000);
     } catch (err: any) {
       console.error(err);
       toast.dismiss(toastId);
-      toast.error(err.message || "Gagal mengunggah karya. Silakan coba lagi.", { duration: 5000 });
+      toast.error("Mohon maaf, karya belum berhasil disimpan. Silakan coba kembali sesaat lagi.", { duration: 5000 });
       setErrorMsg(err.message || "Gagal mengunggah karya. Silakan coba lagi.");
     } finally {
       setIsSubmitting(false);

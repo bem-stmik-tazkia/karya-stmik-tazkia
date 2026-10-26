@@ -12,8 +12,8 @@ import {
   SKIN_LIST,
   getSkinDefinition,
   createCustomSkinDefinition,
-} from "@/components/mahasiswa/cards/skins";
-import type { SkinDefinition } from "@/components/mahasiswa/cards/skins";
+} from "@/components/cards";
+import type { SkinDefinition } from "@/components/cards";
 
 // ─── CardSkin Interface (backward compatible) ──────
 export interface CardSkin {
@@ -32,6 +32,10 @@ export interface CardSkin {
   backBgColor: string;
   backBorderColor: string;
   previewBg: string;
+  group?: "umum" | "khusus";
+  tier?: "standard" | "rare" | "epic" | "mythic";
+  requiredBadgeId?: number;
+  unlockRequirement?: string;
 }
 
 // ─── Konversi SkinDefinition → CardSkin ────────────
@@ -56,6 +60,10 @@ function toCardSkin(skin: SkinDefinition): CardSkin {
     previewBg:
       skin.previewBg ||
       `from-[${skin.secondaryColor}] to-[${skin.primaryColor}]`,
+    group: skin.group,
+    tier: skin.tier,
+    requiredBadgeId: skin.requiredBadgeId,
+    unlockRequirement: skin.unlockRequirement,
   };
 }
 

@@ -105,11 +105,99 @@ export async function grantExclusiveBadge(grant: Omit<ExclusiveBadgeGrant, "id" 
 }
 
 /**
- * Admin membatalkan / mencabut grant penghargaan eksklusif
+ * Admin mengirimkan penghargaan eksklusif ke BANYAK mahasiswa sekaligus
  */
-export async function revokeExclusiveBadgeGrant(grantId: string): Promise<boolean> {
+export async function grantExclusiveBadgeBatch(
+  grants: Array<Omit<ExclusiveBadgeGrant, "id" | "grantedAt" | "claimedBy">>
+): Promise<{ success: boolean; count: number; error?: string }> {
+  try {
+    if (!grants || grants.length === 0) {
+      return { success: true, count: 0 };
+    }
+
+    const currentGrants = await getExclusiveBadgeGrants();
+    const timestamp = new Date().toISOString();
+
+    const newGrants: ExclusiveBadgeGrant[] = grants.map((g, idx) => ({
+      ...g,
+      id: `grant_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 7)}`,
+      grantedAt: timestamp,
+      claimedBy: [],
+    }));
+
+    const updated = [...newGrants, ...currentGrants];
+
+    // Simpan ke system_settings
+    const { error } = await supabase.from("system_settings").upsert({
+      key: SETTINGS_KEY,
+      value: JSON.stringify(updated),
+    });
+
+    if (error) {
+      console.error("Failed to save grants to system_settings:", error);
+    }
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem("tazkia_exclusive_grants_cache", JSON.stringify(updated));
+      window.dispatchEvent(new Event("tazkia_badges_updated"));
+    }
+
+    // Kirimkan notifikasi ke mahasiswa
+    const notifRows = grants
+      .filter((g) => !!g.recipientId)
+      .map((g) => {
+        const isBEMSkin = g.badgeId === 15;
+        const title = isBEMSkin
+          ? `👑 Lencana Kehormatan & Skin Kartu Eksklusif: ${g.badgeName}`
+          : `👑 Lencana Kehormatan: ${g.badgeName}`;
+
+        let message = `Selamat! Admin telah menganugerahkan Lencana Kehormatan "${g.badgeName}" untuk Anda.`;
+        if (g.note) {
+          message += ` Pesan dari Admin: "${g.note}".`;
+        }
+        if (isBEMSkin) {
+          message += ` Anda juga mendapatkan hak istimewa menggunakan Skin Kartu BEM Tazkia 2026!`;
+        }
+        message += ` Silakan buka menu Profil di dashboard untuk mengklaim lencana ini.`;
+
+        return {
+          user_id: g.recipientId,
+          type: "info",
+          title,
+          message,
+        };
+      });
+
+    if (notifRows.length > 0) {
+      try {
+        await supabase.from("notifications").insert(notifRows);
+      } catch (notifErr) {
+        console.warn("Could not insert notifications:", notifErr);
+      }
+    }
+
+    return { success: true, count: newGrants.length };
+  } catch (err: any) {
+    return {
+      success: false,
+      count: 0,
+      error: "Mohon maaf, terjadi kendala saat mengirimkan lencana. Silakan coba kembali sesaat lagi.",
+    };
+  }
+}
+
+/**
+ * Admin membatalkan / menarik kembali penghargaan eksklusif dari mahasiswa
+ */
+export async function revokeExclusiveBadgeGrant(
+  grantId: string,
+  recipientId?: string,
+  badgeId?: number,
+  reason?: string
+): Promise<boolean> {
   try {
     const currentGrants = await getExclusiveBadgeGrants();
+    const grantToRevoke = currentGrants.find((g) => g.id === grantId);
     const updated = currentGrants.filter((g) => g.id !== grantId);
 
     await supabase
@@ -119,9 +207,80 @@ export async function revokeExclusiveBadgeGrant(grantId: string): Promise<boolea
         value: JSON.stringify(updated),
       });
 
+    const targetUserId = recipientId || grantToRevoke?.recipientId;
+    const targetBadgeId = badgeId || grantToRevoke?.badgeId;
+    const badgeName = grantToRevoke?.badgeName || "Lencana Kehormatan";
+
+    // Kirimkan notifikasi resmi penarikan ke lonceng notifikasi mahasiswa
+    if (targetUserId) {
+      const isBEMSkin = targetBadgeId === 15;
+      const title = `ℹ️ Pemberitahuan Penarikan Lencana: ${badgeName}`;
+      let message = `Pemberitahuan resmi: Lencana Kehormatan "${badgeName}" telah ditarik kembali oleh pengelola kampus.`;
+      if (reason) {
+        message += ` Pesan dari Pengelola: "${reason}".`;
+      }
+      if (isBEMSkin) {
+        message += ` Hak istimewa Skin Kartu BEM Tazkia 2026 telah dinonaktifkan dan tampilan kartu Anda dikembalikan ke tema standar.`;
+      }
+
+      try {
+        await supabase.from("notifications").insert([
+          {
+            user_id: targetUserId,
+            type: "info",
+            title,
+            message,
+          },
+        ]);
+      } catch (notifErr) {
+        console.warn("Could not insert revoke notification:", notifErr);
+      }
+    }
+
     if (typeof window !== "undefined") {
       localStorage.setItem("tazkia_exclusive_grants_cache", JSON.stringify(updated));
+
+      // Bersihkan klaim lokal jika mahasiswa ada di browser ini
+      if (targetUserId && targetBadgeId) {
+        try {
+          const key = `tazkia_claimed_badges_${targetUserId}`;
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+              const next = parsed.filter((id: number) => Number(id) !== Number(targetBadgeId));
+              localStorage.setItem(key, JSON.stringify(next));
+            }
+          }
+
+          // Bersihkan status lencana terlihat
+          const seenKey = `tazkia_seen_badges_${targetUserId}`;
+          const rawSeen = localStorage.getItem(seenKey);
+          if (rawSeen) {
+            const seenArr = JSON.parse(rawSeen);
+            if (Array.isArray(seenArr)) {
+              localStorage.setItem(
+                seenKey,
+                JSON.stringify(seenArr.filter((id: number) => Number(id) !== Number(targetBadgeId)))
+              );
+            }
+          }
+
+          // Jika lencana yang ditarik adalah lencana BEM (#15) dan skin yang aktif bem2026, kembalikan ke classic
+          if (targetBadgeId === 15) {
+            const skinKey = `tazkia_profile_skin_${targetUserId}`;
+            if (localStorage.getItem(skinKey) === "bem2026") {
+              localStorage.setItem(skinKey, "classic");
+            }
+            if (localStorage.getItem("tazkia_profile_skin") === "bem2026") {
+              localStorage.setItem("tazkia_profile_skin", "classic");
+            }
+          }
+        } catch {}
+      }
+
       window.dispatchEvent(new Event("tazkia_badges_updated"));
+      window.dispatchEvent(new Event("tazkia_profile_skin_updated"));
     }
 
     return true;
@@ -176,7 +335,38 @@ export function getClaimedExclusiveBadgeIds(userId?: string, studentId?: string)
     const raw = localStorage.getItem(key);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed.map(Number);
+      if (Array.isArray(parsed)) {
+        const claimed = parsed.map(Number);
+
+        // Jika cache riwayat lencana tersedia, pastikan lencana eksklusif (14, 15, 16)
+        // masih terdaftar sah dan belum ditarik oleh admin
+        try {
+          const cachedRaw = localStorage.getItem("tazkia_exclusive_grants_cache");
+          if (cachedRaw) {
+            const grants: ExclusiveBadgeGrant[] = JSON.parse(cachedRaw);
+            if (Array.isArray(grants)) {
+              const activeExclusiveIds = new Set<number>();
+              grants.forEach((g) => {
+                const matches =
+                  (userId && g.recipientId === userId) ||
+                  (studentId && g.recipientId === studentId);
+                if (matches) {
+                  activeExclusiveIds.add(Number(g.badgeId));
+                }
+              });
+
+              return claimed.filter((bId) => {
+                if ([14, 15, 16].includes(bId)) {
+                  return activeExclusiveIds.has(bId);
+                }
+                return true;
+              });
+            }
+          }
+        } catch {}
+
+        return claimed;
+      }
     }
   } catch {}
 

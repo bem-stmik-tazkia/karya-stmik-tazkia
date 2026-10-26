@@ -14,11 +14,10 @@ import {
   AlertTriangle,
   CheckCircle2,
   Info,
-  Globe,
-  Eye,
-  Calendar,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { AnnouncementSettingsCard } from "@/components/admin/maintenance/AnnouncementSettingsCard";
+import { MaintenanceInfoCard } from "@/components/admin/maintenance/MaintenanceInfoCard";
 
 interface MaintenanceState {
   active: boolean;
@@ -41,7 +40,7 @@ export default function AdminMaintenancePage() {
     message: DEFAULT_MESSAGES[0],
     endTime: "",
     announcementActive: false,
-    announcementMessage: "🚀 Update Baru! Kami telah menambahkan fitur-fitur baru setelah maintenance. Selamat menjelajahi Karya Tazkia!",
+    announcementMessage: "Pembaruan Sistem: Seluruh layanan kembali normal. Selamat menjelajahi portofolio karya mahasiswa STMIK Tazkia.",
     appVersion: "v1.0.0",
   });
   const [loading, setLoading] = useState(true);
@@ -69,7 +68,7 @@ export default function AdminMaintenancePage() {
       ]);
 
     if (error) {
-      toast.error("Gagal memuat pengaturan.");
+      toast.error("Mohon maaf, pengaturan sistem belum berhasil dimuat.");
     } else if (data) {
       const settings: Record<string, string> = {};
       data.forEach((row) => { settings[row.key] = row.value; });
@@ -79,7 +78,7 @@ export default function AdminMaintenancePage() {
         message: settings["maintenance_message"] || DEFAULT_MESSAGES[0],
         endTime: settings["maintenance_end_time"] || "",
         announcementActive: settings["announcement_active"] === "true",
-        announcementMessage: settings["announcement_message"] || "🚀 Update Baru! Kami telah menambahkan fitur-fitur baru setelah maintenance. Selamat menjelajahi Karya Tazkia!",
+        announcementMessage: settings["announcement_message"] || "Pembaruan Sistem: Seluruh layanan kembali normal. Selamat menjelajahi portofolio karya mahasiswa STMIK Tazkia.",
         appVersion: settings["app_version"] || "v1.0.0",
       });
     }
@@ -112,9 +111,9 @@ export default function AdminMaintenancePage() {
       .upsert(upsertData, { onConflict: "key" });
 
     if (error) {
-      toast.error("Gagal menyimpan.", { id: toastId });
+      toast.error("Mohon maaf, pengaturan belum berhasil disimpan. Silakan coba kembali.", { id: toastId });
     } else {
-      toast.success("Pengaturan tersimpan! ✅", { id: toastId });
+      toast.success("Pengaturan berhasil disimpan.", { id: toastId });
       setIsDirty(false);
     }
     setIsSaving(false);
@@ -124,7 +123,7 @@ export default function AdminMaintenancePage() {
     setIsToggling(true);
     const newActive = !state.active;
     const toastId = toast.loading(
-      newActive ? "Mengaktifkan maintenance mode..." : "Menonaktifkan maintenance mode..."
+      newActive ? "Sedang mengaktifkan mode pemeliharaan..." : "Sedang menonaktifkan mode pemeliharaan..."
     );
 
     // Save all settings including toggle
@@ -139,7 +138,7 @@ export default function AdminMaintenancePage() {
       .upsert(upsertData, { onConflict: "key" });
 
     if (error) {
-      toast.error("Gagal mengubah status.", { id: toastId });
+      toast.error("Mohon maaf, status pemeliharaan belum berhasil diubah. Silakan coba kembali.", { id: toastId });
     } else {
       setState((prev) => ({ ...prev, active: newActive }));
       setIsDirty(false);
@@ -156,7 +155,7 @@ export default function AdminMaintenancePage() {
       }
 
       toast.success(
-        newActive ? "🔒 Maintenance mode AKTIF!" : "🟢 Maintenance mode NONAKTIF!",
+        newActive ? "🔒 Mode pemeliharaan sistem berhasil DIAKTIFKAN." : "🟢 Mode pemeliharaan sistem berhasil DINONAKTIFKAN.",
         { id: toastId }
       );
     }
@@ -431,123 +430,15 @@ export default function AdminMaintenancePage() {
       </div>
 
       {/* Announcement Settings Form */}
-      <div className="bg-card border border-border rounded-2xl p-6 sm:p-7 mb-6 shadow-xs">
-        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border">
-          <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center">
-            <MessageSquare className="w-4 h-4" />
-          </div>
-          <div>
-            <h2 className="text-base font-bold text-foreground">Pengumuman Setelah Maintenance</h2>
-            <p className="text-xs text-muted-foreground">Banner pemberitahuan yang muncul di semua halaman.</p>
-          </div>
-        </div>
-
-        {/* Toggle Announcement */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 p-4 rounded-xl border border-border bg-muted/20">
-          <div>
-            <h3 className="font-semibold text-sm">Status Banner</h3>
-            <p className="text-xs text-muted-foreground">Aktifkan untuk menampilkan banner pengumuman.</p>
-          </div>
-          <button
-            onClick={() => updateField("announcementActive", !state.announcementActive)}
-            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border border-border transition-colors duration-200 ease-in-out ${
-              state.announcementActive ? 'bg-primary' : 'bg-muted'
-            }`}
-            role="switch"
-            aria-checked={state.announcementActive}
-          >
-            <span className="sr-only">Toggle banner pengumuman</span>
-            <span
-              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                state.announcementActive ? 'translate-x-6' : 'translate-x-1'
-              }`}
-            />
-          </button>
-        </div>
-
-        {/* Announcement Message & Version */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="md:col-span-3">
-            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-              Isi Pengumuman *
-            </label>
-            <textarea
-              value={state.announcementMessage}
-              onChange={(e) => updateField("announcementMessage", e.target.value)}
-              rows={2}
-              placeholder="Tulis pengumuman baru..."
-              className="w-full px-4 py-2.5 rounded-xl border border-border bg-background font-medium text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none shadow-2xs"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-              Versi *
-            </label>
-            <input
-              type="text"
-              value={state.appVersion}
-              onChange={(e) => updateField("appVersion", e.target.value)}
-              placeholder="v1.2.0"
-              className="w-full px-4 py-2.5 rounded-xl border border-border bg-background font-medium text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-2xs"
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1.5 text-muted-foreground">
-          <Info className="w-3 h-3" />
-          <p className="text-[11px] font-normal">
-            Gunakan tombol "Simpan Pengaturan" di atas untuk menyimpan perubahan banner pengumuman.
-          </p>
-        </div>
-      </div>
+      <AnnouncementSettingsCard
+        announcementActive={state.announcementActive}
+        announcementMessage={state.announcementMessage}
+        appVersion={state.appVersion}
+        onUpdateField={updateField}
+      />
 
       {/* Preview & Info Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Preview button */}
-        <div className="bg-card border border-border rounded-2xl p-5 shadow-xs">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center">
-              <Eye className="w-4 h-4" />
-            </div>
-            <h3 className="text-sm font-bold text-foreground">Pratinjau Halaman</h3>
-          </div>
-          <p className="text-xs text-muted-foreground mb-4">
-            Lihat tampilan halaman maintenance yang akan dilihat pengunjung.
-          </p>
-          <a
-            href="/maintenance"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-card border border-border text-foreground font-semibold text-xs hover:bg-muted/70 hover:border-primary/40 transition-all shadow-2xs"
-          >
-            <Globe className="w-3.5 h-3.5 text-primary" />
-            <span>Buka Halaman Maintenance</span>
-          </a>
-        </div>
-
-        {/* Info card */}
-        <div className="bg-card border border-border rounded-2xl p-5 shadow-xs">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-xl bg-secondary/10 text-secondary border border-secondary/20 flex items-center justify-center">
-              <Info className="w-4 h-4" />
-            </div>
-            <h3 className="text-sm font-bold text-foreground">Informasi Sistem</h3>
-          </div>
-          <ul className="space-y-2">
-            {[
-              { icon: "🔒", text: "Aktifkan sakelar untuk redirect semua pengunjung ke halaman maintenance" },
-              { icon: "🛡️", text: "Admin dan rute /admin tetap dapat diakses tanpa hambatan" },
-              { icon: "⏱️", text: "Tentukan estimasi waktu agar pengunjung mendapat kejelasan durasi" },
-              { icon: "💾", text: "Simpan pengaturan sebelum mengaktifkan untuk memperbarui data" },
-            ].map((item, i) => (
-              <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
-                <span>{item.icon}</span>
-                <span>{item.text}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+      <MaintenanceInfoCard />
     </div>
   );
 }

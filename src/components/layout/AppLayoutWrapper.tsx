@@ -14,7 +14,7 @@ export function AppLayoutWrapper({ children }: { children: React.ReactNode }) {
   const isLogin = pathname?.startsWith("/login");
   const isSubmit = pathname?.startsWith("/submit");
   const isAdmin = pathname?.startsWith("/admin");
-  const isMaintenance = pathname?.startsWith("/maintenance");
+  const isMaintenance = pathname === "/maintenance" || pathname?.startsWith("/maintenance/");
   const hidePublicLayout = isDashboard || isLogin || isSubmit || isAdmin || isMaintenance;
 
   return (
