@@ -26,6 +26,7 @@ import {
   claimExclusiveBadge,
   getExclusiveBadgeGrants,
   getClaimableGrantsForUser,
+  getClaimedExclusiveBadgeIds,
   type ExclusiveBadgeGrant,
 } from "@/lib/badgeService";
 
@@ -67,6 +68,7 @@ export function NotificationBell() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [claimableGrants, setClaimableGrants] = useState<ExclusiveBadgeGrant[]>([]);
+  const [claimedBadgeIds, setClaimedBadgeIds] = useState<number[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [activeCategory, setActiveCategory] = useState<FilterCategory>("all");
@@ -103,10 +105,18 @@ export function NotificationBell() {
     }
   };
 
+  // Refresh claimed badges
+  const refreshClaimedBadges = () => {
+    if (user?.id) {
+      setClaimedBadgeIds(getClaimedExclusiveBadgeIds(user.id));
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchNotifications();
       fetchClaimableGrants();
+      refreshClaimedBadges();
     }
   }, [user]);
 
@@ -114,10 +124,14 @@ export function NotificationBell() {
   useEffect(() => {
     const handleBadgesUpdated = () => {
       fetchClaimableGrants();
+      fetchNotifications();
+      refreshClaimedBadges();
     };
     window.addEventListener("tazkia_badges_updated", handleBadgesUpdated);
+    window.addEventListener("storage", handleBadgesUpdated);
     return () => {
       window.removeEventListener("tazkia_badges_updated", handleBadgesUpdated);
+      window.removeEventListener("storage", handleBadgesUpdated);
     };
   }, [user]);
 
@@ -196,21 +210,36 @@ export function NotificationBell() {
   // Claim exclusive badge from notification
   const handleClaimBadgeFromNotif = async (notif: Notification) => {
     if (!user) return;
+
+    const badgeIdNum = notif.karya_id ? parseInt(notif.karya_id, 10) : undefined;
+    const isSkinNotif =
+      badgeIdNum === 101 ||
+      (notif.title || "").toLowerCase().includes("tema") ||
+      (notif.title || "").toLowerCase().includes("skin");
+    const validBadgeId = badgeIdNum ?? (isSkinNotif ? 101 : 15);
+
+    // Cek apakah lencana ini sudah diklaim sebelumnya
+    const currentClaimed = getClaimedExclusiveBadgeIds(user.id);
+    const isAlreadyClaimed =
+      currentClaimed.includes(validBadgeId) ||
+      (validBadgeId === 101 && currentClaimed.map(String).includes("bem2026"));
+
+    if (isAlreadyClaimed) {
+      toast.success("Lencana ini sudah berhasil Anda klaim!");
+      await markRead(notif.id);
+      refreshClaimedBadges();
+      return;
+    }
+
     setIsClaimingBadge(notif.id);
     const toastId = toast.loading("Mengklaim lencana & hak akses...");
     try {
-      const badgeIdNum = notif.karya_id ? parseInt(notif.karya_id, 10) : undefined;
-      const isSkinNotif =
-        badgeIdNum === 101 ||
-        (notif.title || "").toLowerCase().includes("tema") ||
-        (notif.title || "").toLowerCase().includes("skin");
-      const validBadgeId = badgeIdNum ?? (isSkinNotif ? 101 : 15);
-
       const ok = await claimExclusiveBadge(validBadgeId, user.id);
       if (ok) {
         toast.dismiss(toastId);
         await markRead(notif.id);
         await fetchClaimableGrants();
+        refreshClaimedBadges();
         setOpen(false);
         window.dispatchEvent(
           new CustomEvent("tazkia_open_reward_modal", {
@@ -341,6 +370,7 @@ export function NotificationBell() {
           if (!open) {
             fetchNotifications();
             fetchClaimableGrants();
+            refreshClaimedBadges();
           }
         }}
         className="relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-border bg-card shadow-2xs hover:bg-muted hover:border-primary/40 transition-all cursor-pointer"
@@ -580,31 +610,50 @@ export function NotificationBell() {
                     </p>
 
                     {/* Action button for badge / skin grant */}
-                    {notif.type === "badge_granted" && (
-                      <div className="mt-2.5 pt-2 border-t border-border/60 flex items-center justify-between gap-2">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleClaimBadgeFromNotif(notif);
-                          }}
-                          disabled={isClaimingBadge === notif.id}
-                          className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
-                        >
-                          <Check className="w-3.5 h-3.5" />
-                          <span>
-                            {isClaimingBadge === notif.id ? "Mengklaim..." : "Klaim Lencana"}
-                          </span>
-                        </button>
-                        <Link
-                          href="/dashboard/profile"
-                          onClick={() => setOpen(false)}
-                          className="text-[10px] font-semibold text-primary hover:underline"
-                        >
-                          Buka Profil →
-                        </Link>
-                      </div>
-                    )}
+                    {notif.type === "badge_granted" && (() => {
+                      const badgeIdNum = notif.karya_id ? parseInt(notif.karya_id, 10) : undefined;
+                      const isSkinNotif =
+                        badgeIdNum === 101 ||
+                        (notif.title || "").toLowerCase().includes("tema") ||
+                        (notif.title || "").toLowerCase().includes("skin");
+                      const validBadgeId = badgeIdNum ?? (isSkinNotif ? 101 : 15);
+                      const isBadgeClaimed =
+                        claimedBadgeIds.includes(validBadgeId) ||
+                        (validBadgeId === 101 && claimedBadgeIds.map(String).includes("bem2026"));
+
+                      return (
+                        <div className="mt-2.5 pt-2 border-t border-border/60 flex items-center justify-between gap-2">
+                          {isBadgeClaimed ? (
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs border border-emerald-500/20 select-none">
+                              <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                              <span>Sudah Diklaim</span>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleClaimBadgeFromNotif(notif);
+                              }}
+                              disabled={isClaimingBadge === notif.id}
+                              className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              <span>
+                                {isClaimingBadge === notif.id ? "Mengklaim..." : "Klaim Lencana"}
+                              </span>
+                            </button>
+                          )}
+                          <Link
+                            href="/dashboard/profile"
+                            onClick={() => setOpen(false)}
+                            className="text-[10px] font-semibold text-primary hover:underline"
+                          >
+                            {isBadgeClaimed ? "Lihat di Profil →" : "Buka Profil →"}
+                          </Link>
+                        </div>
+                      );
+                    })()}
 
                     {/* Action buttons for collaboration request */}
                     {notif.type === "collab_request" && notif.karya_id && (

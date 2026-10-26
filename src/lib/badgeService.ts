@@ -427,46 +427,52 @@ export function getClaimedExclusiveBadgeIds(userId?: string, studentId?: string)
   if (typeof window === "undefined" || (!userId && !studentId)) return [];
 
   const key = `tazkia_claimed_badges_${userId || studentId}`;
+  const claimedSet = new Set<number>();
+
   try {
     const raw = localStorage.getItem(key);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        const claimed = parsed.map(Number).filter((n) => !isNaN(n));
-
-        // Jika cache riwayat lencana tersedia, pastikan lencana eksklusif (14, 15, 16, 101)
-        // masih terdaftar sah dan belum ditarik oleh admin
-        try {
-          const cachedRaw = localStorage.getItem("tazkia_exclusive_grants_cache");
-          if (cachedRaw) {
-            const grants: ExclusiveBadgeGrant[] = JSON.parse(cachedRaw);
-            if (Array.isArray(grants)) {
-              const activeExclusiveIds = new Set<number>();
-              grants.forEach((g) => {
-                const matches =
-                  (userId && g.recipientId === userId) ||
-                  (studentId && g.recipientId === studentId);
-                if (matches) {
-                  activeExclusiveIds.add(Number(g.badgeId));
-                }
-              });
-
-              return claimed.filter((bId) => {
-                if ([14, 15, 16, 101].includes(bId)) {
-                  return activeExclusiveIds.has(bId);
-                }
-                return true;
-              });
-            }
-          }
-        } catch {}
-
-        return claimed;
+        parsed.map(Number).filter((n) => !isNaN(n)).forEach((id) => claimedSet.add(id));
       }
     }
   } catch {}
 
-  return [];
+  // Juga periksa apakah sudah tercatat diklaim di grants cache (claimedBy)
+  try {
+    const cachedRaw = localStorage.getItem("tazkia_exclusive_grants_cache");
+    if (cachedRaw) {
+      const grants: ExclusiveBadgeGrant[] = JSON.parse(cachedRaw);
+      if (Array.isArray(grants)) {
+        const activeExclusiveIds = new Set<number>();
+        grants.forEach((g) => {
+          const matches =
+            (userId && g.recipientId === userId) ||
+            (studentId && g.recipientId === studentId);
+          if (matches) {
+            activeExclusiveIds.add(Number(g.badgeId));
+            const isClaimedInDB =
+              (userId && g.claimedBy?.includes(userId)) ||
+              (studentId && g.claimedBy?.includes(studentId));
+            if (isClaimedInDB) {
+              claimedSet.add(Number(g.badgeId));
+            }
+          }
+        });
+
+        // Filter: lencana eksklusif yang ditarik oleh admin tidak boleh masuk
+        return Array.from(claimedSet).filter((bId) => {
+          if ([14, 15, 16, 101].includes(bId)) {
+            return activeExclusiveIds.has(bId);
+          }
+          return true;
+        });
+      }
+    }
+  } catch {}
+
+  return Array.from(claimedSet);
 }
 
 /**
