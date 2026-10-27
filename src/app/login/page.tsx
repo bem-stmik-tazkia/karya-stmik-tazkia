@@ -3,6 +3,7 @@
 import { useState, Suspense } from "react";
 import { supabase } from "@/lib/supabase";
 import { Loader2, AlertCircle } from "lucide-react";
+import { GoogleIcon } from "@/components/cards/SocialIcons";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -83,7 +84,7 @@ function LoginContent() {
           {isLoading ? (
             <Loader2 className="w-5 h-5 animate-spin text-primary" />
           ) : (
-            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+            <GoogleIcon className="w-5 h-5" />
           )}
           <span>Lanjutkan dengan Google</span>
         </button>
