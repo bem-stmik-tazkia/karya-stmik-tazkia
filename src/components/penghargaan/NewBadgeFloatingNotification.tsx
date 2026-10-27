@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Trophy, ArrowRight, Mail, CreditCard } from "lucide-react";
+import { X, Trophy, ArrowRight, Mail, CreditCard, User } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { supabase } from "@/lib/supabase";
 import {
@@ -21,6 +21,7 @@ import { TazkiaAchievementHexBadge } from "./TazkiaAchievementBadge";
 export function NewBadgeFloatingNotification() {
   const { user } = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
 
   const [newBadgeIds, setNewBadgeIds] = useState<number[]>([]);
   const [claimableGrantsState, setClaimableGrantsState] = useState<any[]>([]);
@@ -118,7 +119,8 @@ export function NewBadgeFloatingNotification() {
         const unreadEarned = earned.filter((id) => !seen.includes(id));
         // Lencana/skin yang belum diklaim (claimable) selalu aktif & harus ditampilkan hingga diklaim
         const unreadClaimable = claimableGrants.map((g) => Number(g.badgeId));
-        const allNewIds = Array.from(new Set([...unreadEarned, ...unreadClaimable]));
+        // Prioritaskan lencana/skin eksklusif (claimable) di depan jika ada, baru kemudian lencana karya
+        const allNewIds = Array.from(new Set([...unreadClaimable, ...unreadEarned]));
 
         if (isMounted) {
           setNewBadgeIds(allNewIds);
@@ -153,30 +155,64 @@ export function NewBadgeFloatingNotification() {
     }
   };
 
-  const handleOpenInbox = (e?: React.MouseEvent) => {
+  const handleAction = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    // Buka Kotak Pesan di navbar atas
-    window.dispatchEvent(new CustomEvent("tazkia_open_inbox"));
-    // Tutup toast melayang agar tidak menumpuk saat kotak pesan terbuka
     setIsDismissed(true);
+
+    if (isExclusive) {
+      // Lencana eksklusif / skin: Buka Kotak Pesan di navbar atas untuk mengklaim
+      window.dispatchEvent(new CustomEvent("tazkia_open_inbox"));
+    } else {
+      // Non-eksklusif (lencana karya/pencapaian):
+      // Tandai lencana sebagai sudah dilihat agar counter dan toast tersinkronisasi
+      if (user?.id) {
+        try {
+          const seenKey = `tazkia_seen_badges_${user.id}`;
+          let currentSeen: number[] = [];
+          const raw = localStorage.getItem(seenKey);
+          if (raw) currentSeen = JSON.parse(raw);
+          const nextSeen = Array.from(new Set([...currentSeen, ...newBadgeIds]));
+          localStorage.setItem(seenKey, JSON.stringify(nextSeen));
+          window.dispatchEvent(new Event("tazkia_badges_viewed"));
+          window.dispatchEvent(new Event("tazkia_badges_updated"));
+        } catch {}
+      }
+
+      // Arahkan langsung ke halaman profil mahasiswa (lemari penghargaan)
+      if (pathname === "/dashboard") {
+        const el = document.getElementById("penghargaan");
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth" });
+        }
+      } else {
+        router.push("/dashboard#penghargaan");
+      }
+    }
   };
 
   if (!user || isExcludedPage || isDismissed || newBadgeIds.length === 0) {
     return null;
   }
 
+  const currentBadgeId = newBadgeIds[0];
+  const isClaimableGrant = claimableGrantsState.some(
+    (g) => Number(g.badgeId) === currentBadgeId
+  );
   const matchedExclusive = EXCLUSIVE_REWARDS_CATALOG.find(
-    (r) => r.badgeId === newBadgeIds[0]
+    (r) => r.badgeId === currentBadgeId
   );
   const badgeObj =
-    getBadgeById(newBadgeIds[0]) ||
+    getBadgeById(currentBadgeId) ||
     (matchedExclusive ? getBadgeById(matchedExclusive.badgeId) : null);
 
   const isSkin =
     !badgeObj &&
     (matchedExclusive?.category === "skin" ||
-      newBadgeIds[0] === 101 ||
+      currentBadgeId === 101 ||
       (matchedExclusive?.name || "").toLowerCase().includes("skin"));
+
+  const isExclusive =
+    isClaimableGrant || isSkin || [14, 15, 16, 101].includes(currentBadgeId);
 
   const badgeTitle =
     badgeObj?.name || matchedExclusive?.name || (isSkin ? "Skin BEM Tazkia 2026" : "Penghargaan Baru");
@@ -189,7 +225,7 @@ export function NewBadgeFloatingNotification() {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 30, scale: 0.95 }}
         transition={{ type: "spring", stiffness: 380, damping: 26 }}
-        onClick={handleOpenInbox}
+        onClick={handleAction}
         className="fixed z-50 bottom-[90px] sm:bottom-6 right-3 sm:right-6 max-w-[390px] w-[calc(100%-24px)] cursor-pointer group"
         role="alert"
         aria-live="polite"
@@ -257,7 +293,13 @@ export function NewBadgeFloatingNotification() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 mb-0.5">
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/40">
-                  <span>{isSkin ? "Tema Skin Kartu Baru" : "Penghargaan Baru Diraih"}</span>
+                  <span>
+                    {isSkin
+                      ? "Tema Skin Kartu Baru"
+                      : isExclusive
+                      ? "Penghargaan Eksklusif"
+                      : "Penghargaan Baru Diraih"}
+                  </span>
                 </span>
               </div>
 
@@ -269,7 +311,9 @@ export function NewBadgeFloatingNotification() {
               <p className="text-[11.5px] text-slate-300 leading-snug line-clamp-2 mt-0.5">
                 {isSkin
                   ? "Kamu mendapatkan akses tema Skin Kartu 3D eksklusif! Klik untuk membuka Kotak Pesan & mengklaimnya."
-                  : "Karyamu baru saja membuka penghargaan baru! Klik untuk membuka Kotak Pesan & mengklaimnya."}
+                  : isExclusive
+                  ? "Kamu menerima penghargaan eksklusif resmi! Klik untuk membuka Kotak Pesan & mengklaimnya."
+                  : "Karyamu baru saja membuka penghargaan baru! Klik untuk melihat koleksinya di profil."}
               </p>
             </div>
           </div>
@@ -277,8 +321,17 @@ export function NewBadgeFloatingNotification() {
           {/* Action Footer Button */}
           <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between">
             <span className="text-[11px] font-bold text-amber-300 group-hover:underline flex items-center gap-1.5">
-              <Mail className="w-3.5 h-3.5" />
-              <span>Buka di Kotak Pesan</span>
+              {isExclusive ? (
+                <>
+                  <Mail className="w-3.5 h-3.5" />
+                  <span>Buka di Kotak Pesan</span>
+                </>
+              ) : (
+                <>
+                  <User className="w-3.5 h-3.5" />
+                  <span>Lihat di Profil</span>
+                </>
+              )}
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </span>
             <span className="text-[10px] font-mono text-slate-400">

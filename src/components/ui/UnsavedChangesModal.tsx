@@ -60,14 +60,14 @@ export function UnsavedChangesModal({
           <button
             type="button"
             onClick={onStay}
-            className="flex-1 py-2.5 px-3.5 rounded-xl font-semibold text-xs text-foreground bg-muted border border-border hover:bg-muted/80 transition-colors"
+            className="flex-1 py-2.5 px-3.5 rounded-xl font-semibold text-xs text-foreground bg-muted border border-border hover:bg-muted/80 transition-colors cursor-pointer"
           >
             {stayText}
           </button>
           <button
             type="button"
             onClick={onLeave}
-            className="flex-1 py-2.5 px-3.5 rounded-xl font-semibold text-xs text-white bg-rose-600 hover:bg-rose-700 shadow-xs hover:shadow-md transition-all"
+            className="flex-1 py-2.5 px-3.5 rounded-xl font-semibold text-xs text-white bg-rose-600 hover:bg-rose-700 shadow-xs hover:shadow-md transition-all cursor-pointer"
           >
             {leaveText}
           </button>

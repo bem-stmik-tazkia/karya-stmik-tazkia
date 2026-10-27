@@ -43,14 +43,14 @@ export function useUnsavedChangesWarning({
       if (bypassRef.current) return;
 
       // Keep user on the page until confirmed
-      window.history.pushState({ unsavedWarning: true }, "", window.location.href);
+      window.history.pushState(null, "", window.location.href);
 
       setPendingAction(() => () => {
         bypassRef.current = true;
         if (defaultBackUrl) {
           router.push(defaultBackUrl);
         } else {
-          window.history.back();
+          window.history.go(-2);
         }
       });
       setShowPrompt(true);
@@ -100,6 +100,7 @@ export function useUnsavedChangesWarning({
   // Programmatic leave trigger (for "Batal" or "Kembali" buttons)
   const triggerLeave = useCallback(
     (targetUrl?: string) => {
+      const destination = targetUrl || defaultBackUrl;
       const doLeave = () => {
         bypassRef.current = true;
         if (onConfirmLeave) {
@@ -109,12 +110,10 @@ export function useUnsavedChangesWarning({
             console.error("Error in onConfirmLeave:", e);
           }
         }
-        if (targetUrl) {
-          router.push(targetUrl);
+        if (destination) {
+          router.push(destination);
         } else if (typeof window !== "undefined" && window.history.length > 1) {
           router.back();
-        } else {
-          router.push(defaultBackUrl);
         }
       };
 
@@ -141,10 +140,10 @@ export function useUnsavedChangesWarning({
     }
     if (pendingAction) {
       pendingAction();
+    } else if (defaultBackUrl) {
+      router.push(defaultBackUrl);
     } else if (typeof window !== "undefined" && window.history.length > 1) {
       router.back();
-    } else {
-      router.push(defaultBackUrl);
     }
   }, [pendingAction, defaultBackUrl, router, onConfirmLeave]);
 

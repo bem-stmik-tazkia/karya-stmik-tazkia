@@ -77,6 +77,17 @@ export function NeobrutalismProfileView({
     validSkills,
   } = useDashboardProfile({ profile, projects, isOwnProfile, user });
 
+  React.useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash === "#penghargaan") {
+      const el = document.getElementById("penghargaan");
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: "smooth" });
+        }, 150);
+      }
+    }
+  }, []);
+
   return (
     <div className="container mx-auto px-4 md:px-6 py-6 pb-24 sm:pb-28 max-w-6xl">
       {/* ── STUDENT HEADER CARD ── */}
@@ -91,10 +102,11 @@ export function NeobrutalismProfileView({
 
       {/* ── BADGE & PRESTASI SECTION ── */}
       <motion.div
+        id="penghargaan"
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
-        className="bg-card border border-border rounded-2xl p-4 sm:p-8 mb-10 relative overflow-hidden shadow-xs"
+        className="bg-card border border-border rounded-2xl p-4 sm:p-8 mb-10 relative overflow-hidden shadow-xs scroll-mt-24"
       >
         <div className="mb-5 sm:mb-6 pb-4 border-b border-border">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

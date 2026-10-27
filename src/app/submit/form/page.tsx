@@ -486,7 +486,7 @@ export default function UploadKaryaFormPage() {
         <div className="mb-8">
           <button
             type="button"
-            onClick={() => triggerLeave()}
+            onClick={() => triggerLeave(defaultBackUrl)}
             className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors text-xs font-semibold mb-4 cursor-pointer"
           >
             <FiArrowLeft className="w-4 h-4" />

@@ -172,7 +172,13 @@ function ExploreContent() {
 
   const spotlightKarya = useMemo(() => {
     if (karya.length === 0) return [];
-    return karya.slice(0, 3);
+    return [...karya]
+      .sort((a, b) => {
+        const scoreA = (a.likes || 0) * 3 + (a.views || 0);
+        const scoreB = (b.likes || 0) * 3 + (b.views || 0);
+        return scoreB - scoreA;
+      })
+      .slice(0, 3);
   }, [karya]);
 
   const filteredKarya = useMemo(() => {

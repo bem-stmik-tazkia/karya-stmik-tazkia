@@ -491,7 +491,7 @@ export default function ProfileSettingsPage() {
         <div className="pt-6 border-t border-border flex flex-col sm:flex-row justify-end gap-3">
           <button
             type="button"
-            onClick={() => triggerLeave()}
+            onClick={() => triggerLeave("/dashboard")}
             className="px-5 py-2.5 rounded-xl bg-card border border-border text-foreground font-semibold text-xs sm:text-sm hover:bg-muted transition-all text-center cursor-pointer"
           >
             Batal
