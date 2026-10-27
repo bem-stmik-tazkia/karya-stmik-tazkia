@@ -32,7 +32,7 @@ const DELAY_MS = 2000; // Jeda 2 detik antar request ke AI
 // ============================================================
 function buildPrompt(karya: any): string {
   const featuresText = Array.isArray(karya.features)
-    ? karya.features.map((f: any) => `- ${f.title}: ${f.desc || f.description || ""}`).join("\n")
+    ? karya.features.map((f: any) => `- ${f.title}${f.desc || f.description ? `: ${f.desc || f.description}` : ""}`).join("\n")
     : "-";
 
   return `Kamu adalah sistem review konten otomatis untuk galeri karya mahasiswa STMIK Tazkia (kampus teknologi informasi Indonesia). Platform ini KHUSUS menampilkan karya akademis di bidang teknologi, penelitian, desain, dan multimedia.

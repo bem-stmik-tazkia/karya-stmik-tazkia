@@ -126,12 +126,14 @@ export default function ProjectMainContent({
                 <div className="w-6 h-6 rounded-md bg-primary/10 text-primary font-bold text-xs flex items-center justify-center mb-2.5">
                   {i + 1}
                 </div>
-                <h4 className="font-semibold text-foreground mb-1 text-sm">
+                <h4 className={`font-semibold text-foreground text-sm ${(feat.description || feat.desc) ? "mb-1" : ""}`}>
                   {feat.title || "Poin"}
                 </h4>
-                <p className="text-xs text-muted-foreground font-normal leading-relaxed">
-                  {feat.description || feat.desc || ""}
-                </p>
+                {(feat.description || feat.desc) && (
+                  <p className="text-xs text-muted-foreground font-normal leading-relaxed">
+                    {feat.description || feat.desc}
+                  </p>
+                )}
               </div>
             ))}
           </div>

@@ -242,19 +242,19 @@ export default function UploadKaryaFormPage() {
   const handleFitur = (index: number, field: "title" | "desc", value: string) => {
     const updated = formData.features.map((item, i) => i === index ? { ...item, [field]: value } : item);
     setFormData(prev => ({ ...prev, features: updated }));
-    setInvalidFields(prev => prev.filter(id => id !== `input-feature-0-title`));
+    setInvalidFields(prev => prev.filter(id => id !== `input-feature-${index}-title` && id !== `input-feature-${index}-desc`));
   };
 
   const handleTim = (index: number, field: "name" | "role" | "avatar" | "user_id", value: string) => {
     const updated = formData.team.map((item, i) => i === index ? { ...item, [field]: value } : item);
     setFormData(prev => ({ ...prev, team: updated }));
-    setInvalidFields(prev => prev.filter(id => id !== `input-team-0-name`));
+    setInvalidFields(prev => prev.filter(id => id !== `input-team-${index}-name` && id !== `input-team-${index}-role`));
   };
 
   const handleGallery = (index: number, field: "url" | "caption", value: string) => {
     const updated = formData.gallery.map((item, i) => i === index ? { ...item, [field]: value } : item);
     setFormData(prev => ({ ...prev, gallery: updated }));
-    setInvalidFields(prev => prev.filter(id => id !== `input-gallery-0-url`));
+    setInvalidFields(prev => prev.filter(id => id !== `input-gallery-${index}-url`));
   };
 
   const isValidUrl = (url: string) => { try { new URL(url); return true; } catch { return false; } };
@@ -274,18 +274,22 @@ export default function UploadKaryaFormPage() {
     if (!dataToSubmit.live_url.trim()) fields.push("input-live-url");
     else if (!isValidUrl(dataToSubmit.live_url.trim())) fields.push("input-live-url");
     if (dataToSubmit.github_url.trim() && !isValidUrl(dataToSubmit.github_url.trim())) fields.push("input-github-url");
-    const validFeatures = dataToSubmit.features.filter(f => f.title.trim() !== "" || f.desc.trim() !== "");
-    if (validFeatures.length === 0) {
+    const hasFeatureTitle = dataToSubmit.features.some(f => f.title.trim() !== "");
+    if (!hasFeatureTitle) {
       fields.push("input-feature-0-title");
-      fields.push("input-feature-0-desc");
     } else {
       dataToSubmit.features.forEach((f, i) => {
-        if (f.title.trim() || f.desc.trim()) {
-          if (!f.title.trim()) fields.push(`input-feature-${i}-title`);
-          if (!f.desc.trim()) fields.push(`input-feature-${i}-desc`);
+        if (f.desc.trim() && !f.title.trim()) {
+          fields.push(`input-feature-${i}-title`);
         }
       });
     }
+    const validFeatures = dataToSubmit.features
+      .filter(f => f.title.trim() !== "")
+      .map(f => ({
+        title: f.title.trim(),
+        desc: f.desc.trim(),
+      }));
 
     const validTeam = formData.team.filter(t => t.name.trim() !== "" || t.role.trim() !== "");
     if (validTeam.length === 0) {
@@ -300,14 +304,18 @@ export default function UploadKaryaFormPage() {
       });
     }
 
-    const validGallery = formData.gallery.filter(g => g.url.trim() !== "");
-    if (validGallery.length === 0 && formData.gallery.length > 0 && formData.gallery[0].url === "") {
-      // Gallery is optional, so we don't strictly require it unless they added a new empty row and tried to submit.
-      // But actually, gallery is required in the UI ("GALERI FOTO *")
-      fields.push("input-gallery-0-url");
-    } else if (validGallery.length === 0) {
-      fields.push("input-gallery-0-url");
-    }
+    // Galeri / Dokumentasi bersifat opsional
+    formData.gallery.forEach((g, i) => {
+      if (g.caption.trim() && !g.url.trim()) {
+        fields.push(`input-gallery-${i}-url`);
+      }
+    });
+    const validGallery = formData.gallery
+      .filter(g => g.url.trim() !== "")
+      .map(g => ({
+        url: g.url.trim(),
+        caption: g.caption.trim(),
+      }));
 
     if (fields.length > 0) {
       setInvalidFields(fields);
@@ -616,11 +624,26 @@ export default function UploadKaryaFormPage() {
                 <div key={i} className="bg-muted/30 rounded-2xl p-4 border-2 border-border/50">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-xs font-black text-muted-foreground uppercase tracking-wide">{isKTI ? "Poin" : "Fitur"} {i + 1}</p>
-                    {i > 0 && <button type="button" onClick={() => setFormData(prev => ({ ...prev, features: prev.features.filter((_, idx) => idx !== i) }))} className="text-muted-foreground/50 hover:text-red-400 transition-colors"><FiTrash2 size={14} /></button>}
+                    {(formData.features.length > 1 || fitur.title || fitur.desc) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (formData.features.length > 1) {
+                            setFormData(prev => ({ ...prev, features: prev.features.filter((_, idx) => idx !== i) }));
+                          } else {
+                            setFormData(prev => ({ ...prev, features: [{ title: "", desc: "" }] }));
+                          }
+                        }}
+                        className="text-muted-foreground/50 hover:text-red-400 transition-colors"
+                        title="Hapus baris"
+                      >
+                        <FiTrash2 size={14} />
+                      </button>
+                    )}
                   </div>
                   <div className="space-y-3">
                     <input type="text" value={fitur.title} onChange={(e) => handleFitur(i, "title", e.target.value)} placeholder="Judul fitur..." className={getInputClass(`input-feature-${i}-title`)} id={`input-feature-${i}-title`} />
-                    <textarea rows={2} value={fitur.desc} onChange={(e) => handleFitur(i, "desc", e.target.value)} placeholder="Deskripsi singkat..." className={`${getInputClass(`input-feature-${i}-desc`)} resize-none`} id={`input-feature-${i}-desc`} />
+                    <textarea rows={2} value={fitur.desc} onChange={(e) => handleFitur(i, "desc", e.target.value)} placeholder="Deskripsi singkat (opsional)..." className={`${getInputClass(`input-feature-${i}-desc`)} resize-none`} id={`input-feature-${i}-desc`} />
                   </div>
                 </div>
               ))}
@@ -697,19 +720,35 @@ export default function UploadKaryaFormPage() {
           {/* Galeri */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className={sectionTitleClass}><span className="w-1 h-4 bg-secondary rounded-full block" /> Dokumentasi <span className="text-red-400 normal-case">*</span></h3>
+              <h3 className={sectionTitleClass}><span className="w-1 h-4 bg-secondary rounded-full block" /> Dokumentasi <span className="text-xs font-normal text-muted-foreground normal-case">(opsional)</span></h3>
               {formData.gallery.length < 10 && <button type="button" onClick={() => setFormData(prev => ({ ...prev, gallery: [...prev.gallery, { url: "", caption: "" }] }))} className="flex items-center gap-1.5 text-xs font-black text-primary hover:text-secondary transition-colors uppercase"><FiPlus size={14} /> Tambah Dokumentasi</button>}
             </div>
+            <p className="text-xs text-muted-foreground mb-4 font-bold">Unggah foto dokumentasi atau tangkapan layar pendukung proyek Anda (opsional).</p>
             <div className="space-y-3">
               {formData.gallery.map((gal, i) => (
                 <div key={i} className="rounded-2xl p-4 border-2 border-border/50 bg-muted/30 flex flex-col sm:flex-row gap-4 items-start">
                   <div id={`input-gallery-${i}-url`} className={`shrink-0 p-1 rounded-2xl transition-all ${invalidFields.includes(`input-gallery-${i}-url`) ? "border-2 border-red-500 bg-red-50/20 shadow-[0_0_0_4px_rgba(239,68,68,0.15)]" : "border-2 border-transparent"}`}>
                     <ImageUpload value={gal.url} onChange={(url) => handleGallery(i, "url", url)} />
                   </div>
-                  <div className="flex-1 flex flex-col gap-3 justify-center">
+                  <div className="flex-1 flex flex-col gap-3 justify-center w-full">
                     <div className="flex items-center justify-between">
                       <p className="text-xs font-black text-muted-foreground uppercase tracking-wide">Dokumentasi {i + 1}</p>
-                      <button type="button" onClick={() => setFormData(prev => ({ ...prev, gallery: prev.gallery.filter((_, idx) => idx !== i) }))} className="text-muted-foreground/50 hover:text-red-400 transition-colors"><FiTrash2 size={14} /></button>
+                      {(formData.gallery.length > 1 || gal.url || gal.caption) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (formData.gallery.length > 1) {
+                              setFormData(prev => ({ ...prev, gallery: prev.gallery.filter((_, idx) => idx !== i) }));
+                            } else {
+                              setFormData(prev => ({ ...prev, gallery: [{ url: "", caption: "" }] }));
+                            }
+                          }}
+                          className="text-muted-foreground/50 hover:text-red-400 transition-colors"
+                          title="Hapus dokumentasi"
+                        >
+                          <FiTrash2 size={14} />
+                        </button>
+                      )}
                     </div>
                     <input type="text" value={gal.caption} onChange={e => handleGallery(i, "caption", e.target.value)} placeholder="Keterangan dokumentasi (opsional)" className={getInputClass("")} />
                   </div>

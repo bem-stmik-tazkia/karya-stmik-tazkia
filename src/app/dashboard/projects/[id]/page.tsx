@@ -566,10 +566,12 @@ export default function ProjectDetailPage({
                       <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center mb-2.5">
                         <span className="text-primary font-semibold text-xs">{i + 1}</span>
                       </div>
-                      <h4 className="font-semibold text-foreground mb-1.5 text-sm">{feat.title || "Poin"}</h4>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        {feat.description || feat.desc || ""}
-                      </p>
+                      <h4 className={`font-semibold text-foreground text-sm ${(feat.description || feat.desc) ? "mb-1.5" : ""}`}>{feat.title || "Poin"}</h4>
+                      {(feat.description || feat.desc) && (
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          {feat.description || feat.desc}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>
