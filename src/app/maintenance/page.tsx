@@ -52,12 +52,17 @@ export default function MaintenancePage() {
 
   const triggerBypass = async () => {
     try {
-      const res = await fetch("/api/maintenance/bypass", { method: "POST" });
+      const res = await fetch("/api/maintenance/bypass", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: "konami-tazkia-unlocked" }),
+      });
+
       if (res.ok) {
         setKonamiUnlocked(true);
         setTimeout(() => {
-          window.location.href = "/";
-        }, 2000);
+          window.location.href = "/login";
+        }, 1500);
       }
     } catch {
       // Safe catch

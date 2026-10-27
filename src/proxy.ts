@@ -17,18 +17,24 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // ─── 2. SELALU IZINKAN JALUR PENTING ──────────────────────────────────────
-  const isAdminOrApi =
-    pathname.startsWith("/admin") ||
-    pathname.startsWith("/api") ||
-    pathname.startsWith("/login") ||
+  // ─── 2. SELALU IZINKAN FILE STATIS & API MAINTENANCE ──────────────────────
+  // Static assets & file sistem Next.js selalu diizinkan
+  const isStaticOrSystem =
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
     pathname.startsWith("/robots") ||
     pathname.startsWith("/sitemap") ||
     pathname.startsWith("/icon");
 
-  if (isAdminOrApi) {
+  if (isStaticOrSystem) {
+    return NextResponse.next();
+  }
+
+  // Khusus API maintenance diperbolehkan agar halaman /maintenance bisa cek status & bypass
+  const isMaintenanceApi =
+    pathname.startsWith("/api/maintenance");
+
+  if (isMaintenanceApi) {
     return NextResponse.next();
   }
 
