@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/api/'], // Jangan mengindeks rute API internal
+      disallow: ['/api', '/api/', '/admin', '/admin/'],
     },
     sitemap: 'https://karya.stmik.tazkia.ac.id/sitemap.xml',
   };

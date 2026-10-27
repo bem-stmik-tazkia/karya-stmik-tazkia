@@ -1,5 +1,21 @@
 import type { NextConfig } from "next";
 
+const isProd = process.env.NODE_ENV === "production";
+
+const cspDirectives = [
+  "default-src 'self'",
+  isProd
+    ? "script-src 'self' 'unsafe-inline'"
+    : "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "img-src 'self' data: blob: https://pmrowiyvuqnxgzmlbfzx.supabase.co https://avatars.githubusercontent.com https://lh3.googleusercontent.com https://cdn.simpleicons.org https://cdn.jsdelivr.net https://api.qrserver.com",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "connect-src 'self' https://pmrowiyvuqnxgzmlbfzx.supabase.co wss://pmrowiyvuqnxgzmlbfzx.supabase.co https://cdn.jsdelivr.net https://cdn.simpleicons.org",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join("; ");
+
 const nextConfig: NextConfig = {
   compress: true, // Mengaktifkan kompresi Gzip/Brotli untuk mempercepat loading
   images: {
@@ -14,7 +30,7 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/(.*)",
+        source: "/:path*",
         headers: [
           {
             key: "X-Content-Type-Options",
@@ -26,7 +42,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Strict-Transport-Security",
-            value: "max-age=31536000; includeSubDomains",
+            value: "max-age=31536000; includeSubDomains; preload",
           },
           {
             key: "Referrer-Policy",
@@ -34,12 +50,12 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
+            value: "camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=()",
           },
           {
-            key: "Content-Security-Policy-Report-Only",
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://pmrowiyvuqnxgzmlbfzx.supabase.co https://avatars.githubusercontent.com https://lh3.googleusercontent.com; font-src 'self' data:; connect-src 'self' https://pmrowiyvuqnxgzmlbfzx.supabase.co wss://pmrowiyvuqnxgzmlbfzx.supabase.co https://cdn.jsdelivr.net;"
-          }
+            key: "Content-Security-Policy",
+            value: cspDirectives,
+          },
         ],
       },
     ];
