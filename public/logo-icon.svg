@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="100%" height="100%" fill="none">
+  <g transform="translate(1.5, 16)">
+    <!-- 1. Pil Vertikal Orange -->
+    <rect x="10" y="10" width="28" height="108" rx="14" fill="#FF7F0A"/>
+    <!-- 2. Huruf K Royal Navy Blue -->
+    <rect x="54" y="26" width="17" height="78" fill="#1E3A8A"/>
+    <polygon points="67,63 105,26 126,26 80,72" fill="#1E3A8A"/>
+    <polygon points="75,58 128,104 107,104 65,68" fill="#1E3A8A"/>
+    <!-- 3. Huruf T Orange Interlock -->
+    <path d="M 90 26 L 99 26 L 83 42 L 77 42 C 77 32 82 26 90 26 Z" fill="#FF7F0A"/>
+    <path d="M 131 26 L 147 26 C 147 35 141 42 132 42 L 122 42 L 122 92 C 122 99 116 104 106 104 L 106 56 L 131 26 Z" fill="#FF7F0A"/>
+  </g>
+</svg>

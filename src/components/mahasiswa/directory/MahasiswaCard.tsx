@@ -10,6 +10,7 @@ import {
 } from "@/data/penghargaanCatalog";
 import { getClaimedExclusiveBadgeIds } from "@/lib/badgeService";
 import { getSkinDefinition, isSkinUnlocked } from "@/components/cards";
+import { getStatusIcon } from "./studentHelpers";
 
 export interface MahasiswaCardProps {
   student: Student;
@@ -131,21 +132,6 @@ export default function MahasiswaCard({
     return parts[0][0].toUpperCase();
   })();
 
-  // Helper: mapping teks status → emoji sesuai PREDEFINED_STATUSES di profile/page.tsx
-  // Format DB: "🚀 Open for Collab", sudah dinormalize jadi "Open for Collab" sebelum masuk sini
-  const getStatusIcon = (status?: string) => {
-    if (!status) return "🚀";
-    const s = status.toLowerCase().trim();
-    if (s.includes("collab")) return "🚀";
-    if (s.includes("freelance")) return "🤝";
-    if (s.includes("magang") || s.includes("intern")) return "💼";
-    if (s.includes("belajar") || s.includes("studi")) return "📚";
-    if (s.includes("full-time") || s.includes("fulltime") || s.includes("bekerja")) return "💻";
-    if (s.includes("startup") || s.includes("ide")) return "💡";
-    if (s.includes("mentor")) return "🔍";
-    return "🚀";
-  };
-
   // 1. Filter karya riil milik mahasiswa ini
   const studentUserId = student.userId || student.id;
   const studentProjects = useMemo(() => {
@@ -205,10 +191,6 @@ export default function MahasiswaCard({
   useEffect(() => {
     const readFeatured = () => {
       try {
-        if (student.featuredBadgeIds && student.featuredBadgeIds.length > 0) {
-          setSavedFeaturedBadgeIds(student.featuredBadgeIds);
-          return;
-        }
         const sid = student.id;
         const uid = student.userId;
         // PENTING: JANGAN PERNAH fallback ke generic "tazkia_featured_badges"!
@@ -230,6 +212,12 @@ export default function MahasiswaCard({
             }
           }
         }
+
+        if (student.featuredBadgeIds && student.featuredBadgeIds.length > 0) {
+          setSavedFeaturedBadgeIds(student.featuredBadgeIds);
+          return;
+        }
+
         setSavedFeaturedBadgeIds(null);
       } catch {
         setSavedFeaturedBadgeIds(null);
@@ -279,17 +267,22 @@ export default function MahasiswaCard({
 
     // FILTER MUTLAK: Hanya badge yang BENAR-BENAR telah diraih oleh mahasiswa ini (earnedBadgeIdsSet)
     // yang boleh dipajang di rak kartu depan! Mahasiswa tidak bisa memajang lencana yang belum diraih.
-    const validEarned = candidates.filter((id) => earnedBadgeIdsSet.has(id));
+    const validEarned = candidates.filter((id) => earnedBadgeIdsSet.has(Number(id)));
+    const sortedOwned = [...earnedBadgeIds].sort(
+      (a, b) => getPrestigeScore(b) - getPrestigeScore(a)
+    );
+
     if (validEarned.length > 0) {
-      return validEarned.slice(0, 5);
+      // Ambil badge pilihan custom, dan jika kurang dari 5 slot (namun mahasiswa memiliki lencana lain),
+      // lengkapi sisa slot dari lencana yang telah diraih agar rak kartu depan tetap penuh/optimal
+      const remaining = sortedOwned.filter((id) => !validEarned.map(Number).includes(Number(id)));
+      const combined = [...validEarned, ...remaining];
+      return combined.slice(0, 5);
     }
 
     // C. Fallback default jika belum pernah kustomisasi rak:
     // Urutkan badge yang SUDAH DIRAIH berdasarkan tingkat prestisius (Terbatas & Khusus -> Emas -> Perak -> Perunggu)
-    if (earnedBadgeIds && earnedBadgeIds.length > 0) {
-      const sortedOwned = [...earnedBadgeIds].sort(
-        (a, b) => getPrestigeScore(b) - getPrestigeScore(a)
-      );
+    if (sortedOwned.length > 0) {
       return sortedOwned.slice(0, 5);
     }
 

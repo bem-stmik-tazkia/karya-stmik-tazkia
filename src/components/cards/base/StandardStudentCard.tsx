@@ -75,14 +75,22 @@ export const StandardStudentCard: React.FC<StandardStudentCardProps> = ({
   // Featured 5 badges shown on the front of the card
   const featuredBadges: PenghargaanBadge[] = useMemo(() => {
     if (isSkeleton) return [];
-    const ids =
-      data.featuredBadgeIds !== undefined
-        ? data.featuredBadgeIds
-        : unlockedBadgeIds.slice(0, 5);
+    let ids: number[] = [];
+    if (data.featuredBadgeIds !== undefined && data.featuredBadgeIds.length > 0) {
+      ids = [...data.featuredBadgeIds];
+      if (ids.length < 5 && unlockedBadgeIds.length > 0) {
+        const remaining = unlockedBadgeIds.filter(
+          (id) => !ids.map(Number).includes(Number(id))
+        );
+        ids = [...ids, ...remaining];
+      }
+    } else {
+      ids = unlockedBadgeIds;
+    }
     return ids
+      .slice(0, 5)
       .map((id) => PENGHARGAAN_CATALOG.find((b) => b.id === id))
-      .filter((b): b is PenghargaanBadge => Boolean(b))
-      .slice(0, 5);
+      .filter((b): b is PenghargaanBadge => Boolean(b));
   }, [data.featuredBadgeIds, unlockedBadgeIds, isSkeleton]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {

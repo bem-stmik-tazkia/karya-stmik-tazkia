@@ -14,7 +14,7 @@ export async function GET() {
     return NextResponse.json({ active: false, message: "" });
   }
 
-  const info = { active: false, message: "", version: "v1.0.0" };
+  const info = { active: false, message: "", version: "v2.0.0" };
   for (const item of data) {
     if (item.key === "announcement_active") info.active = item.value === "true";
     if (item.key === "announcement_message") info.message = item.value;

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Globe, ArrowUpRight, Heart } from "lucide-react";
+import { Logo } from "../ui/Logo";
 
 export function Footer() {
   return (
@@ -8,13 +9,7 @@ export function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-12">
           {/* Brand & Mission */}
           <div className="lg:col-span-2 space-y-4">
-            <Link href="/" className="inline-flex items-center gap-2.5 group">
-              <div className="w-1.5 h-6 bg-[#FF8A2B] rounded-full group-hover:scale-y-110 transition-transform duration-200" />
-              <span className="font-extrabold text-xl tracking-tight">
-                <span className="text-white">Karya</span>
-                <span className="text-[#FF8A2B]"> Tazkia</span>
-              </span>
-            </Link>
+            <Logo variant="dark" size="md" showSlogan showShadow />
             <p className="text-sm text-[#94A9C9] leading-relaxed max-w-sm">
               Galeri karya dan direktori portofolio mahasiswa STMIK Tazkia. Dikelola resmi oleh{" "}
               <span className="text-white font-medium">Departemen Riset dan Teknologi (RISTEK)</span> BEM STMIK Tazkia.
@@ -84,6 +79,11 @@ export function Footer() {
               <li>
                 <Link href="/about" className="text-[#94A9C9] hover:text-[#FF8A2B] transition-colors">
                   Tentang Platform
+                </Link>
+              </li>
+              <li>
+                <Link href="/brand" className="text-[#94A9C9] hover:text-[#FF8A2B] transition-colors">
+                  Identitas &amp; Logo
                 </Link>
               </li>
               <li>

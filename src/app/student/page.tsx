@@ -19,6 +19,7 @@ import { checkIsFollowingBulk, toggleFollow } from "@/lib/followService";
 import {
   isStudentKarya,
   normalizeStatusBadge,
+  getStatusIcon,
   getStudentBadges,
   toStudent,
 } from "@/components/mahasiswa/directory/studentHelpers";
@@ -26,7 +27,7 @@ import { StudentDirectoryGrid } from "@/components/mahasiswa/directory/StudentDi
 import { StudentCtaBanner } from "@/components/mahasiswa/directory/StudentCtaBanner";
 
 // Re-export helpers for backwards compatibility
-export { isStudentKarya, normalizeStatusBadge, getStudentBadges, toStudent };
+export { isStudentKarya, normalizeStatusBadge, getStatusIcon, getStudentBadges, toStudent };
 
 function StudentShowcaseContent() {
   const [allMahasiswa, setAllMahasiswa] = useState<MahasiswaProfile[]>([]);

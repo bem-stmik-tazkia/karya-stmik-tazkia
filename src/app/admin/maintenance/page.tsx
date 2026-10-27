@@ -41,7 +41,7 @@ export default function AdminMaintenancePage() {
     endTime: "",
     announcementActive: false,
     announcementMessage: "Pembaruan Sistem: Seluruh layanan kembali normal. Selamat menjelajahi portofolio karya mahasiswa STMIK Tazkia.",
-    appVersion: "v1.0.0",
+    appVersion: "v2.0.0",
   });
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -79,7 +79,7 @@ export default function AdminMaintenancePage() {
         endTime: settings["maintenance_end_time"] || "",
         announcementActive: settings["announcement_active"] === "true",
         announcementMessage: settings["announcement_message"] || "Pembaruan Sistem: Seluruh layanan kembali normal. Selamat menjelajahi portofolio karya mahasiswa STMIK Tazkia.",
-        appVersion: settings["app_version"] || "v1.0.0",
+        appVersion: settings["app_version"] || "v2.0.0",
       });
     }
     setLoading(false);

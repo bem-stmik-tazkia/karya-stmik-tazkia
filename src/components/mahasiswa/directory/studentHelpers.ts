@@ -30,6 +30,26 @@ export function normalizeStatusBadge(raw?: string | null): string {
   return cleaned || "Open for Collab";
 }
 
+export function getStatusIcon(status?: string | null): string {
+  if (!status) return "🚀";
+  const trimmed = status.trim();
+  // 1. If string already starts with an emoji, extract and return it
+  const emojiMatch = trimmed.match(/^(\p{Emoji}|\p{Extended_Pictographic})/u);
+  if (emojiMatch) return emojiMatch[0];
+
+  // 2. Keyword fallback matching
+  const s = trimmed.toLowerCase();
+  if (s.includes("freelance")) return "🤝";
+  if (s.includes("magang") || s.includes("intern")) return "💼";
+  if (s.includes("belajar") || s.includes("studi")) return "📚";
+  if (s.includes("full-time") || s.includes("fulltime") || s.includes("bekerja")) return "💻";
+  if (s.includes("startup") || s.includes("ide")) return "💡";
+  if (s.includes("mentor")) return "🔍";
+  if (s.includes("collab")) return "🚀";
+
+  return "🚀";
+}
+
 export function getStudentBadges(m: MahasiswaProfile, allKarya: Karya[] = []): StudentBadge[] {
   if (Array.isArray(m.badges) && m.badges.length > 0) {
     return m.badges.map((b: any, idx: number) =>

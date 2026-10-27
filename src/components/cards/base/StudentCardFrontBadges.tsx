@@ -67,21 +67,18 @@ export const StudentCardFrontBadges: React.FC<StudentCardFrontBadgesProps> = ({
 
   return (
     <div className="border-t pt-2.5 border-slate-100 dark:border-slate-800">
-      {/* Title & Count */}
+      {/* Title */}
       <div
         onClick={(e) => {
           e.stopPropagation();
           onOpenLemari();
           setHoveredBadgeIdx(null);
         }}
-        className="flex items-center justify-between text-[11px] font-bold tracking-wider uppercase mb-2 cursor-pointer hover:text-orange-500 transition-colors group/penghargaan"
+        className="flex items-center text-[11px] font-bold tracking-wider uppercase mb-2 cursor-pointer hover:text-orange-500 transition-colors group/penghargaan"
         title="Klik untuk buka Lemari Penghargaan"
       >
         <span className="text-slate-500 dark:text-slate-400 group-hover/penghargaan:text-orange-500 transition-colors">
           PENGHARGAAN
-        </span>
-        <span className="text-slate-400 dark:text-slate-500 text-[10px] font-mono">
-          {isSkeleton ? "0 / 16" : `${unlockedBadgeIds.length} / 16`}
         </span>
       </div>
 

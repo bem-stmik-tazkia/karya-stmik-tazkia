@@ -284,6 +284,21 @@ export function useDashboardProfile({
     }
   };
 
+  const saveFeaturedBadges = useCallback(
+    (ids: number[]) => {
+      if (typeof window !== "undefined") {
+        const raw = JSON.stringify(ids);
+        localStorage.setItem("tazkia_featured_badges", raw);
+        if (profile.id) localStorage.setItem(`tazkia_featured_badges_${profile.id}`, raw);
+        if (profile.user_id) localStorage.setItem(`tazkia_featured_badges_${profile.user_id}`, raw);
+        if (user?.id) localStorage.setItem(`tazkia_featured_badges_${user.id}`, raw);
+        window.dispatchEvent(new Event("storage"));
+        window.dispatchEvent(new Event("tazkia_featured_badges_updated"));
+      }
+    },
+    [profile.id, profile.user_id, user?.id]
+  );
+
   // Saved skin & featured badges from database & localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -306,11 +321,24 @@ export function useDashboardProfile({
         if (savedBadges) {
           const parsed = JSON.parse(savedBadges);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            const validBadges = parsed.filter((id: number) =>
-              PENGHARGAAN_CATALOG.some((b) => b.id === id)
-            );
-            if (validBadges.length > 0) {
-              setFeaturedBadgeIds(validBadges.slice(0, 5));
+            // FILTER MUTLAK: Hanya lencana yang BENAR-BENAR telah diraih oleh mahasiswa ini (studentBadgeIds).
+            // Lencana terkunci dari cache lama TIDAK BOLEH dipajang di rak sorotan!
+            const validEarned = parsed
+              .map(Number)
+              .filter(
+                (id: number) =>
+                  PENGHARGAAN_CATALOG.some((b) => b.id === id) &&
+                  studentBadgeIds.includes(id)
+              );
+
+            // Lengkapi sisa slot dari lencana yang telah diraih agar rak tetap optimal/penuh (5 slot)
+            const remaining = studentBadgeIds.filter((id) => !validEarned.includes(id));
+            const combined = [...validEarned, ...remaining];
+
+            if (combined.length > 0) {
+              const selected = combined.slice(0, 5);
+              setFeaturedBadgeIds(selected);
+              saveFeaturedBadges(selected);
               return;
             }
           }
@@ -318,22 +346,12 @@ export function useDashboardProfile({
       } catch {}
 
       if (studentBadgeIds && studentBadgeIds.length > 0) {
-        setFeaturedBadgeIds(studentBadgeIds.slice(0, 5));
+        const initial = studentBadgeIds.slice(0, 5);
+        setFeaturedBadgeIds(initial);
+        saveFeaturedBadges(initial);
       }
     }
-  }, [profile.id, profile.user_id, user?.id, studentBadgeIds]);
-
-  const saveFeaturedBadges = (ids: number[]) => {
-    if (typeof window !== "undefined") {
-      const raw = JSON.stringify(ids);
-      localStorage.setItem("tazkia_featured_badges", raw);
-      if (profile.id) localStorage.setItem(`tazkia_featured_badges_${profile.id}`, raw);
-      if (profile.user_id) localStorage.setItem(`tazkia_featured_badges_${profile.user_id}`, raw);
-      if (user?.id) localStorage.setItem(`tazkia_featured_badges_${user.id}`, raw);
-      window.dispatchEvent(new Event("storage"));
-      window.dispatchEvent(new Event("tazkia_featured_badges_updated"));
-    }
-  };
+  }, [profile.id, profile.user_id, user?.id, studentBadgeIds, saveFeaturedBadges]);
 
   const handleToggleFeaturedBadge = (badgeId: number) => {
     const badge = PENGHARGAAN_CATALOG.find((b) => b.id === badgeId);
@@ -350,6 +368,10 @@ export function useDashboardProfile({
       if (badgeToSwap?.id === badgeId) setBadgeToSwap(null);
       toast.success(`Lencana "${badgeName}" telah dilepas dari kartu.`);
     } else {
+      if (!studentBadgeIds.includes(badgeId)) {
+        toast.error(`Lencana "${badgeName}" masih terkunci dan belum dapat dipajang.`);
+        return;
+      }
       if (featuredBadgeIds.length >= 5) {
         if (badge) {
           setBadgeToSwap(badge);
@@ -368,6 +390,11 @@ export function useDashboardProfile({
   };
 
   const handleReplaceSlot = (slotIndex: number, newBadgeId: number) => {
+    if (!studentBadgeIds.includes(newBadgeId)) {
+      const b = PENGHARGAAN_CATALOG.find((x) => x.id === newBadgeId);
+      toast.error(`Lencana "${b?.name || ""}" masih terkunci dan belum dapat dipajang.`);
+      return;
+    }
     const oldBadgeId = featuredBadgeIds[slotIndex];
     const oldBadge = PENGHARGAAN_CATALOG.find((b) => b.id === oldBadgeId);
     const newBadge = PENGHARGAAN_CATALOG.find((b) => b.id === newBadgeId);

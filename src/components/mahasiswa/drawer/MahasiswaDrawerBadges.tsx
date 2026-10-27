@@ -31,10 +31,6 @@ export const MahasiswaDrawerBadges: React.FC<MahasiswaDrawerBadgesProps> = ({
   // 1. Baca pengaturan rak sorotan dari localStorage atau data student (sinkron dengan MahasiswaCard)
   useEffect(() => {
     try {
-      if (student.featuredBadgeIds && student.featuredBadgeIds.length > 0) {
-        setSavedFeaturedBadgeIds(student.featuredBadgeIds);
-        return;
-      }
       const sid = student.id;
       const uid = student.userId;
       const saved =
@@ -53,6 +49,12 @@ export const MahasiswaDrawerBadges: React.FC<MahasiswaDrawerBadgesProps> = ({
           }
         }
       }
+
+      if (student.featuredBadgeIds && student.featuredBadgeIds.length > 0) {
+        setSavedFeaturedBadgeIds(student.featuredBadgeIds);
+        return;
+      }
+
       setSavedFeaturedBadgeIds(null);
     } catch {
       setSavedFeaturedBadgeIds(null);
@@ -82,15 +84,19 @@ export const MahasiswaDrawerBadges: React.FC<MahasiswaDrawerBadgesProps> = ({
       candidates = (student as any).featured_badge_ids;
     }
 
-    const validEarned = candidates.filter((id) => earnedSet.has(id));
+    const validEarned = candidates.filter((id) => earnedSet.has(Number(id)));
+    const sorted = [...studentBadgeIds].sort(
+      (a, b) => getPrestigeScore(b) - getPrestigeScore(a)
+    );
+
     if (validEarned.length > 0) {
-      return validEarned.slice(0, 5);
+      // Ambil badge pilihan custom, dan jika kurang dari 5 slot,
+      // lengkapi sisa slot dari lencana yang telah diraih agar rak kartu tetap penuh
+      const remaining = sorted.filter((id) => !validEarned.map(Number).includes(Number(id)));
+      return [...validEarned, ...remaining].slice(0, 5);
     }
 
-    if (studentBadgeIds && studentBadgeIds.length > 0) {
-      const sorted = [...studentBadgeIds].sort(
-        (a, b) => getPrestigeScore(b) - getPrestigeScore(a)
-      );
+    if (sorted.length > 0) {
       return sorted.slice(0, 5);
     }
 

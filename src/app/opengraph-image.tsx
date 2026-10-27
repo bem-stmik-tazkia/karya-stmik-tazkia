@@ -47,16 +47,25 @@ export default async function Image() {
               marginBottom: "40px",
             }}
           >
-            {/* The vertical pill */}
-            <div
+            {/* Monogram KT SVG Icon */}
+            <svg
+              width="100"
+              height="84"
+              viewBox="0 0 155 130"
+              fill="none"
               style={{
-                width: "24px",
-                height: "80px",
-                backgroundColor: "#f97316",
-                borderRadius: "999px",
-                boxShadow: "6px 6px 0px #c2410c",
+                filter: "drop-shadow(4px 4px 0px rgba(0,0,0,0.3))",
               }}
-            />
+            >
+              <g transform="translate(2, 2)">
+                <rect x="10" y="10" width="28" height="108" rx="14" fill="#FF7F0A" />
+                <rect x="54" y="26" width="17" height="78" fill="#FFFFFF" />
+                <polygon points="67,63 105,26 126,26 80,72" fill="#FFFFFF" />
+                <polygon points="75,58 128,104 107,104 65,68" fill="#FFFFFF" />
+                <path d="M 90 26 L 99 26 L 83 42 L 77 42 C 77 32 82 26 90 26 Z" fill="#FF7F0A" />
+                <path d="M 131 26 L 147 26 C 147 35 141 42 132 42 L 122 42 L 122 92 C 122 99 116 104 106 104 L 106 56 L 131 26 Z" fill="#FF7F0A" />
+              </g>
+            </svg>
             {/* Text Logo */}
             <div
               style={{
@@ -68,8 +77,8 @@ export default async function Image() {
                 textShadow: "4px 4px 0px rgba(0,0,0,0.3)",
               }}
             >
-              <span style={{ color: "#3b82f6" }}>Karya</span>
-              <span style={{ color: "#f97316" }}>Tazkia</span>
+              <span style={{ color: "#ffffff" }}>Karya</span>
+              <span style={{ color: "#FF7F0A" }}>Tazkia</span>
             </div>
           </div>
           

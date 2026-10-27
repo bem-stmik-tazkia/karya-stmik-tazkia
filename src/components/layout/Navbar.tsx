@@ -25,6 +25,7 @@ import { supabase } from "@/lib/supabase";
 import { NotificationBell } from "../dashboard/NotificationBell";
 import { LogoutConfirmModal } from "../ui/LogoutConfirmModal";
 import { AnnouncementBanner } from "../ui/AnnouncementBanner";
+import { Logo } from "../ui/Logo";
 
 const navLinks = [
   { href: "/", label: "Beranda", icon: Home },
@@ -95,18 +96,9 @@ export function Navbar() {
     <>
       <header className="sticky top-0 z-40 w-full flex flex-col transition-colors bg-white/90 dark:bg-[#0B1F4A]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-[#1E3E82] text-slate-900 dark:text-[#F2F5FA]">
         <AnnouncementBanner />
-        <div className="container mx-auto px-4 sm:px-6 flex h-16 items-center justify-between gap-4">
+        <div className="container mx-auto px-3.5 sm:px-6 flex h-16 items-center justify-between gap-3 sm:gap-6">
           {/* Logo & Brand */}
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 shrink-0 group select-none"
-          >
-            <span className="w-2.5 h-7 rounded-[5px] bg-[#FF8A2B] block shrink-0 group-hover:scale-y-105 transition-transform shadow-sm" />
-            <span className="font-heading font-extrabold text-[22px] tracking-tight transition-colors">
-              <span className="text-slate-900 dark:text-white">Karya</span>
-              <span className="text-[#FF8A2B]"> Tazkia</span>
-            </span>
-          </Link>
+          <Logo size="sm" showSlogan sloganClassName="hidden xl:block text-[9.5px]" className="shrink-0" />
 
           {/* Desktop Nav Links */}
           <nav className="hidden lg:flex items-center gap-1">
@@ -141,13 +133,13 @@ export function Navbar() {
           </nav>
 
           {/* Quick Search & Actions Right */}
-          <div className="flex items-center gap-2 sm:gap-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* Quick Command Palette Button */}
             <motion.button
               whileTap={{ scale: 0.88 }}
               type="button"
               onClick={openSearch}
-              className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all shadow-2xs group cursor-pointer border border-slate-200 dark:border-[#1D3A73] bg-slate-50 dark:bg-[#0E1D3F] text-slate-600 dark:text-[#94A9C9] hover:text-slate-900 dark:hover:text-[#F2F5FA] hover:border-[#FF8A2B]/50"
+              className="flex items-center justify-center p-2 sm:px-3 sm:py-1.5 rounded-xl text-xs font-medium transition-all shadow-2xs group cursor-pointer border border-slate-200 dark:border-[#1D3A73] bg-slate-50 dark:bg-[#0E1D3F] text-slate-600 dark:text-[#94A9C9] hover:text-slate-900 dark:hover:text-[#F2F5FA] hover:border-[#FF8A2B]/50"
               title="Cari karya & navigasi (Cmd+K)"
             >
               <Search className="w-3.5 h-3.5 text-slate-500 dark:text-[#94A9C9] group-hover:text-primary transition-colors" />

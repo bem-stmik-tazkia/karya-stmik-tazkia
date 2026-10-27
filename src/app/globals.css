@@ -207,6 +207,12 @@
   .animate-stats-marquee {
     animation: marquee 18s linear infinite;
   }
+  .animate-banner-marquee {
+    display: flex;
+    width: max-content;
+    animation: marquee var(--marquee-duration, 20s) linear infinite;
+    will-change: transform;
+  }
 
   /* ── Student Card Badges Marquee (Gerak Kesamping) ── */
   @keyframes badge-marquee {

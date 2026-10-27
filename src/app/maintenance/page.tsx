@@ -14,6 +14,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { Logo } from "@/components/ui/Logo";
 
 interface MaintenanceInfo {
   active: boolean;
@@ -163,21 +164,7 @@ export default function MaintenancePage() {
       <header className="relative z-20 w-full border-b border-border/70 dark:border-[#1E3E82]/70 bg-background/80 dark:bg-[#0B1F4A]/80 backdrop-blur-md">
         <div className="container mx-auto px-3 sm:px-6 h-15 sm:h-16 flex items-center justify-between gap-2">
           {/* Logo & Brand */}
-          <Link
-            href="/"
-            className="flex items-center gap-2 sm:gap-2.5 group select-none transition-transform active:scale-98 min-w-0"
-          >
-            <span className="w-2 sm:w-2.5 h-6 sm:h-7 rounded-[4px] sm:rounded-[5px] bg-[#FF8A2B] block shrink-0 shadow-sm group-hover:scale-y-105 transition-transform" />
-            <div className="flex flex-col min-w-0">
-              <span className="font-heading font-extrabold text-[17px] sm:text-[21px] tracking-tight leading-none truncate">
-                <span className="text-foreground">Karya</span>
-                <span className="text-[#FF8A2B]"> Tazkia</span>
-              </span>
-              <span className="text-[10px] text-muted-foreground font-medium tracking-tight mt-0.5 truncate hidden sm:block">
-                Galeri Portofolio Mahasiswa STMIK Tazkia
-              </span>
-            </div>
-          </Link>
+          <Logo size="sm" showSlogan sloganClassName="hidden sm:block" />
 
           {/* Right Status Badge & Theme Toggle */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">

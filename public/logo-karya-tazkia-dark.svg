@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 160" width="100%" height="100%" fill="none">
+  <defs>
+    <filter id="dropShadowDark" x="-10%" y="-10%" width="125%" height="125%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- Simbol Ikon Monogram KT -->
+  <g filter="url(#dropShadowDark)" transform="translate(15, 16)">
+    <rect x="10" y="10" width="28" height="108" rx="14" fill="#FF7F0A"/>
+    <!-- Huruf K Putih -->
+    <rect x="54" y="26" width="17" height="78" fill="#FFFFFF"/>
+    <polygon points="67,63 105,26 126,26 80,72" fill="#FFFFFF"/>
+    <polygon points="75,58 128,104 107,104 65,68" fill="#FFFFFF"/>
+    <!-- Huruf T Orange -->
+    <path d="M 90 26 L 99 26 L 83 42 L 77 42 C 77 32 82 26 90 26 Z" fill="#FF7F0A"/>
+    <path d="M 131 26 L 147 26 C 147 35 141 42 132 42 L 122 42 L 122 92 C 122 99 116 104 106 104 L 106 56 L 131 26 Z" fill="#FF7F0A"/>
+  </g>
+
+  <!-- Tipografi Teks -->
+  <g transform="translate(195, 0)">
+    <g filter="url(#dropShadowDark)">
+      <text x="0" y="92" font-family="'Montserrat', 'Plus Jakarta Sans', sans-serif" font-size="60" font-weight="800" letter-spacing="-1">
+        <tspan fill="#FFFFFF">Karya</tspan>
+        <tspan fill="#FF7F0A" dx="4">Tazkia</tspan>
+      </text>
+    </g>
+    <text x="3" y="122" font-family="'Montserrat', 'Plus Jakarta Sans', sans-serif" font-size="18.5" font-weight="400" fill="#CBD5E1" letter-spacing="0.3">
+      Kreativitas &amp; Inspirasi Tanpa Batas
+    </text>
+  </g>
+</svg>
+

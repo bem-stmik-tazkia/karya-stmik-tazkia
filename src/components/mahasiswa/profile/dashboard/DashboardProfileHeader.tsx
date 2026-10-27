@@ -11,7 +11,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import { FiInstagram } from "react-icons/fi";
-import { normalizeStatusBadge } from "@/app/student/page";
+import { normalizeStatusBadge, getStatusIcon } from "@/app/student/page";
 import { getTechTagColor } from "@/utils/techTagColor";
 
 export interface ProfileViewData {
@@ -170,11 +170,9 @@ export function DashboardProfileHeader({
           )}
           {profile.status_badge && (
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/15 text-white backdrop-blur-sm border border-white/10 shadow-xs">
-              <span
-                className="w-2 h-2 rounded-full shrink-0 g-pulse"
-                style={{ backgroundColor: activeSkin.statusDotColor }}
-                aria-hidden="true"
-              />
+              <span className="text-xs sm:text-sm leading-none shrink-0" aria-hidden="true">
+                {getStatusIcon(profile.status_badge)}
+              </span>
               <span>{normalizeStatusBadge(profile.status_badge)}</span>
             </span>
           )}

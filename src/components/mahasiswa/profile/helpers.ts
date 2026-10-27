@@ -27,3 +27,5 @@ export function normalizeStatusBadge(raw?: string | null): string {
   return cleaned || "Open for Collab";
 }
 
+export { getStatusIcon } from "@/components/mahasiswa/directory/studentHelpers";
+

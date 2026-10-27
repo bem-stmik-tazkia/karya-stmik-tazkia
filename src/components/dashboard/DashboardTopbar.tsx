@@ -10,6 +10,7 @@ import { LogOut, Home, UploadCloud, ChevronDown, User, Folder, Shield } from "lu
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { LogoutConfirmModal } from "@/components/ui/LogoutConfirmModal";
+import { Logo } from "@/components/ui/Logo";
 
 export function DashboardTopbar() {
   const { user } = useAuth();
@@ -62,13 +63,7 @@ export function DashboardTopbar() {
 
           {/* Left: Brand + Dashboard label */}
           <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2 shrink-0 group">
-              <div className="w-1 h-5 bg-primary rounded-full group-hover:h-6 transition-all duration-200" />
-              <span className="font-bold text-lg tracking-tight">
-                <span className="text-foreground">Karya</span>
-                <span className="text-primary">Tazkia</span>
-              </span>
-            </Link>
+            <Logo size="sm" />
             <span className="hidden sm:inline text-xs font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
               Dashboard
             </span>

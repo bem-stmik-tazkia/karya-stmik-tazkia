@@ -44,7 +44,30 @@ export const metadata: Metadata = {
   },
   verification: {
     google: "google88a80d49b5d89521",
-  }
+  },
+  icons: {
+    icon: [
+      {
+        url: "/icon.svg",
+        type: "image/svg+xml",
+      },
+      {
+        url: "/logo-icon-dark.svg",
+        media: "(prefers-color-scheme: dark)",
+        type: "image/svg+xml",
+      },
+      {
+        url: "/logo-icon.svg",
+        media: "(prefers-color-scheme: light)",
+        type: "image/svg+xml",
+      },
+    ],
+    apple: [
+      {
+        url: "/logo-icon-dark.svg",
+      },
+    ],
+  },
 };
 
 export const viewport: Viewport = {
@@ -69,7 +92,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Montserrat:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
         />
         <link rel="preconnect" href="https://pmrowiyvuqnxgzmlbfzx.supabase.co" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://pmrowiyvuqnxgzmlbfzx.supabase.co" />
