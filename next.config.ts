@@ -17,6 +17,7 @@ const cspDirectives = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   compress: true, // Mengaktifkan kompresi Gzip/Brotli untuk mempercepat loading
   images: {
     remotePatterns: [
