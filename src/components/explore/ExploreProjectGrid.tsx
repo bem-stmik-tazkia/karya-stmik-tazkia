@@ -61,9 +61,12 @@ export default function ExploreProjectGrid({
               const categoryLabel =
                 KARYA_CATEGORIES.find((c) => c.value === item.category)?.label ?? item.category;
 
-              const authorName = item.team?.[0]?.name || "Karya Tazkia";
-              const authorInitial = authorName.replace("[", "").charAt(0).toUpperCase();
-              const extraTeamCount = Math.max(0, (item.team?.length ?? 0) - 1);
+              const teamArray = Array.isArray(item.team) ? item.team : [];
+              const authorName = typeof teamArray[0]?.name === "string" && teamArray[0].name.trim() !== "" 
+                ? teamArray[0].name 
+                : "Karya Tazkia";
+              const authorInitial = authorName.replace("[", "").charAt(0).toUpperCase() || "K";
+              const extraTeamCount = Math.max(0, teamArray.length - 1);
 
               return (
                 <motion.div

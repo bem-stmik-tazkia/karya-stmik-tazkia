@@ -56,8 +56,12 @@ const FALLBACK_GRADIENTS = [
 const FALLBACK_ICONS = [Code2, Monitor, Cpu, Fingerprint, Rocket, Layers];
 
 export function ProjectCoverPlaceholder({ id, title, category }: ProjectCoverPlaceholderProps) {
+  //  Safe Guard: Pastikan title dan id selalu ada string valid
+  const safeTitle = (title || "Karya Tazkia").trim();
+  const safeId = (id || "karya").toString();
+
   // Use title + id for better hash variation
-  const hashString = title + id;
+  const hashString = safeTitle + safeId;
   const hash = hashString.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
 
   // Normalize category key (strip spaces, case-insensitive)
@@ -74,11 +78,13 @@ export function ProjectCoverPlaceholder({ id, title, category }: ProjectCoverPla
   const MainIcon = iconPool[hash % iconPool.length];
   const SecondIcon = iconPool[(hash + 1) % iconPool.length];
 
-  // Get initials: first character of first word, first character of last word
-  const words = title.split(" ").filter(Boolean);
-  const initials = words.length === 1 
-    ? words[0].slice(0, 2).toUpperCase() 
-    : (words[0][0] + words[words.length - 1][0]).toUpperCase();
+  //  Get initials dengan aman tanpa risiko crash
+  const words = safeTitle.split(" ").filter(Boolean);
+  const initials = words.length === 0
+    ? "KT"
+    : words.length === 1 
+      ? words[0].slice(0, 2).toUpperCase() 
+      : ((words[0]?.[0] || "K") + (words[words.length - 1]?.[0] || "T")).toUpperCase();
 
   return (
     <div
