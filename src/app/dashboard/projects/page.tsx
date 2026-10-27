@@ -9,7 +9,7 @@ import { KARYA_CATEGORIES } from "@/types/karya";
 
 export const revalidate = 0;
 
-function StatusBadge({ status, aiStatus, rejectReason, pendingEdits }: { status: string; aiStatus?: string; rejectReason?: string; pendingEdits?: any }) {
+function StatusBadge({ status, rejectReason, pendingEdits }: { status: string; rejectReason?: string; pendingEdits?: any }) {
   if (status === "approved") {
     return (
       <div className="flex flex-col gap-1 items-start md:items-center">
@@ -34,17 +34,9 @@ function StatusBadge({ status, aiStatus, rejectReason, pendingEdits }: { status:
           <span>Ditolak</span>
         </span>
         {rejectReason && (
-          <span className="text-[11px] text-rose-500 font-medium max-w-[160px] line-clamp-2">{rejectReason}</span>
+          <span className="text-[11px] text-rose-500 font-medium max-w-[160px] line-clamp-2" title={rejectReason}>{rejectReason}</span>
         )}
       </div>
-    );
-  }
-  if (aiStatus === "processing") {
-    return (
-      <span className="inline-flex items-center gap-1 bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 px-2.5 py-0.5 rounded-full text-xs font-medium shadow-xs animate-pulse">
-        <Search className="w-3.5 h-3.5" />
-        <span>Direview</span>
-      </span>
     );
   }
   return (
@@ -171,7 +163,7 @@ export default async function ProjectsListPage() {
                         {formatDate(karya.created_at)}
                       </td>
                       <td className="p-4 align-middle text-center">
-                        <StatusBadge status={karya.status} aiStatus={karya.ai_review_status} rejectReason={karya.reject_reason} pendingEdits={karya.pending_edits} />
+                        <StatusBadge status={karya.status} rejectReason={karya.reject_reason} pendingEdits={karya.pending_edits} />
                       </td>
                       <td className="p-4 align-middle">
                         <ProjectActions
@@ -219,7 +211,7 @@ export default async function ProjectsListPage() {
                       </p>
                     )}
                   </div>
-                  <StatusBadge status={karya.status} aiStatus={karya.ai_review_status} rejectReason={karya.reject_reason} pendingEdits={karya.pending_edits} />
+                  <StatusBadge status={karya.status} rejectReason={karya.reject_reason} pendingEdits={karya.pending_edits} />
                 </div>
 
                 {/* Meta row */}

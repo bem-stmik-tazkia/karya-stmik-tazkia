@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import { AdminReviewActions } from "@/components/admin/AdminReviewActions";
-import AiStatusWidget from "@/components/admin/AiStatusWidget";
 import {
   Layers,
   Clock,
@@ -24,11 +23,6 @@ const STATUS_CONFIG = {
   pending: { label: "Menunggu", className: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20" },
 };
 
-const AI_STATUS_CONFIG = {
-  processing: { label: "Sedang Ditinjau", className: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 animate-pulse" },
-  pending_review: { label: "Dalam Antrean", className: "bg-muted text-muted-foreground border-border" },
-  reviewed: { label: "Selesai Evaluasi", className: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" },
-};
 
 interface PageProps {
   searchParams: Promise<{ status?: string; category?: string; page?: string; q?: string }>;
@@ -72,10 +66,16 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
   const searchQuery = params.q || "";
 
   let filteredKarya = allKarya || [];
-  if (activeStatus === "pending") filteredKarya = filteredKarya.filter(k => k.status === "pending");
-  else if (activeStatus === "approved") filteredKarya = filteredKarya.filter(k => k.status === "approved");
-  else if (activeStatus === "rejected") filteredKarya = filteredKarya.filter(k => k.status === "rejected");
-  else if (activeStatus === "ai_processing") filteredKarya = filteredKarya.filter(k => k.ai_review_status === "processing");
+  if (activeStatus === "pending") {
+    // Menunggu review: urutkan dari yang TERLAMA (oldest first) agar antrean adil & jelas
+    filteredKarya = filteredKarya
+      .filter(k => k.status === "pending")
+      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  } else if (activeStatus === "approved") {
+    filteredKarya = filteredKarya.filter(k => k.status === "approved");
+  } else if (activeStatus === "rejected") {
+    filteredKarya = filteredKarya.filter(k => k.status === "rejected");
+  }
 
   if (activeCategory !== "all") filteredKarya = filteredKarya.filter(k => k.category === activeCategory);
 
@@ -125,13 +125,6 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
       statusKey: "pending" 
     },
     { 
-      label: "Sedang Ditinjau", 
-      value: totalAiProcessing, 
-      icon: FileSearch, 
-      iconColor: "text-blue-500 bg-blue-500/10 border-blue-500/20", 
-      statusKey: "ai_processing" 
-    },
-    { 
       label: "Telah Disetujui", 
       value: totalApproved, 
       icon: CheckCircle2, 
@@ -179,11 +172,9 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
         </div>
       </div>
 
-      {/* Friendly System Status Widget */}
-      <AiStatusWidget />
 
       {/* Friendly Stat Cards (Clickable Filter) */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-6">
         {statCards.map((stat, i) => {
           const isActive = activeStatus === stat.statusKey;
           const Icon = stat.icon;
@@ -315,17 +306,16 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
               <tr className="text-muted-foreground text-[11px] font-bold uppercase tracking-wider">
                 <th className="py-3.5 px-4">Judul & Ringkasan</th>
                 <th className="py-3.5 px-3">Kategori</th>
-                <th className="py-3.5 px-3 text-center">Status Publikasi</th>
-                <th className="py-3.5 px-3 text-center">Pemeriksaan Sistem</th>
-                <th className="py-3.5 px-3 text-center">Skor Kelayakan</th>
-                <th className="py-3.5 px-4">Catatan Evaluasi</th>
+                <th className="py-3.5 px-3 text-center">Status Kurasi</th>
+                <th className="py-3.5 px-4">Catatan / Alasan Penolakan</th>
+                <th className="py-3.5 px-3 text-center">Tanggal Masuk</th>
                 <th className="py-3.5 px-4 text-center">Aksi Kurasi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {paginatedKarya.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-16 px-4 text-center">
+                  <td colSpan={6} className="py-16 px-4 text-center">
                     <div className="max-w-md mx-auto flex flex-col items-center">
                       <div className="w-12 h-12 rounded-2xl bg-muted/60 border border-border flex items-center justify-center text-muted-foreground mb-3 shadow-xs">
                         <FolderKanban className="w-6 h-6" />
@@ -363,14 +353,7 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
                     statusCfg = { label: "Baru (Menunggu)", className: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20" };
                   }
 
-                  const isAlreadyFinal = (karya.status === "approved" || karya.status === "rejected") && karya.ai_review_status !== "reviewed";
-                  const isAiError = karya.ai_review_status === "reviewed" && karya.ai_review_score == null;
-
-                  const aiCfg = isAlreadyFinal
-                    ? { label: "Manual", className: "bg-muted text-muted-foreground border-border" }
-                    : isAiError
-                    ? { label: "Gagal Periksa", className: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20" }
-                    : AI_STATUS_CONFIG[karya.ai_review_status as keyof typeof AI_STATUS_CONFIG] || AI_STATUS_CONFIG.pending_review;
+                  
 
                   return (
                     <tr key={karya.id} className="hover:bg-muted/30 transition-colors">
@@ -405,33 +388,24 @@ export default async function AdminKaryaPage({ searchParams }: PageProps) {
                           <span className="w-1.5 h-1.5 rounded-full bg-current" />
                           {statusCfg.label}
                         </span>
-                        {karya.status === "rejected" && karya.reject_reason && (
-                          <div className="text-[10px] text-rose-500 mt-1 max-w-[130px] mx-auto line-clamp-2" title={karya.reject_reason}>
+                      </td>
+                      <td className="py-3.5 px-4 max-w-[240px]">
+                        {karya.status === "rejected" && karya.reject_reason ? (
+                          <div className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-[11px] leading-relaxed line-clamp-2" title={karya.reject_reason}>
+                            <span className="font-bold block">Alasan Ditolak:</span>
                             {karya.reject_reason}
                           </div>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-3 text-center whitespace-nowrap">
-                        <span className={`border px-2.5 py-1 rounded-full text-[10px] font-bold uppercase inline-flex items-center gap-1 whitespace-nowrap ${aiCfg.className}`}>
-                          {aiCfg.label}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-3 text-center whitespace-nowrap">
-                        {karya.ai_review_score != null ? (
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-heading font-extrabold border ${
-                            karya.ai_review_score >= 70 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" :
-                            karya.ai_review_score >= 40 ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20" : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
-                          }`}>
-                            {karya.ai_review_score}/100
+                        ) : karya.status === "pending" ? (
+                          <span className="text-[11px] text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            Menunggu pemeriksaan admin
                           </span>
                         ) : (
-                          <span className="text-muted-foreground text-xs font-medium">-</span>
+                          <span className="text-[11px] text-muted-foreground font-medium">Disetujui untuk publik</span>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 max-w-[200px]">
-                        <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed" title={karya.ai_review_reason || ""}>
-                          {karya.ai_review_reason || "-"}
-                        </p>
+                      <td className="py-3.5 px-3 text-center whitespace-nowrap text-xs text-muted-foreground font-medium">
+                        {new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric" }).format(new Date(karya.created_at))}
                       </td>
                       <td className="py-3.5 px-4 min-w-[150px]">
                         <AdminReviewActions

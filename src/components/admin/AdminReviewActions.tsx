@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { adminApproveKarya, adminRejectKarya, adminDeleteKarya } from "@/app/actions/adminReviewKarya";
 import { useRouter } from "next/navigation";
 import { FiCheck, FiX, FiTrash2, FiEye, FiXCircle, FiFileText, FiAlertCircle } from "react-icons/fi";
 import toast from "react-hot-toast";
@@ -22,79 +22,27 @@ export function AdminReviewActions({ karyaId, currentStatus, karyaObj }: AdminRe
   const [showDetailModal, setShowDetailModal] = useState(false);
   const router = useRouter();
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+
 
   const handleApprove = () => {
     startTransition(async () => {
-      let updatePayload: any = {
-        status: "approved",
-        reject_reason: null,
-        ai_review_status: "reviewed",
-        ai_review_reason: "Disetujui manual oleh admin.",
-        ai_reviewed_at: new Date().toISOString(),
-      };
+      const res = await adminApproveKarya(
+        karyaId,
+        karyaObj?.pending_edits,
+        karyaObj?.title,
+        karyaObj?.user_id
+      );
 
-      if (karyaObj?.pending_edits) {
-        if (karyaObj.pending_edits.type === "delete") {
-          const { error: deleteError } = await supabase.from("karya").delete().eq("id", karyaId);
-          if (deleteError) {
-            toast.error("Mohon maaf, pengajuan penghapusan belum berhasil disetujui. Silakan coba kembali.");
-            return;
-          }
-          await supabase.from("notifications").insert({
-            user_id: karyaObj.user_id,
-            title: "[HAPUS] Penghapusan Karya Disetujui",
-            message: `Pengajuan hapus untuk karya "${karyaObj.title}" telah disetujui.`,
-            karya_id: karyaId,
-            type: "success"
-          });
-          toast.success("Pengajuan hapus disetujui, karya telah dihapus.");
-          setActiveConfirm(null);
-          router.refresh();
-          return;
-        }
-
-        updatePayload = {
-          ...updatePayload,
-          ...karyaObj.pending_edits,
-          pending_edits: null,
-        };
-      }
-
-      const { error } = await supabase
-        .from("karya")
-        .update(updatePayload)
-        .eq("id", karyaId);
-
-      if (error) {
-        toast.error("Mohon maaf, persetujuan karya belum berhasil diproses. Silakan coba kembali.");
+      if (!res.success) {
+        toast.error(res.error || "Mohon maaf, persetujuan karya belum berhasil diproses.");
       } else {
-        if (karyaObj?.pending_edits) {
-          await supabase.from("notifications").insert({
-            user_id: karyaObj.user_id,
-            title: "[EDIT] Perubahan Karya Disetujui",
-            message: `Edit untuk karya "${karyaObj.title}" telah disetujui dan diperbarui.`,
-            karya_id: karyaId,
-            type: "success"
-          });
-        }
-        
-        toast.success(karyaObj?.pending_edits ? "Perubahan berhasil disetujui!" : "Karya berhasil disetujui dan dipublikasikan!");
-        
-        fetch("/api/notify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "info",
-            message: karyaObj?.pending_edits 
-              ? `[EDIT] ✅ Admin telah menyetujui edit untuk karya:\n📌 <b>${karyaObj?.title || 'Unknown'}</b>` 
-              : `[BARU] ✅ Admin telah menyetujui karya baru:\n📌 <b>${karyaObj?.title || 'Unknown'}</b>`
-          })
-        }).catch(() => {});
-
+        toast.success(
+          res.action === "deleted"
+            ? "Pengajuan hapus disetujui, karya telah dihapus."
+            : karyaObj?.pending_edits
+            ? "Perubahan karya berhasil disetujui!"
+            : "Karya berhasil disetujui dan dipublikasikan!"
+        );
         setActiveConfirm(null);
         router.refresh();
       }
@@ -108,58 +56,18 @@ export function AdminReviewActions({ karyaId, currentStatus, karyaObj }: AdminRe
     }
 
     startTransition(async () => {
-      let updatePayload: any = {
-        status: "rejected",
-        reject_reason: rejectReason.trim(),
-        ai_review_status: "reviewed",
-        ai_review_reason: rejectReason.trim(),
-        ai_reviewed_at: new Date().toISOString(),
-      };
+      const res = await adminRejectKarya(
+        karyaId,
+        rejectReason,
+        Boolean(karyaObj?.pending_edits),
+        karyaObj?.title,
+        karyaObj?.user_id
+      );
 
-      if (karyaObj?.pending_edits) {
-        updatePayload = {
-          status: "approved",
-          reject_reason: null,
-          pending_edits: null,
-          ai_review_status: "reviewed",
-          ai_review_reason: "Edit ditolak: " + rejectReason.trim(),
-          ai_reviewed_at: new Date().toISOString(),
-        };
-      }
-
-      const { error } = await supabase
-        .from("karya")
-        .update(updatePayload)
-        .eq("id", karyaId);
-
-      if (error) {
-        toast.error("Mohon maaf, penolakan karya belum berhasil diproses. Silakan coba kembali.");
+      if (!res.success) {
+        toast.error(res.error || "Mohon maaf, penolakan karya belum berhasil diproses.");
       } else {
-        if (karyaObj?.pending_edits) {
-          const isDeleteReq = karyaObj.pending_edits.type === "delete";
-          await supabase.from("notifications").insert({
-            user_id: karyaObj.user_id,
-            title: isDeleteReq ? "[HAPUS] Pengajuan Hapus Ditolak" : "[EDIT] Perubahan Karya Ditolak",
-            message: isDeleteReq 
-              ? `Pengajuan hapus untuk karya "${karyaObj.title}" ditolak oleh admin. Alasan: ${rejectReason.trim()}`
-              : `Edit untuk karya "${karyaObj.title}" ditolak oleh admin. Alasan: ${rejectReason.trim()}`,
-            karya_id: karyaId,
-            type: "error"
-          });
-        }
-        toast.success(karyaObj?.pending_edits ? (karyaObj.pending_edits.type === "delete" ? "Pengajuan hapus ditolak." : "Perubahan ditolak.") : "Karya telah ditolak.");
-        
-        fetch("/api/notify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "error",
-            message: karyaObj?.pending_edits 
-              ? `[EDIT] ❌ Admin telah menolak edit untuk karya:\n📌 <b>${karyaObj?.title || 'Unknown'}</b>\n💬 Alasan: ${rejectReason.trim()}` 
-              : `[BARU] ❌ Admin telah menolak karya baru:\n📌 <b>${karyaObj?.title || 'Unknown'}</b>\n💬 Alasan: ${rejectReason.trim()}`
-          })
-        }).catch(() => {});
-
+        toast.success(karyaObj?.pending_edits ? "Pengajuan perubahan ditolak." : "Karya telah ditolak dengan catatan evaluasi.");
         setActiveConfirm(null);
         setRejectReason("");
         router.refresh();
@@ -169,25 +77,11 @@ export function AdminReviewActions({ karyaId, currentStatus, karyaObj }: AdminRe
 
   const handleDelete = () => {
     startTransition(async () => {
-      const { error } = await supabase
-        .from("karya")
-        .delete()
-        .eq("id", karyaId);
-
-      if (error) {
-        toast.error("Mohon maaf, karya belum berhasil dihapus. Silakan coba kembali.");
+      const res = await adminDeleteKarya(karyaId, karyaObj?.title);
+      if (!res.success) {
+        toast.error(res.error || "Mohon maaf, karya belum berhasil dihapus.");
       } else {
         toast.success("Karya berhasil dihapus permanen.");
-
-        fetch("/api/notify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "error",
-            message: `[HAPUS] 🗑️ Admin telah menghapus permanen karya:\n📌 <b>${karyaObj?.title || 'Unknown'}</b>`
-          })
-        }).catch(() => {});
-
         setActiveConfirm(null);
         router.refresh();
       }

@@ -367,20 +367,13 @@ export default function UploadKaryaFormPage() {
       let createdKaryaId = editId;
 
       if (editId) {
-        // Edit Mode
-        if (originalStatus === "approved") {
-          dataToSave = {
-            pending_edits: dataToSave,
-            ai_review_status: "pending_review",
-            // Keep the status as "approved"
-          };
-        } else {
-          dataToSave = {
-            ...dataToSave,
-            status: "pending",
-            ai_review_status: "pending_review",
-          };
-        }
+        // Edit Mode: selalu kembalikan status ke "pending" agar direview ulang manual oleh admin
+        dataToSave = {
+          ...dataToSave,
+          status: "pending",
+          reject_reason: null,
+          pending_edits: null,
+        };
 
         const { error } = await supabase.from("karya").update(dataToSave).eq("id", editId);
         if (error) throw error;
@@ -390,15 +383,16 @@ export default function UploadKaryaFormPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             type: "submission",
-            message: `[EDIT] Mahasiswa baru saja mengajukan edit pada karya!\n\n📌 <b>Judul:</b> ${escapeHtml(dataToSubmit.title)}\n📁 <b>Kategori:</b> ${escapeHtml(dataToSubmit.category)}\n\nKarya ini sedang masuk ke antrean AI untuk di-review otomatis.`
+            message: `[EDIT] Mahasiswa memperbarui karya!\n\n📌 <b>Judul:</b> ${escapeHtml(dataToSubmit.title)}\n📁 <b>Kategori:</b> ${escapeHtml(dataToSubmit.category)}\n\nKarya ini kembali ke status pending dan menunggu kurasi manual oleh admin.`
           })
         }).catch(() => {});
       } else {
-        // Create Mode
+        // Create Mode: status awal selalu "pending"
         dataToSave = {
           ...dataToSave,
           status: "pending",
-          ai_review_status: "pending_review",
+          reject_reason: null,
+          pending_edits: null,
         };
         const { data: createdKarya, error } = await supabase.from("karya").insert({
           user_id: authUser.id,
@@ -413,7 +407,7 @@ export default function UploadKaryaFormPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             type: "submission",
-            message: `[BARU] Mahasiswa baru saja mengunggah karya baru!\n\n📌 <b>Judul:</b> ${escapeHtml(dataToSubmit.title)}\n📁 <b>Kategori:</b> ${escapeHtml(dataToSubmit.category)}\n\nKarya ini sedang masuk ke antrean AI untuk di-review otomatis.`
+            message: `[BARU] Mahasiswa baru saja mengunggah karya baru!\n\n📌 <b>Judul:</b> ${escapeHtml(dataToSubmit.title)}\n📁 <b>Kategori:</b> ${escapeHtml(dataToSubmit.category)}\n\nKarya ini berstatus pending dan menunggu kurasi manual oleh admin.`
           })
         }).catch(() => {});
       }
@@ -434,11 +428,7 @@ export default function UploadKaryaFormPage() {
         }
       }
 
-      // Trigger AI Worker secara asinkron (background) agar karya langsung direview
-      // Karena endpoint ini sekarang mendukung user authentication, cookie user akan dikirim otomatis
-      fetch("/api/ai-review", {
-        method: "POST",
-      }).catch(err => console.error("Gagal trigger AI worker:", err));
+
 
       clearDraftData();
       confetti({
