@@ -19,47 +19,40 @@ export default async function DashboardProfilePage() {
     .from("mahasiswa_profiles")
     .select("*")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
     
   if (!profile) {
-    // Auto-create minimal profile if it doesn't exist
-    const defaultName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "Mahasiswa";
-    
-    // Ekstrak angkatan otomatis dari 2 digit pertama NIM (misal: 241572010024 -> 2024)
-    let autoAngkatan = 2024;
-    const nimMatch = (user.email || "").match(/^(\d{2})/);
-    if (nimMatch) {
-      const yr = parseInt(nimMatch[1], 10);
-      if (yr >= 15 && yr <= 35) autoAngkatan = 2000 + yr;
-    }
-
-    const minimalProfile = {
-      user_id: user.id,
-      full_name: defaultName,
-      email: user.email || "",
-      prodi: "", // Dikosongkan agar modal Lengkapi Profil otomatis muncul meminta konfirmasi mahasiswa
-      angkatan: autoAngkatan, // Nilai default awal, bebas diubah mahasiswa di modal maupun halaman edit profil
-      skills: [],
-      avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || "",
-    };
-
     // Cek apakah sudah ada baris profile untuk user_id ini
     const { data: existingRow } = await supabase
       .from("mahasiswa_profiles")
-      .select("id")
+      .select("*")
       .eq("user_id", user.id)
       .maybeSingle();
 
     if (existingRow) {
-      const { data: updatedProfile } = await supabase
-        .from("mahasiswa_profiles")
-        .update(minimalProfile)
-        .eq("id", existingRow.id)
-        .select()
-        .maybeSingle();
-      if (updatedProfile) profile = updatedProfile;
-      else profile = minimalProfile;
+      profile = existingRow;
     } else {
+      // Auto-create minimal profile if it doesn't exist
+      const defaultName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "Mahasiswa";
+      
+      // Ekstrak angkatan otomatis dari 2 digit pertama NIM (misal: 241572010024 -> 2024)
+      let autoAngkatan = 2024;
+      const nimMatch = (user.email || "").match(/^(\d{2})/);
+      if (nimMatch) {
+        const yr = parseInt(nimMatch[1], 10);
+        if (yr >= 15 && yr <= 35) autoAngkatan = 2000 + yr;
+      }
+
+      const minimalProfile = {
+        user_id: user.id,
+        full_name: defaultName,
+        email: user.email || "",
+        prodi: "", // Dikosongkan agar modal Lengkapi Profil otomatis muncul meminta konfirmasi mahasiswa
+        angkatan: autoAngkatan, // Nilai default awal, bebas diubah mahasiswa di modal maupun halaman edit profil
+        skills: [],
+        avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || "",
+      };
+
       const { data: newProfile, error } = await supabase
         .from("mahasiswa_profiles")
         .insert([minimalProfile])
