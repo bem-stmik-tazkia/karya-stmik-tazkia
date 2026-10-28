@@ -80,13 +80,40 @@ export default function CompleteProfileModal({ userId, onClose, onSuccess }: Com
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
+      // 1. Cek apakah baris profil sudah ada untuk user_id ini
+      const { data: existingRow } = await supabase
         .from("mahasiswa_profiles")
-        .update({
-          prodi: formData.prodi,
-          angkatan: parseInt(formData.angkatan),
-        })
-        .eq("user_id", userId);
+        .select("id")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      let error;
+      if (existingRow) {
+        const res = await supabase
+          .from("mahasiswa_profiles")
+          .update({
+            prodi: formData.prodi,
+            angkatan: parseInt(formData.angkatan),
+          })
+          .eq("id", existingRow.id);
+        error = res.error;
+      } else {
+        // Buat baris profil baru jika belum pernah ada
+        const { data: { user } } = await supabase.auth.getUser();
+        const defaultName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "Mahasiswa";
+        const res = await supabase
+          .from("mahasiswa_profiles")
+          .insert([{
+            user_id: userId,
+            full_name: defaultName,
+            email: user?.email || "",
+            prodi: formData.prodi,
+            angkatan: parseInt(formData.angkatan),
+            avatar_url: user?.user_metadata?.avatar_url || user?.user_metadata?.picture || "",
+            skills: [],
+          }]);
+        error = res.error;
+      }
 
       if (error) throw error;
       
