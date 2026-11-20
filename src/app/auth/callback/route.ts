@@ -49,28 +49,43 @@ export async function GET(request: NextRequest) {
           return NextResponse.redirect(`${publicOrigin}/login?error=Akses belum dapat diberikan. Silakan gunakan email resmi kampus STMIK Tazkia.`);
         }
 
-        // Auto-provision mahasiswa profile jika belum ada
+        // Auto-provision mahasiswa profile jika belum ada (hanya untuk mahasiswa, bukan akun admin)
         try {
           const dbClient = supabaseAdmin || supabase;
-          const { data: existingProfile } = await dbClient
-            .from("mahasiswa_profiles")
-            .select("id")
+          const { data: adminRecord } = await dbClient
+            .from("admin_users")
+            .select("user_id")
             .eq("user_id", user.id)
             .maybeSingle();
 
-          if (!existingProfile) {
-            const defaultName = user.user_metadata?.full_name || user.user_metadata?.name || normalizedEmail.split("@")[0] || "Mahasiswa";
-            const autoAngkatan = extractAngkatanFromEmail(normalizedEmail);
+          const lowerEmail = normalizedEmail.toLowerCase();
+          const isOfficialAdmin =
+            !!adminRecord ||
+            lowerEmail.startsWith("bem") ||
+            lowerEmail.includes("admin@") ||
+            lowerEmail.includes("admin.");
 
-            await dbClient.from("mahasiswa_profiles").insert([{
-              user_id: user.id,
-              full_name: defaultName,
-              email: normalizedEmail,
-              prodi: "", // Dikosongkan agar modal Lengkapi Profil otomatis muncul meminta konfirmasi mahasiswa
-              angkatan: autoAngkatan, // Nilai tebakan awal (default), tetap bisa diganti bebas oleh mahasiswa di modal & edit profil
-              avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || "",
-              skills: [],
-            }]);
+          if (!isOfficialAdmin) {
+            const { data: existingProfile } = await dbClient
+              .from("mahasiswa_profiles")
+              .select("id")
+              .eq("user_id", user.id)
+              .maybeSingle();
+
+            if (!existingProfile) {
+              const defaultName = user.user_metadata?.full_name || user.user_metadata?.name || normalizedEmail.split("@")[0] || "Mahasiswa";
+              const autoAngkatan = extractAngkatanFromEmail(normalizedEmail);
+
+              await dbClient.from("mahasiswa_profiles").insert([{
+                user_id: user.id,
+                full_name: defaultName,
+                email: normalizedEmail,
+                prodi: "", // Dikosongkan agar modal Lengkapi Profil otomatis muncul meminta konfirmasi mahasiswa
+                angkatan: autoAngkatan, // Nilai tebakan awal (default), tetap bisa diganti bebas oleh mahasiswa di modal & edit profil
+                avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || "",
+                skills: [],
+              }]);
+            }
           }
         } catch (profileErr) {
           console.error("[AUTO_PROFILE_PROVISION_ERROR]:", profileErr);

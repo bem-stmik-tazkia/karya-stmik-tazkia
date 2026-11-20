@@ -196,7 +196,10 @@ export default function StudentProjectsSection({
 
                           <button
                             type="button"
-                            onClick={(e) => onToggleLike(e, project.id)}
+                            onClick={(e) => {
+                              e.currentTarget.blur();
+                              onToggleLike(e, project.id);
+                            }}
                             aria-label="Sukai karya"
                             className={`inline-flex items-center gap-1.5 min-h-[34px] px-3 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
                               isLiked

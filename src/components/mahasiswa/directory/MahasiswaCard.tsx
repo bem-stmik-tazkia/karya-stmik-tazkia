@@ -333,7 +333,7 @@ export default function MahasiswaCard({
         data={cardData}
         customPrimary={customColors.primary}
         customSecondary={customColors.secondary}
-        enableTilt={true}
+        enableTilt={false}
         onProfileClick={() => onSelect(student)}
         onContactClick={handleContact}
         onFilterAngkatan={

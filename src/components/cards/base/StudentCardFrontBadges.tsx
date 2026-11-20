@@ -101,7 +101,7 @@ export const StudentCardFrontBadges: React.FC<StudentCardFrontBadgesProps> = ({
           });
 
           return (
-            <div className="pointer-events-none absolute bottom-full mb-2 left-0 right-0 w-full p-2.5 rounded-xl bg-slate-950/95 text-white shadow-[0_8px_24px_rgba(0,0,0,0.6)] border border-slate-700/80 backdrop-blur-md text-left select-none z-[80] animate-in fade-in duration-150">
+            <div className="pointer-events-none absolute bottom-full mb-2 left-0 right-0 w-full p-2.5 rounded-xl bg-slate-950 text-white shadow-[0_8px_24px_rgba(0,0,0,0.6)] border border-slate-700/80 text-left select-none z-[80] animate-in fade-in duration-150">
               {/* Header Tag */}
               <div className="flex items-center justify-between border-b border-slate-800/80 pb-1 mb-1.5">
                 <span

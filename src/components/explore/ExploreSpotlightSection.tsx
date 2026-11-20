@@ -128,7 +128,10 @@ export default function ExploreSpotlightSection({
 
                     <button
                       type="button"
-                      onClick={(e) => onToggleLike(e, item.id)}
+                      onClick={(e) => {
+                        e.currentTarget.blur();
+                        onToggleLike(e, item.id);
+                      }}
                       aria-label="Sukai karya"
                       className={`inline-flex items-center gap-1.5 min-h-[34px] px-3 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
                         isLiked

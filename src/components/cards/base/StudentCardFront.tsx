@@ -73,7 +73,7 @@ export const StudentCardFront: React.FC<StudentCardFrontProps> = ({
       onClick={!isFlipped ? onProfileClick : undefined}
       className={`absolute inset-0 w-full h-full rounded-[22px] [backface-visibility:hidden] [-webkit-backface-visibility:hidden] subpixel-antialiased ${
         outerBorderClassName || "p-[1px] bg-slate-200/90 dark:bg-slate-800"
-      } shadow-sm hover:shadow-md transition-shadow duration-300 ${
+      } shadow-sm hover:shadow-lg hover:-translate-y-1.5 transition-all duration-200 ${
         isFlipped ? "pointer-events-none" : "pointer-events-auto"
       } ${onProfileClick && !isFlipped ? "cursor-pointer" : ""}`}
     >
@@ -83,10 +83,12 @@ export const StudentCardFront: React.FC<StudentCardFrontProps> = ({
         }`}
       >
         {/* Dynamic Mouse Glare */}
-        <div
-          className="pointer-events-none absolute inset-0 z-30 transition-opacity duration-300 rounded-[20px]"
-          style={glareStyle}
-        />
+        {glareStyle && Number(glareStyle.opacity) > 0 && (
+          <div
+            className="pointer-events-none absolute inset-0 z-30 transition-opacity duration-300 rounded-[20px]"
+            style={glareStyle}
+          />
+        )}
 
         {/* Holographic foil overlay */}
         {holoOverlay}

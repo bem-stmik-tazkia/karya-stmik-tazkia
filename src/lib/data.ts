@@ -245,7 +245,38 @@ export async function getMahasiswaProfiles(options?: {
     console.error("[getMahasiswaProfiles] Error:", error.message);
     return [];
   }
-  return (data as MahasiswaProfile[]) ?? [];
+
+  // Ambil daftar admin_users untuk mengecualikan akun admin dari direktori mahasiswa publik
+  let adminUserIds = new Set<string>();
+  try {
+    const { data: adminList } = await supabase.from("admin_users").select("user_id");
+    if (adminList) {
+      adminList.forEach((a: { user_id?: string | null }) => {
+        if (a.user_id) adminUserIds.add(a.user_id);
+      });
+    }
+  } catch {
+    // Abaikan jika query admin_users dibatasi oleh RLS anon
+  }
+
+  const rawProfiles = (data as MahasiswaProfile[]) ?? [];
+
+  // Filter: Akun admin dan akun resmi organisasi kampus tidak boleh masuk ke direktori mahasiswa
+  const filteredProfiles = rawProfiles.filter((p) => {
+    if (p.user_id && adminUserIds.has(p.user_id)) return false;
+    const lowerName = (p.full_name || "").toLowerCase().trim();
+    if (
+      lowerName === "bem stmik tazkia" ||
+      lowerName === "admin" ||
+      lowerName === "administrator" ||
+      lowerName.startsWith("bem ")
+    ) {
+      return false;
+    }
+    return true;
+  });
+
+  return filteredProfiles;
 }
 
 /**
