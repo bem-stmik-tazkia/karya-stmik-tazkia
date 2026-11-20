@@ -58,20 +58,23 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // ─── 3. AMBIL STATUS MAINTENANCE DARI DATABASE ─────────────────────────────
+  // ─── 3. AMBIL STATUS MAINTENANCE DARI DATABASE ────────────────────────────
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   let isMaintenanceActive = false;
 
   try {
-    const res = await fetch(`${supabaseUrl}/rest/v1/system_settings?key=eq.maintenance_mode&select=value`, {
-      headers: {
-        "apikey": supabaseKey || "",
-        "Authorization": `Bearer ${supabaseKey || ""}`
-      },
-      // Revalidate 10 detik agar pergantian status maintenance cepat terdeteksi
-      next: { revalidate: 10 } 
-    });
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/system_settings?key=eq.maintenance_mode&select=value`,
+      {
+        headers: {
+          apikey: supabaseKey || "",
+          Authorization: `Bearer ${supabaseKey || ""}`,
+        },
+        // Revalidate 10 detik agar pergantian status maintenance cepat terdeteksi
+        next: { revalidate: 10 },
+      }
+    );
     const data = await res.json();
     if (data && data.length > 0 && data[0].value === "true") {
       isMaintenanceActive = true;
@@ -89,13 +92,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // ─── 5. MAINTENANCE AKTIF: VERIFIKASI SESI ADMIN DI SERVER ────────────────
+  // ─── 5. MAINTENANCE AKTIF: VERIFIKASI HAK AKSES ───────────────────────────
   let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
   });
 
+  // A. Verifikasi Sesi Admin di Server
   let isAdmin = false;
 
   if (supabaseUrl && supabaseKey) {
@@ -121,8 +125,14 @@ export async function middleware(request: NextRequest) {
     });
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (user) {
+        const lowerEmail = user.email?.toLowerCase().trim() || "";
+
+        // 1. Cek tabel admin_users melalui query sesi saat ini
         const { data: adminRecord } = await supabase
           .from("admin_users")
           .select("role")
@@ -132,26 +142,61 @@ export async function middleware(request: NextRequest) {
         if (adminRecord) {
           isAdmin = true;
         }
+
+        // 2. Fallback Service Role: Jika RLS anon membatasi pembacaan admin_users di level middleware
+        if (!isAdmin && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+          try {
+            const adminRes = await fetch(
+              `${supabaseUrl}/rest/v1/admin_users?or=(user_id.eq.${user.id},email.eq.${encodeURIComponent(
+                lowerEmail
+              )})&select=role&limit=1`,
+              {
+                headers: {
+                  apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+                  Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+                },
+              }
+            );
+            const adminData = await adminRes.json();
+            if (Array.isArray(adminData) && adminData.length > 0) {
+              isAdmin = true;
+            }
+          } catch {
+            // Abaikan jika query service role gagal
+          }
+        }
+
+        // 3. Fallback Email Resmi Admin Kampus (BEM / Admin)
+        if (
+          !isAdmin &&
+          (lowerEmail.startsWith("bem") ||
+            lowerEmail.includes("admin@") ||
+            lowerEmail.includes("admin."))
+        ) {
+          isAdmin = true;
+        }
       }
     } catch {
-      // Sesi tidak valid atau koneksi auth gagal
       isAdmin = false;
     }
   }
 
-  // Jika user terbukti memiliki sesi Admin yang sah di Supabase:
+  // Jika akun adalah Admin yang sah: bebas akses seluruh website (termasuk /admin, /dashboard, beranda, dll.)
   if (isAdmin) {
-    // Admin bebas mengakses seluruh route website saat maintenance
     return response;
   }
 
-  // ─── 6. BUKAN ADMIN: CEK KONAMI CODE BYPASS KHUSUS HALAMAN LOGIN ──────────
+  // B. Cek Konami Code Bypass Cookie (Mode Bypass Pengembang / Non-Admin)
   const bypassCookie = request.cookies.get("maintenance_bypass")?.value;
   const bypassSecret = process.env.MAINTENANCE_BYPASS_SECRET;
   const isKonamiUnlocked = await timingSafeCompare(bypassCookie, bypassSecret);
 
-  // Jika pengguna telah membuka Konami Code, izinkan mengakses form /login untuk masuk sebagai admin
-  if (isKonamiUnlocked && pathname.startsWith("/login")) {
+  if (isKonamiUnlocked) {
+    // Pengguna dengan Konami Bypass boleh mengakses website utama & dashboard mahasiswa,
+    // TETAPI rute /admin tetap terproteksi ketat khusus Admin
+    if (pathname.startsWith("/admin")) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
     return response;
   }
 
@@ -160,7 +205,7 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // Semua halaman lain (termasuk /login tanpa Konami, /, /explore, /dashboard, /admin) dialihkan ke /maintenance
+  // Semua halaman lain dialihkan ke /maintenance
   return NextResponse.redirect(new URL("/maintenance", request.url));
 }
 

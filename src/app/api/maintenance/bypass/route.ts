@@ -60,12 +60,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  // Set kuki bypass dengan httpOnly (anti-XSS)
+  // Set kuki bypass dengan httpOnly (anti-XSS) untuk verifikasi server/middleware
   const response = NextResponse.json({ success: true, message: "Konami Code Berhasil" });
   response.cookies.set("maintenance_bypass", secret, {
     path: "/",
     maxAge: 60 * 60 * 8, // 8 jam
     httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
+
+  // Set kuki non-sensitif untuk indikator visual UI di browser
+  response.cookies.set("maintenance_bypass_active", "1", {
+    path: "/",
+    maxAge: 60 * 60 * 8,
+    httpOnly: false,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
   });
@@ -78,5 +87,6 @@ export async function POST(req: Request) {
 export async function DELETE() {
   const response = NextResponse.json({ success: true });
   response.cookies.delete("maintenance_bypass");
+  response.cookies.delete("maintenance_bypass_active");
   return response;
 }

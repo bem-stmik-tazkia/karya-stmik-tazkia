@@ -9,8 +9,10 @@ export function BypassIndicator() {
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
-    // Cek apakah cookie maintenance_bypass ada
-    const hasBypass = document.cookie.includes("maintenance_bypass=");
+    // Cek apakah cookie maintenance_bypass_active atau maintenance_bypass ada
+    const hasBypass =
+      document.cookie.includes("maintenance_bypass_active=1") ||
+      document.cookie.includes("maintenance_bypass=");
     setIsBypassActive(hasBypass);
   }, []);
 
