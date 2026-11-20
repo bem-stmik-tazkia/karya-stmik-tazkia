@@ -66,6 +66,39 @@ export async function POST(req: NextRequest) {
     const payload = parsed.data;
     const dbClient = supabaseAdmin || supabase;
 
+    // ── WHITELIST OTORISASI: Batasi tipe notifikasi untuk pengguna biasa ───────
+    // Pengguna biasa hanya diizinkan memicu notifikasi pengajuan karya & klaim penghargaan.
+    // Semua tipe lainnya (pemberian/penarikan lencana, info sistem, dsb.) WAJIB memiliki hak akses Admin.
+    const userAllowedTypes = ["submission", "reward_claimed"];
+    const isUserAllowed = payload.type && userAllowedTypes.includes(payload.type);
+
+    if (!isUserAllowed) {
+      const { data: adminRecord } = await supabase
+        .from("admin_users")
+        .select("role")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!adminRecord) {
+        return NextResponse.json(
+          { error: "Forbidden: Tindakan ini memerlukan hak akses administrator." },
+          { status: 403 }
+        );
+      }
+    }
+
+    // Kunci identitas mahasiswa ke sesi server (cegah pemalsuan authorName / recipientName dari body)
+    const sessionUserName =
+      user.user_metadata?.full_name ||
+      user.email?.split("@")[0] ||
+      "Mahasiswa";
+
+    if (payload.type === "submission") {
+      payload.authorName = sessionUserName;
+    } else if (payload.type === "reward_claimed") {
+      payload.recipientName = sessionUserName;
+    }
+
     // A. Sinkronisasi DB untuk PENARIKAN Lencana/Skin (Menggunakan Service Role agar lolos Supabase RLS)
     if (payload.type === "exclusive_badge_revoked" && payload.recipientId) {
       try {
@@ -204,7 +237,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    console.error("Gagal mengirim notifikasi Telegram:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("Gagal mengirim notifikasi Telegram:", err?.message || err);
+    return NextResponse.json({ error: "Gagal memproses notifikasi Telegram" }, { status: 500 });
   }
 }

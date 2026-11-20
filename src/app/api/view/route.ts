@@ -22,18 +22,19 @@ export async function POST(req: NextRequest) {
     let success = false;
     let lastError: string | null = null;
 
-    // 1. Coba RPC increment_karya_view (signature 1: karya_id UUID)
+    // 1. Coba RPC increment_karya_view signature (p_karya_id, p_device_id) yang dipertahankan
     const res1 = await db.rpc("increment_karya_view", {
-      karya_id: karyaId,
+      p_karya_id: karyaId,
+      p_device_id: deviceId || "anonymous",
     });
 
     if (!res1.error) {
       success = true;
     } else {
       lastError = res1.error.message;
-      // 2. Coba signature 2: p_karya_id
+      // 2. Fallback backward-compatibility: signature karya_id
       const res2 = await db.rpc("increment_karya_view", {
-        p_karya_id: karyaId,
+        karya_id: karyaId,
       });
 
       if (!res2.error) {

@@ -42,7 +42,8 @@ export type MahasiswaProfile = {
   id: string;
   user_id?: string | null;
   full_name: string;
-  email: string;
+  email?: string | null;
+  contact_email?: string | null;
   angkatan: number;
   prodi: "Teknik Informatika" | "Sistem Informasi" | "Bisnis Digital" | string;
   avatar_url?: string | null;

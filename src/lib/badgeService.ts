@@ -520,88 +520,50 @@ export async function claimExclusiveBadge(
 ): Promise<boolean> {
   if (typeof window === "undefined") return false;
 
-  const key = `tazkia_claimed_badges_${userId}`;
-  try {
-    const badgeIdNum = Number(badgeId);
-    const toAdd = [badgeIdNum];
-    if (badgeIdNum === 101) {
-      toAdd.push("bem2026" as any);
-    }
-
-    const current = getClaimedExclusiveBadgeIds(userId, studentId);
-    const next = Array.from(new Set([...current, ...toAdd]));
-    localStorage.setItem(key, JSON.stringify(next));
-    if (studentId && studentId !== userId) {
-      localStorage.setItem(`tazkia_claimed_badges_${studentId}`, JSON.stringify(next));
-    }
-
-    // Tandai juga sebagai seen agar tidak merah
-    const seenKey = `tazkia_seen_badges_${userId}`;
-    try {
-      const rawSeen = localStorage.getItem(seenKey);
-      const seenArr = rawSeen ? JSON.parse(rawSeen) : [];
-      if (!seenArr.includes(badgeIdNum)) {
-        localStorage.setItem(seenKey, JSON.stringify([...seenArr, badgeIdNum]));
-      }
-    } catch {}
-
-    // Sinkronkan klaim ke server system_settings
-    try {
-      const grants = await getExclusiveBadgeGrants();
-      let hasChanges = false;
-
-      // Temukan profile id jika belum diteruskan
-      let studentProfileId = studentId;
-      if (!studentProfileId && userId) {
-        try {
-          const { data: prof } = await supabase
-            .from("mahasiswa_profiles")
-            .select("id")
-            .eq("user_id", userId)
-            .maybeSingle();
-          if (prof?.id) {
-            studentProfileId = prof.id;
-          }
-        } catch {}
-      }
-
-      const idsToAdd = [userId, studentId, studentProfileId].filter(Boolean) as string[];
-
-      const updated = grants.map((g) => {
-        const isMatch = grantId
-          ? g.id === grantId
-          : Number(g.badgeId) === badgeIdNum &&
-            (g.recipientId === userId ||
-              (studentProfileId && g.recipientId === studentProfileId) ||
-              (studentId && g.recipientId === studentId));
-
-        if (isMatch) {
-          const currentClaimed = g.claimedBy || [];
-          const missing = idsToAdd.filter((id) => !currentClaimed.includes(id));
-          if (missing.length > 0) {
-            hasChanges = true;
-            return { ...g, claimedBy: [...currentClaimed, ...missing] };
-          }
-        }
-        return g;
-      });
-
-      if (hasChanges) {
-        await supabase.from("system_settings").upsert({
-          key: SETTINGS_KEY,
-          value: JSON.stringify(updated),
-        });
-        localStorage.setItem("tazkia_exclusive_grants_cache", JSON.stringify(updated));
-      }
-    } catch (err) {
-      console.warn("Could not sync claim to server:", err);
-    }
-
-    window.dispatchEvent(new Event("tazkia_badges_updated"));
-    window.dispatchEvent(new Event("tazkia_badges_viewed"));
-    return true;
-  } catch {
-    return false;
+  const badgeIdNum = Number(badgeId);
+  if (!badgeIdNum) {
+    throw new Error("badgeId tidak valid");
   }
+
+  // 1. Sinkronkan klaim ke server melalui API /api/badge/claim TERLEBIH DAHULU
+  const res = await fetch("/api/badge/claim", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ badgeId: badgeIdNum, grantId }),
+  });
+
+  const resData = await res.json().catch(() => null);
+  if (!res.ok || !resData?.success) {
+    const errorMsg = resData?.error || "Gagal menyimpan klaim lencana ke server.";
+    throw new Error(errorMsg);
+  }
+
+  // 2. HANYA setelah server mengonfirmasi sukses, simpan ke localStorage
+  const key = `tazkia_claimed_badges_${userId}`;
+  const toAdd = [badgeIdNum];
+  if (badgeIdNum === 101) {
+    toAdd.push("bem2026" as any);
+  }
+
+  const current = getClaimedExclusiveBadgeIds(userId, studentId);
+  const next = Array.from(new Set([...current, ...toAdd]));
+  localStorage.setItem(key, JSON.stringify(next));
+  if (studentId && studentId !== userId) {
+    localStorage.setItem(`tazkia_claimed_badges_${studentId}`, JSON.stringify(next));
+  }
+
+  // Tandai juga sebagai seen agar tidak merah
+  const seenKey = `tazkia_seen_badges_${userId}`;
+  try {
+    const rawSeen = localStorage.getItem(seenKey);
+    const seenArr = rawSeen ? JSON.parse(rawSeen) : [];
+    if (!seenArr.includes(badgeIdNum)) {
+      localStorage.setItem(seenKey, JSON.stringify([...seenArr, badgeIdNum]));
+    }
+  } catch {}
+
+  window.dispatchEvent(new Event("tazkia_badges_updated"));
+  window.dispatchEvent(new Event("tazkia_badges_viewed"));
+  return true;
 }
 

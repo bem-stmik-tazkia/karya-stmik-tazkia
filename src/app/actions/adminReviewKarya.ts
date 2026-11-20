@@ -3,6 +3,27 @@
 import { createClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { sendTelegramNotification, escapeHtml } from "@/lib/telegram";
+import { isSafeHttpUrl } from "@/lib/safeUrl";
+
+/**
+ * Field yang diizinkan dari pending_edits (ditulis mahasiswa dari browser).
+ * Hanya field yang memang ada di form edit karya.
+ * Field sensitif (status, user_id, views, likes, slug, ai_review_*, dll.) dibuang.
+ */
+const PENDING_EDITS_WHITELIST = [
+  "title",
+  "category",
+  "description",
+  "tech_stack",
+  "github_url",
+  "live_url",
+  "image_url",
+  "features",
+  "team",
+  "gallery",
+] as const;
+
+type PendingEditsWhitelistKey = (typeof PENDING_EDITS_WHITELIST)[number];
 
 /**
  * Server Action: Menyetujui karya oleh Admin.
@@ -63,9 +84,89 @@ export async function adminApproveKarya(karyaId: string, pendingEdits?: any, kar
   };
 
   if (pendingEdits) {
+    // pending_edits ditulis mahasiswa dari browser — isinya TIDAK tepercaya.
+    // Ambil hanya field yang diizinkan (whitelist), buang sisanya.
+    const safeEdits: Partial<Record<PendingEditsWhitelistKey, any>> = {};
+    for (const key of PENDING_EDITS_WHITELIST) {
+      if (key in pendingEdits) {
+        safeEdits[key] = pendingEdits[key];
+      }
+    }
+
+    // Validasi & trim URL fields
+    const urlFields = ["github_url", "live_url", "image_url"] as const;
+    for (const field of urlFields) {
+      const val = safeEdits[field];
+      if (val !== undefined && val !== null) {
+        const trimmed = String(val).trim();
+        if (trimmed === "") {
+          safeEdits[field] = null; // izinkan pengosongan
+        } else if (!isSafeHttpUrl(trimmed)) {
+          return {
+            success: false,
+            error: `URL tidak aman pada field "${field}": ${trimmed}`,
+          };
+        } else {
+          safeEdits[field] = trimmed;
+        }
+      }
+    }
+
+    // Validasi gallery (array of { url, caption })
+    if (Array.isArray(safeEdits.gallery)) {
+      for (const item of safeEdits.gallery) {
+        const url = typeof item === "string" ? item : item?.url;
+        if (url) {
+          const trimmed = String(url).trim();
+          if (trimmed && !isSafeHttpUrl(trimmed)) {
+            return { success: false, error: `URL tidak aman di galeri: ${trimmed}` };
+          }
+        }
+      }
+    }
+
+    // Validasi avatar & kontrol status keanggotaan di dalam team
+    if (Array.isArray(safeEdits.team)) {
+      // Ambil data karya saat ini untuk mengetahui anggota yang sah sudah accepted
+      const { data: existingKarya } = await supabase
+        .from("karya")
+        .select("user_id, team")
+        .eq("id", karyaId)
+        .maybeSingle();
+
+      const existingAcceptedUserIds = new Set<string>();
+      if (existingKarya?.user_id) existingAcceptedUserIds.add(existingKarya.user_id);
+      if (authorUserId) existingAcceptedUserIds.add(authorUserId);
+      if (Array.isArray(existingKarya?.team)) {
+        for (const m of existingKarya.team) {
+          if (m?.user_id && m.status === "accepted") {
+            existingAcceptedUserIds.add(m.user_id);
+          }
+        }
+      }
+
+      for (const member of safeEdits.team) {
+        if (member?.avatar) {
+          const trimmed = String(member.avatar).trim();
+          if (trimmed && !isSafeHttpUrl(trimmed)) {
+            return { success: false, error: `URL avatar tidak aman di tim: ${trimmed}` };
+          }
+          member.avatar = trimmed;
+        }
+
+        // KONTROL STATUS ANGGOTA TIM:
+        // Anggota baru atau yang belum pernah accepted di DB TIDAK BOLEH menjadi 'accepted'
+        // lewat pending_edits tanpa melalui persetujuan undangan kolaborasi (/api/collab).
+        const isLegitAccepted = !!(member.user_id && existingAcceptedUserIds.has(member.user_id));
+        if (!isLegitAccepted && member.status === "accepted") {
+          member.status = "pending";
+        }
+      }
+    }
+
     updatePayload = {
       ...updatePayload,
-      ...pendingEdits,
+      ...safeEdits,
       pending_edits: null,
     };
   }

@@ -110,18 +110,21 @@ export default function AdminMasterPage() {
     return error;
   };
 
-  const handleSaveTelegram = async (e: React.FormEvent) => {
+  const handleSaveTelegram = async (e: React.FormEvent, overrideToken?: string) => {
     e.preventDefault();
     setIsSubmitting(true);
     const toastId = toast.loading("Menyimpan pengaturan Telegram...");
 
+    const tokenToSave = (overrideToken !== undefined ? overrideToken : telegramToken).trim();
+    const chatIdToSave = telegramChatId.trim();
+
     const [{ error: err1 }, { error: err2 }] = await Promise.all([
       supabase
         .from("system_settings")
-        .upsert({ key: "telegram_bot_token", value: telegramToken.trim() }, { onConflict: "key" }),
+        .upsert({ key: "telegram_bot_token", value: tokenToSave }, { onConflict: "key" }),
       supabase
         .from("system_settings")
-        .upsert({ key: "telegram_chat_id", value: telegramChatId.trim() }, { onConflict: "key" }),
+        .upsert({ key: "telegram_chat_id", value: chatIdToSave }, { onConflict: "key" }),
     ]);
 
     if (err1 || err2) {
@@ -130,7 +133,10 @@ export default function AdminMasterPage() {
         { id: toastId }
       );
     } else {
-      toast.success("Pengaturan Telegram berhasil disimpan! ðŸš€", { id: toastId });
+      if (overrideToken !== undefined) {
+        setTelegramToken(tokenToSave);
+      }
+      toast.success("Pengaturan Telegram berhasil disimpan! 🚀", { id: toastId });
     }
     setIsSubmitting(false);
   };

@@ -5,6 +5,7 @@ import { adminApproveKarya, adminRejectKarya, adminDeleteKarya } from "@/app/act
 import { useRouter } from "next/navigation";
 import { FiCheck, FiX, FiTrash2, FiEye, FiXCircle, FiFileText, FiAlertCircle } from "react-icons/fi";
 import toast from "react-hot-toast";
+import { isSafeHttpUrl } from "@/lib/safeUrl";
 
 interface AdminReviewActionsProps {
   karyaId: string;
@@ -303,12 +304,12 @@ export function AdminReviewActions({ karyaId, currentStatus, karyaObj }: AdminRe
                 )}
                 
                 <div className="flex flex-wrap gap-3 pt-1">
-                  {karyaObj.live_url && (
+                  {karyaObj.live_url && isSafeHttpUrl(karyaObj.live_url) && (
                     <a href={karyaObj.live_url} target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1">
                       🔗 Tautan Live Demo
                     </a>
                   )}
-                  {karyaObj.github_url && (
+                  {karyaObj.github_url && isSafeHttpUrl(karyaObj.github_url) && (
                     <a href={karyaObj.github_url} target="_blank" rel="noreferrer" className="text-xs font-semibold text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
                       📁 Repositori Proyek
                     </a>

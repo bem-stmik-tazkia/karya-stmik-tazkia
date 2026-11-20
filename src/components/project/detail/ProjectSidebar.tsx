@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Users, Code } from "lucide-react";
 import type { Karya } from "@/types/karya";
 import { formatNumber } from "@/lib/data";
+import { isSafeHttpUrl } from "@/lib/safeUrl";
 
 interface ProjectSidebarProps {
   karya: Karya;
@@ -64,7 +65,7 @@ export default function ProjectSidebar({
         </div>
 
         <div className="mt-5 flex flex-col gap-2.5">
-          {karya.live_url && (
+          {karya.live_url && isSafeHttpUrl(karya.live_url) && (
             <a
               href={karya.live_url}
               target="_blank"
@@ -75,7 +76,7 @@ export default function ProjectSidebar({
               <span>{linkConfig.label}</span>
             </a>
           )}
-          {karya.github_url && (
+          {karya.github_url && isSafeHttpUrl(karya.github_url) && (
             <a
               href={karya.github_url}
               target="_blank"

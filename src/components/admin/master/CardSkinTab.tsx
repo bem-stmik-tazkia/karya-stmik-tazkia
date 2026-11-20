@@ -65,6 +65,7 @@ export default function CardSkinTab({
     return (
       (s.full_name && s.full_name.toLowerCase().includes(q)) ||
       (s.prodi && s.prodi.toLowerCase().includes(q)) ||
+      (s.contact_email && s.contact_email.toLowerCase().includes(q)) ||
       (s.email && s.email.toLowerCase().includes(q))
     );
   });
@@ -119,7 +120,7 @@ export default function CardSkinTab({
       return {
         recipientId: recipientUserId,
         recipientName: s?.full_name || "Mahasiswa",
-        recipientEmail: s?.email || "",
+        recipientEmail: s?.contact_email || s?.email || "",
         badgeId: selectedReward.badgeId,
         badgeName: selectedReward.name,
         note: grantNote.trim() || selectedReward.notePlaceholder,

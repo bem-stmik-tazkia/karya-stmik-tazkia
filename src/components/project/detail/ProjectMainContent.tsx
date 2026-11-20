@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Code, Share2, Eye } from "lucide-react";
 import type { Karya } from "@/types/karya";
 import { getTechIconUrl, TechIcon } from "../techIcons";
+import { isSafeHttpUrl } from "@/lib/safeUrl";
 
 interface ProjectMainContentProps {
   karya: Karya;
@@ -37,7 +38,7 @@ export default function ProjectMainContent({
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-3 mb-8">
-        {karya.live_url && (
+        {karya.live_url && isSafeHttpUrl(karya.live_url) && (
           <a
             href={karya.live_url}
             target="_blank"
@@ -48,7 +49,7 @@ export default function ProjectMainContent({
             <span>{linkConfig.label}</span>
           </a>
         )}
-        {karya.github_url && (
+        {karya.github_url && isSafeHttpUrl(karya.github_url) && (
           <a
             href={karya.github_url}
             target="_blank"

@@ -204,23 +204,29 @@ export function useDashboardProfile({
     const hasSkin = Boolean(skinGrant);
     const grantsToClaim = [...claimableGrants];
 
-    for (const grant of grantsToClaim) {
-      await claimExclusiveBadge(grant.badgeId, uid, grant.id);
-      markBadgeAsSeen(grant.badgeId);
+    const toastId = toast.loading("Mengklaim seluruh lencana...");
+    try {
+      for (const grant of grantsToClaim) {
+        await claimExclusiveBadge(grant.badgeId, uid, grant.id);
+        markBadgeAsSeen(grant.badgeId);
+      }
+
+      await refreshGrantsAndClaims();
+
+      window.dispatchEvent(
+        new CustomEvent("tazkia_open_reward_modal", {
+          detail: {
+            badgeIds: grantsToClaim.map((g) => g.badgeId),
+            grant: skinGrant || grantsToClaim[0],
+            skinId: hasSkin ? "bem2026" : undefined,
+            note: skinGrant?.note || grantsToClaim[0]?.note,
+          },
+        })
+      );
+      toast.success("Semua penghargaan berhasil diklaim!", { id: toastId });
+    } catch (err: any) {
+      toast.error(err.message || "Gagal mengklaim seluruh lencana.", { id: toastId });
     }
-
-    await refreshGrantsAndClaims();
-
-    window.dispatchEvent(
-      new CustomEvent("tazkia_open_reward_modal", {
-        detail: {
-          badgeIds: grantsToClaim.map((g) => g.badgeId),
-          grant: skinGrant || grantsToClaim[0],
-          skinId: hasSkin ? "bem2026" : undefined,
-          note: skinGrant?.note || grantsToClaim[0]?.note,
-        },
-      })
-    );
   };
 
   // Collab requests

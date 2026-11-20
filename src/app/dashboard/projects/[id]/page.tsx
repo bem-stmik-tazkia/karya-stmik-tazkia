@@ -3,6 +3,7 @@
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getKarya, formatNumber, checkKaryaLiked, toggleKaryaLike } from "@/lib/data";
+import { isSafeHttpUrl } from "@/lib/safeUrl";
 import { supabase } from "@/lib/supabase";
 import { getDeviceId } from "@/utils/identity";
 import type { Karya } from "@/types/karya";
@@ -478,7 +479,7 @@ export default function ProjectDetailPage({
 
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-3 mb-8">
-              {karya.live_url && (
+              {karya.live_url && isSafeHttpUrl(karya.live_url) && (
                 <a
                   href={karya.live_url}
                   target="_blank"
@@ -489,7 +490,7 @@ export default function ProjectDetailPage({
                   <span>{linkConfig.label}</span>
                 </a>
               )}
-              {karya.github_url && (
+              {karya.github_url && isSafeHttpUrl(karya.github_url) && (
                 <a
                   href={karya.github_url}
                   target="_blank"
@@ -660,12 +661,12 @@ export default function ProjectDetailPage({
             </div>
 
             <div className="mt-4 flex flex-col gap-2.5">
-              {karya.live_url && (
+              {karya.live_url && isSafeHttpUrl(karya.live_url) && (
                 <a href={karya.live_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-2.5 rounded-lg bg-primary text-white border border-primary hover:bg-[#ea580c] transition-all duration-200 font-medium text-sm shadow-sm">
                   {linkConfig.icon} {linkConfig.label}
                 </a>
               )}
-              {karya.github_url && (
+              {karya.github_url && isSafeHttpUrl(karya.github_url) && (
                 <a href={karya.github_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-2.5 rounded-lg bg-muted border border-border hover:bg-card hover:border-foreground/30 transition-all duration-200 font-medium text-sm shadow-sm">
                   <Code className="w-4 h-4" /> Source Code
                 </a>

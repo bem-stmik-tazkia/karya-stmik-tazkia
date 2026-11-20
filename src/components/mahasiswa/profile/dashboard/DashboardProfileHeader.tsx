@@ -13,6 +13,7 @@ import {
 import { FiInstagram } from "react-icons/fi";
 import { normalizeStatusBadge, getStatusIcon } from "@/app/student/page";
 import { getTechTagColor } from "@/utils/techTagColor";
+import { normalizeSocialUrl } from "@/lib/safeUrl";
 
 export interface ProfileViewData {
   id?: string;
@@ -275,10 +276,16 @@ export function DashboardProfileHeader({
               </button>
 
               {/* 4 Social Icons */}
+              {(() => {
+                const safeWebsite = normalizeSocialUrl(profile.website_url, "website");
+                const safeLinkedin = normalizeSocialUrl(profile.linkedin_url, "linkedin");
+                const safeGithub = normalizeSocialUrl(profile.github_url, "github");
+                const safeInstagram = normalizeSocialUrl(profile.instagram_url, "instagram");
+                return (
               <div className="flex gap-1.5 ml-0 sm:ml-1">
-                {profile.website_url ? (
+                {safeWebsite ? (
                   <a
-                    href={profile.website_url}
+                    href={safeWebsite}
                     target="_blank"
                     rel="noreferrer"
                     className="w-9 h-9 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-[#FF8A2B] hover:bg-[#FF8A2B] hover:text-white hover:border-[#FF8A2B] transition-all shadow-xs"
@@ -298,9 +305,9 @@ export function DashboardProfileHeader({
                 )}
 
                 {/* LinkedIn */}
-                {profile.linkedin_url ? (
+                {safeLinkedin ? (
                   <a
-                    href={profile.linkedin_url}
+                    href={safeLinkedin}
                     target="_blank"
                     rel="noreferrer"
                     className="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 hover:bg-[#0077b5] hover:text-white hover:border-[#0077b5] transition-all shadow-xs"
@@ -324,9 +331,9 @@ export function DashboardProfileHeader({
                 )}
 
                 {/* GitHub */}
-                {profile.github_url ? (
+                {safeGithub ? (
                   <a
-                    href={profile.github_url}
+                    href={safeGithub}
                     target="_blank"
                     rel="noreferrer"
                     className="w-9 h-9 rounded-lg bg-slate-500/10 border border-slate-500/20 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-[#333] hover:text-white hover:border-[#333] transition-all shadow-xs"
@@ -350,9 +357,9 @@ export function DashboardProfileHeader({
                 )}
 
                 {/* Instagram */}
-                {profile.instagram_url ? (
+                {safeInstagram ? (
                   <a
-                    href={profile.instagram_url}
+                    href={safeInstagram}
                     target="_blank"
                     rel="noreferrer"
                     className="w-9 h-9 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 hover:bg-[#E4405F] hover:text-white hover:border-[#E4405F] transition-all shadow-xs"
@@ -371,6 +378,8 @@ export function DashboardProfileHeader({
                   </span>
                 )}
               </div>
+                );
+              })()}
             </div>
           </div>
         </div>

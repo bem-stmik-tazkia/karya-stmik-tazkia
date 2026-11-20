@@ -26,28 +26,43 @@ export async function POST(req: NextRequest) {
         recipientUserId,
         recipientName,
         role,
-        inviterName,
       } = body;
 
       if (!karyaId || !recipientUserId) {
         return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
       }
 
-      const invName = inviterName || user.user_metadata?.full_name || "Rekan Mahasiswa";
-      const newRequest = {
-        id: `collab_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-        karyaId,
-        karyaTitle: karyaTitle || "Projek",
-        inviterUserId: user.id,
-        inviterName: invName,
-        recipientUserId,
-        recipientName: recipientName || "Mahasiswa",
-        role: role || "Anggota Tim",
-        status: "pending",
-        createdAt: new Date().toISOString(),
-      };
+      // 1. Tolak jika recipientUserId sama dengan user.id (tidak boleh mengundang diri sendiri)
+      if (recipientUserId === user.id) {
+        return NextResponse.json(
+          { error: "Tidak dapat mengundang diri sendiri ke dalam tim." },
+          { status: 400 }
+        );
+      }
 
-      // Simpan ke system_settings
+      // 2. Ambil data karya dari DB dan verifikasi kepemilikan (hanya pemilik karya yang boleh mengundang)
+      const { data: karya, error: karyaErr } = await dbClient
+        .from("karya")
+        .select("id, title, user_id, team")
+        .eq("id", karyaId)
+        .maybeSingle();
+
+      if (karyaErr || !karya) {
+        return NextResponse.json({ error: "Karya tidak ditemukan" }, { status: 404 });
+      }
+
+      if (karya.user_id !== user.id) {
+        return NextResponse.json(
+          { error: "Forbidden: Hanya pemilik karya yang berhak mengundang anggota tim." },
+          { status: 403 }
+        );
+      }
+
+      // 3. Kunci inviterName ke sesi login server (Anti-Spoofing nama)
+      const invName = user.user_metadata?.full_name || "Pemilik Karya";
+      const resolvedTitle = karya.title || karyaTitle || "Projek";
+
+      // 4. Ambil currentRequests dari system_settings untuk cek duplikat undangan pending
       const { data: currentSetting } = await dbClient
         .from("system_settings")
         .select("value")
@@ -61,11 +76,31 @@ export async function POST(req: NextRequest) {
         } catch {}
       }
 
-      // Hapus request pending duplikat untuk karya & penerima yang sama jika ada
-      const filtered = currentRequests.filter(
-        (r) => !(r.karyaId === karyaId && r.recipientUserId === recipientUserId && r.status === "pending")
+      // 5. Tolak jika sudah ada request 'pending' untuk karyaId + recipientUserId yang sama (Anti-Spam)
+      const isAlreadyPending = currentRequests.some(
+        (r) => r.karyaId === karyaId && r.recipientUserId === recipientUserId && r.status === "pending"
       );
-      const updated = [newRequest, ...filtered];
+      if (isAlreadyPending) {
+        return NextResponse.json(
+          { error: "Undangan kolaborasi untuk mahasiswa ini masih berstatus pending." },
+          { status: 409 }
+        );
+      }
+
+      const newRequest = {
+        id: `collab_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        karyaId,
+        karyaTitle: resolvedTitle,
+        inviterUserId: user.id,
+        inviterName: invName,
+        recipientUserId,
+        recipientName: recipientName || "Mahasiswa",
+        role: role || "Anggota Tim",
+        status: "pending",
+        createdAt: new Date().toISOString(),
+      };
+
+      const updated = [newRequest, ...currentRequests];
 
       await dbClient.from("system_settings").upsert({
         key: SETTINGS_KEY,
@@ -79,7 +114,7 @@ export async function POST(req: NextRequest) {
             user_id: recipientUserId,
             type: "collab_request",
             title: `🤝 Undangan Kolaborasi Tim Projek`,
-            message: `${invName} mengundang Anda untuk bergabung ke dalam tim projek "${karyaTitle || "Projek"}" sebagai ${role || "Anggota Tim"}.`,
+            message: `${invName} mengundang Anda untuk bergabung ke dalam tim projek "${resolvedTitle}" sebagai ${role || "Anggota Tim"}.`,
             karya_id: karyaId,
             is_read: false,
           },
@@ -95,8 +130,6 @@ export async function POST(req: NextRequest) {
     if (action === "respond" || body.intent === "respond") {
       const {
         karyaId,
-        responderUserId,
-        responderName,
         notificationId,
       } = body;
       const responseAction = body.responseAction || body.action;
@@ -105,8 +138,17 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
       }
 
-      const activeUserId = responderUserId || user.id;
-      const respName = responderName || user.user_metadata?.full_name || "Mahasiswa";
+      // Whitelist responseAction: hanya 'accept' atau 'reject'
+      if (responseAction !== "accept" && responseAction !== "reject") {
+        return NextResponse.json(
+          { error: "Invalid responseAction. Harus bernilai 'accept' atau 'reject'." },
+          { status: 400 }
+        );
+      }
+
+      // Kunci identitas responder murni dari sesi login server (Anti-IDOR & Anti-Spoofing)
+      const activeUserId = user.id;
+      const respName = user.user_metadata?.full_name || "Mahasiswa";
       const isAccept = responseAction === "accept";
 
       // 1. Ambil data karya saat ini
@@ -120,10 +162,38 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Karya tidak ditemukan" }, { status: 404 });
       }
 
-      // 2. Update status anggota di karya.team
-      const currentTeam: any[] = Array.isArray(karya.team) ? karya.team : [];
-      let memberFound = false;
+      // 2. Ambil daftar undangan kolaborasi dari system_settings
+      const { data: currentSetting } = await dbClient
+        .from("system_settings")
+        .select("value")
+        .eq("key", SETTINGS_KEY)
+        .maybeSingle();
 
+      let currentRequests: any[] = [];
+      if (currentSetting?.value) {
+        try {
+          currentRequests = JSON.parse(currentSetting.value);
+        } catch {}
+      }
+
+      // 3. Verifikasi ketat: user HARUS memiliki undangan berstatus 'pending'
+      const currentTeam: any[] = Array.isArray(karya.team) ? karya.team : [];
+      const isInvitedInTeam = currentTeam.some(
+        (m: any) => m.user_id === activeUserId && m.status === "pending"
+      );
+      const isInvitedInRequests = currentRequests.some(
+        (r: any) => r.karyaId === karyaId && r.recipientUserId === activeUserId && r.status === "pending"
+      );
+
+      if (!isInvitedInTeam && !isInvitedInRequests) {
+        return NextResponse.json(
+          { error: "Forbidden: Anda tidak memiliki undangan pending untuk karya ini." },
+          { status: 403 }
+        );
+      }
+
+      // 4. Update status anggota di karya.team
+      let memberFound = false;
       const updatedTeam = currentTeam.map((member) => {
         if (member.user_id === activeUserId) {
           memberFound = true;
@@ -135,11 +205,14 @@ export async function POST(req: NextRequest) {
         return member;
       });
 
-      // Jika anggota belum ada di team array tapi menerima, tambahkan
+      // Jika diundang via collab_requests tapi belum ada di team array saat accept
       if (!memberFound && isAccept) {
+        const reqItem = currentRequests.find(
+          (r: any) => r.karyaId === karyaId && r.recipientUserId === activeUserId && r.status === "pending"
+        );
         updatedTeam.push({
           name: respName,
-          role: "Anggota Tim",
+          role: reqItem?.role || "Anggota Tim",
           user_id: activeUserId,
           avatar: user.user_metadata?.avatar_url || "",
           status: "accepted",
@@ -155,17 +228,10 @@ export async function POST(req: NextRequest) {
         console.error("Failed to update karya team:", updateKaryaErr);
       }
 
-      // 3. Update status di system_settings key collab_requests
-      const { data: currentSetting } = await dbClient
-        .from("system_settings")
-        .select("value")
-        .eq("key", SETTINGS_KEY)
-        .maybeSingle();
-
-      if (currentSetting?.value) {
+      // 5. Update status di system_settings key collab_requests (menggunakan currentRequests yang sudah dibaca)
+      if (currentRequests.length > 0) {
         try {
-          const parsed = JSON.parse(currentSetting.value);
-          const updatedRequests = parsed.map((r: any) => {
+          const updatedRequests = currentRequests.map((r: any) => {
             if (r.karyaId === karyaId && r.recipientUserId === activeUserId && r.status === "pending") {
               return {
                 ...r,
@@ -183,12 +249,13 @@ export async function POST(req: NextRequest) {
         } catch {}
       }
 
-      // 4. Update notifikasi yang masuk menjadi read
+      // 6. Update notifikasi yang masuk menjadi read (Wajib difilter user_id agar tidak memanipulasi milik orang lain)
       if (notificationId) {
         await dbClient
           .from("notifications")
           .update({ is_read: true })
-          .eq("id", notificationId);
+          .eq("id", notificationId)
+          .eq("user_id", activeUserId);
       } else {
         await dbClient
           .from("notifications")

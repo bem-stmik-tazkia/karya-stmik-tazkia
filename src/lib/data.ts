@@ -79,35 +79,9 @@ export async function incrementKaryaView(karyaId: string, deviceId: string, user
       const data = await res.json().catch(() => null);
       if (data?.success) return true;
     }
+    return false;
   } catch (err) {
-    console.warn("[incrementKaryaView] /api/view failed, trying direct RPC fallback:", err);
-  }
-
-  // Fallback ke direct RPC client-side jika fetch route gagal
-  try {
-    // 1. Signature karya_id
-    let { error } = await supabase.rpc("increment_karya_view", {
-      karya_id: karyaId,
-    });
-    if (error) {
-      // 2. Signature p_karya_id
-      const res2 = await supabase.rpc("increment_karya_view", {
-        p_karya_id: karyaId,
-      });
-      error = res2.error;
-    }
-    if (error) {
-      // 3. Signature alternatif lengkap
-      const res3 = await supabase.rpc("increment_karya_view", {
-        p_karya_id: karyaId,
-        p_device_id: deviceId,
-        p_user_id: userId || null,
-      });
-      error = res3.error;
-    }
-    return !error;
-  } catch (err) {
-    console.error("[incrementKaryaView] Fallback error:", err);
+    console.error("[incrementKaryaView] /api/view failed:", err);
     return false;
   }
 }
@@ -250,7 +224,7 @@ export async function getMahasiswaProfiles(options?: {
 }): Promise<MahasiswaProfile[]> {
   let query = supabase
     .from("mahasiswa_profiles")
-    .select("id, user_id, full_name, email, contact_email, prodi, angkatan, avatar_url, cover_url, bio, skills, status_badge, github_url, linkedin_url, instagram_url, website_url, followers_count, following_count, is_featured, created_at, updated_at")
+    .select("id, user_id, full_name, contact_email, prodi, angkatan, avatar_url, cover_url, bio, skills, status_badge, github_url, linkedin_url, instagram_url, website_url, followers_count, following_count, is_featured, created_at, updated_at")
     .order("created_at", { ascending: false });
 
   if (options?.featured) {
@@ -282,7 +256,7 @@ export async function getMahasiswaById(id: string): Promise<MahasiswaProfile | n
   // Try matching by primary key `id` first
   const { data: byId, error: err1 } = await supabase
     .from("mahasiswa_profiles")
-    .select("id, user_id, full_name, email, contact_email, prodi, angkatan, avatar_url, cover_url, bio, skills, status_badge, github_url, linkedin_url, instagram_url, website_url, followers_count, following_count, is_featured, created_at, updated_at")
+    .select("id, user_id, full_name, contact_email, prodi, angkatan, avatar_url, cover_url, bio, skills, status_badge, github_url, linkedin_url, instagram_url, website_url, followers_count, following_count, is_featured, created_at, updated_at")
     .eq("id", id)
     .maybeSingle();
 
@@ -294,7 +268,7 @@ export async function getMahasiswaById(id: string): Promise<MahasiswaProfile | n
   // Fallback: try matching by `user_id` column (for auth users)
   const { data: byUserId, error: err2 } = await supabase
     .from("mahasiswa_profiles")
-    .select("id, user_id, full_name, email, contact_email, prodi, angkatan, avatar_url, cover_url, bio, skills, status_badge, github_url, linkedin_url, instagram_url, website_url, followers_count, following_count, is_featured, created_at, updated_at")
+    .select("id, user_id, full_name, contact_email, prodi, angkatan, avatar_url, cover_url, bio, skills, status_badge, github_url, linkedin_url, instagram_url, website_url, followers_count, following_count, is_featured, created_at, updated_at")
     .eq("user_id", id)
     .maybeSingle();
 

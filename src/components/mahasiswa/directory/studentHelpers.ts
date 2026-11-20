@@ -133,7 +133,7 @@ export function toStudent(m: MahasiswaProfile, allKarya: Karya[] = []): Student 
     statusBadge: normalizeStatusBadge(m.status_badge),
     rawStatusBadge: m.status_badge ?? undefined,
     skills: validSkills,
-    contactEmail: (m as any).contact_email || m.email || "",
+    contactEmail: m.contact_email || m.email || "",
     socials: {
       github: m.github_url ?? undefined,
       linkedin: m.linkedin_url ?? undefined,

@@ -1,12 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://pmrowiyvuqnxgzmlbfzx.supabase.co",
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-    "placeholder-key"
-);
+import { supabaseAdmin } from "@/lib/supabase-server";
 
 function cleanTelegramText(text: string): string {
   return text
@@ -339,24 +331,27 @@ export const sendTelegramNotification = async (
   let token = process.env.TELEGRAM_BOT_TOKEN;
   let chatId = process.env.TELEGRAM_CHAT_ID;
 
+  // Prioritaskan konfigurasi dinamis dari database (system_settings) via supabaseAdmin
   try {
-    const { data } = await supabase
-      .from("system_settings")
-      .select("key, value")
-      .in("key", ["telegram_bot_token", "telegram_chat_id"]);
+    if (supabaseAdmin) {
+      const { data } = await supabaseAdmin
+        .from("system_settings")
+        .select("key, value")
+        .in("key", ["telegram_bot_token", "telegram_chat_id"]);
 
-    if (data) {
-      const dbToken = data.find((d) => d.key === "telegram_bot_token")?.value;
-      const dbChatId = data.find((d) => d.key === "telegram_chat_id")?.value;
-      if (dbToken && dbToken !== "null" && dbToken.trim() !== "") token = dbToken;
-      if (dbChatId && dbChatId !== "null" && dbChatId.trim() !== "") chatId = dbChatId;
+      if (data) {
+        const dbToken = data.find((d: any) => d.key === "telegram_bot_token")?.value;
+        const dbChatId = data.find((d: any) => d.key === "telegram_chat_id")?.value;
+        if (dbToken && dbToken !== "null" && dbToken.trim() !== "") token = dbToken;
+        if (dbChatId && dbChatId !== "null" && dbChatId.trim() !== "") chatId = dbChatId;
+      }
     }
   } catch (e) {
     console.error("Gagal mengambil setting telegram dari DB:", e);
   }
 
   if (!token || !chatId) {
-    console.warn("Telegram Bot Token atau Chat ID belum diset.");
+    console.warn("Telegram Bot Token atau Chat ID belum diset di system_settings maupun environment variables.");
     return;
   }
 
@@ -375,9 +370,13 @@ export const sendTelegramNotification = async (
     });
 
     if (!response.ok) {
-      console.error("Gagal mengirim Telegram", await response.text());
+      const errText = await response.text();
+      const safeErr = token ? errText.replaceAll(token, "••••") : errText;
+      console.error("Gagal mengirim Telegram:", safeErr);
     }
-  } catch (error) {
-    console.error("Telegram error:", error);
+  } catch (error: any) {
+    const rawMsg = String(error?.message || error);
+    const safeMsg = token ? rawMsg.replaceAll(token, "••••") : rawMsg;
+    console.error("Telegram error:", safeMsg);
   }
 };

@@ -22,6 +22,7 @@ import { getStatusIcon, normalizeStatusBadge } from "@/components/mahasiswa/dire
 import ShareProfileModal from "@/components/mahasiswa/modals/ShareProfileModal";
 import { MahasiswaDrawerBadges } from "./MahasiswaDrawerBadges";
 import { MahasiswaDrawerProjects } from "./MahasiswaDrawerProjects";
+import { isSafeHttpUrl, normalizeSocialUrl } from "@/lib/safeUrl";
 
 interface MahasiswaProfileDrawerProps {
   student: Student | null;
@@ -53,38 +54,20 @@ export default function MahasiswaProfileDrawer({
   const studentEmail = (student.contactEmail || "").trim();
   const hasEmail = Boolean(studentEmail && studentEmail.includes("@"));
 
-  const rawGithub = (student.socials?.github || (student as any).github_url || "").trim();
-  const githubUrl = rawGithub
-    ? (rawGithub.startsWith("http://") || rawGithub.startsWith("https://")
-        ? rawGithub
-        : `https://github.com/${rawGithub.replace(/^@/, "")}`)
-    : "";
+  const rawGithub = student.socials?.github || (student as any).github_url;
+  const githubUrl = normalizeSocialUrl(rawGithub, "github") || "";
 
-  const rawLinkedin = (student.socials?.linkedin || (student as any).linkedin_url || "").trim();
-  const linkedinUrl = rawLinkedin
-    ? (rawLinkedin.startsWith("http://") || rawLinkedin.startsWith("https://")
-        ? rawLinkedin
-        : `https://linkedin.com/in/${rawLinkedin.replace(/^@/, "")}`)
-    : "";
+  const rawLinkedin = student.socials?.linkedin || (student as any).linkedin_url;
+  const linkedinUrl = normalizeSocialUrl(rawLinkedin, "linkedin") || "";
 
-  const rawInstagram = (student.socials?.instagram || (student as any).instagram_url || "").trim();
-  const instagramUrl = rawInstagram
-    ? (rawInstagram.startsWith("http://") || rawInstagram.startsWith("https://")
-        ? rawInstagram
-        : `https://instagram.com/${rawInstagram.replace(/^@/, "")}`)
-    : "";
+  const rawInstagram = student.socials?.instagram || (student as any).instagram_url;
+  const instagramUrl = normalizeSocialUrl(rawInstagram, "instagram") || "";
 
-  const rawWebsite = (
+  const rawWebsite =
     student.socials?.website ||
     student.socials?.portfolio ||
-    (student as any).website_url ||
-    ""
-  ).trim();
-  const websiteUrl = rawWebsite
-    ? (rawWebsite.startsWith("http://") || rawWebsite.startsWith("https://")
-        ? rawWebsite
-        : `https://${rawWebsite}`)
-    : "";
+    (student as any).website_url;
+  const websiteUrl = normalizeSocialUrl(rawWebsite, "website") || "";
 
   const studentSkills = Array.from(
     new Set(student.skills || [])

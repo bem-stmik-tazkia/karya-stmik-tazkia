@@ -18,6 +18,7 @@ import toast from "react-hot-toast";
 import { useUnsavedChangesWarning } from "@/hooks/useUnsavedChangesWarning";
 import { UnsavedChangesModal } from "@/components/ui/UnsavedChangesModal";
 import { sendCollabRequest } from "@/lib/collabService";
+import { isSafeHttpUrl } from "@/lib/safeUrl";
 
 const KATEGORI_OPTIONS = [
   { id: "Technology", label: "Aplikasi Web & Sistem" },
@@ -257,7 +258,7 @@ export default function UploadKaryaFormPage() {
     setInvalidFields(prev => prev.filter(id => id !== `input-gallery-${index}-url`));
   };
 
-  const isValidUrl = (url: string) => { try { new URL(url); return true; } catch { return false; } };
+  const isValidUrl = (url: string) => isSafeHttpUrl(url);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -308,6 +309,8 @@ export default function UploadKaryaFormPage() {
     formData.gallery.forEach((g, i) => {
       if (g.caption.trim() && !g.url.trim()) {
         fields.push(`input-gallery-${i}-url`);
+      } else if (g.url.trim() && !isValidUrl(g.url.trim())) {
+        fields.push(`input-gallery-${i}-url`);
       }
     });
     const validGallery = formData.gallery
@@ -354,12 +357,12 @@ export default function UploadKaryaFormPage() {
         category: dataToSubmit.category,
         description: dataToSubmit.description,
         tech_stack: techStackArray,
-        github_url: dataToSubmit.github_url || null,
-        live_url: dataToSubmit.live_url || null,
+        github_url: dataToSubmit.github_url ? dataToSubmit.github_url.trim() : null,
+        live_url: dataToSubmit.live_url ? dataToSubmit.live_url.trim() : null,
         team: teamObjects,
         features: validFeatures,
         gallery: validGallery,
-        image_url: dataToSubmit.image_url,
+        image_url: dataToSubmit.image_url ? dataToSubmit.image_url.trim() : "",
       };
 
       const escapeHtml = (unsafe: string) => (unsafe || "").toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");

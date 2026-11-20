@@ -4,7 +4,7 @@
  */
 
 // Palet warna yang tersedia (bg + text + border)
-const SKILL_PALETTES = [
+export const SKILL_PALETTES = [
   "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700",
   "bg-green-100 text-green-700 border-green-300 dark:bg-green-900/40 dark:text-green-300 dark:border-green-700",
   "bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-700",
@@ -20,16 +20,16 @@ const SKILL_PALETTES = [
 ];
 
 // Mapping keyword → indeks palet untuk teknologi umum
-const KEYWORD_MAP: Record<string, number> = {
+export const KEYWORD_MAP: Record<string, number> = {
   // Frontend
-  react: 0, "next.js": 0, nextjs: 0, vue: 2, angular: 7, svelte: 4,
+  react: 0, reactjs: 0, "next.js": 0, nextjs: 0, vue: 2, vuejs: 2, angular: 7, angularjs: 7, svelte: 4, sveltejs: 4,
   html: 3, css: 0, javascript: 4, typescript: 0, tailwind: 1, tailwindcss: 1,
   bootstrap: 2, jquery: 4, frontend: 0, "ui/ux": 2, "ui ux": 2, figma: 2,
 
   // Backend
-  "node.js": 1, nodejs: 1, express: 1, fastapi: 1, django: 1, flask: 1,
+  "node.js": 1, nodejs: 1, express: 1, expressjs: 1, nestjs: 1, fastapi: 1, django: 1, flask: 1,
   laravel: 6, php: 2, ruby: 6, rails: 6, backend: 7,
-  golang: 8, go: 8, java: 9, "spring boot": 9, "c#": 2, ".net": 2,
+  golang: 8, go: 8, java: 9, "spring boot": 9, "c++": 2, "c#": 2, ".net": 2, c: 7,
 
   // Database
   mysql: 9, postgresql: 0, postgres: 0, mongodb: 1, firebase: 9, supabase: 1,
@@ -60,6 +60,18 @@ const KEYWORD_MAP: Record<string, number> = {
   "ui designer": 2, developer: 0, "web developer": 0,
 };
 
+// Kompilasi regex boundary satu kali di luar fungsi.
+// Diurutkan berdasarkan panjang keyword secara descending agar kata majemuk & varian simbolis (mis. "c++", "node.js")
+// diprioritaskan sebelum kata pendek (mis. "c", "node").
+const COMPILED_KEYWORD_RULES: { keyword: string; paletteIdx: number; regex: RegExp }[] =
+  Object.entries(KEYWORD_MAP)
+    .sort((a, b) => b[0].length - a[0].length)
+    .map(([keyword, paletteIdx]) => {
+      const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(`(^|[^a-z0-9+#.-])${escaped}([^a-z0-9+#.-]|$)`, "i");
+      return { keyword, paletteIdx, regex };
+    });
+
 /**
  * Menghitung hash sederhana dari string → indeks palet (deterministik)
  */
@@ -76,15 +88,27 @@ function hashToPaletteIndex(str: string): number {
  * @param skill - nama skill / teknologi
  */
 export function getSkillColor(skill: string): string {
-  const key = skill.toLowerCase().trim();
+  if (!skill || typeof skill !== "string") {
+    return SKILL_PALETTES[0];
+  }
 
-  // Cari di keyword map
-  for (const [keyword, paletteIdx] of Object.entries(KEYWORD_MAP)) {
-    if (key.includes(keyword) || keyword.includes(key)) {
-      return SKILL_PALETTES[paletteIdx];
+  const key = skill.toLowerCase().trim();
+  if (!key) {
+    return SKILL_PALETTES[0];
+  }
+
+  // 1. Prioritas: Pencocokan eksak aman dengan Object.hasOwn
+  if (Object.hasOwn(KEYWORD_MAP, key)) {
+    return SKILL_PALETTES[KEYWORD_MAP[key]];
+  }
+
+  // 2. Pencocokan dengan batas kata (word boundary)
+  for (const rule of COMPILED_KEYWORD_RULES) {
+    if (rule.regex.test(key)) {
+      return SKILL_PALETTES[rule.paletteIdx];
     }
   }
 
-  // Fallback: hash deterministik dari nama skill
+  // 3. Fallback: hash deterministik dari nama skill
   return SKILL_PALETTES[hashToPaletteIndex(key)];
 }

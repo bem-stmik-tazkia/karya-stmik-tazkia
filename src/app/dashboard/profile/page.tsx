@@ -12,6 +12,7 @@ import { PREDEFINED_SKILLS } from "@/utils/skillOptions";
 import { SkillPicker } from "@/components/mahasiswa/modals/SkillPicker";
 import { useUnsavedChangesWarning } from "@/hooks/useUnsavedChangesWarning";
 import { UnsavedChangesModal } from "@/components/ui/UnsavedChangesModal";
+import { isSafeHttpUrl, normalizeSocialUrl } from "@/lib/safeUrl";
 
 const PREDEFINED_STATUSES = [
   "🚀 Open for Collab", "💼 Mencari Magang", "🤝 Siap Freelance", 
@@ -169,8 +170,33 @@ export default function ProfileSettingsPage() {
     if (!user) return;
     
     setSaving(true);
+
+    const normalizedGithub = normalizeSocialUrl(formData.github_url, "github");
+    if (formData.github_url.trim() && !normalizedGithub) {
+      toast.error("Format tautan/username GitHub tidak valid.");
+      setSaving(false);
+      return;
+    }
+    const normalizedLinkedin = normalizeSocialUrl(formData.linkedin_url, "linkedin");
+    if (formData.linkedin_url.trim() && !normalizedLinkedin) {
+      toast.error("Format tautan/username LinkedIn tidak valid.");
+      setSaving(false);
+      return;
+    }
+    const normalizedInstagram = normalizeSocialUrl(formData.instagram_url, "instagram");
+    if (formData.instagram_url.trim() && !normalizedInstagram) {
+      toast.error("Format tautan/username Instagram tidak valid.");
+      setSaving(false);
+      return;
+    }
+    const normalizedWebsite = normalizeSocialUrl(formData.website_url, "website");
+    if (formData.website_url.trim() && !normalizedWebsite) {
+      toast.error("Format tautan Website / Portofolio tidak valid.");
+      setSaving(false);
+      return;
+    }
     
-    let finalAvatarUrl = formData.avatar_url;
+    let finalAvatarUrl = formData.avatar_url ? formData.avatar_url.trim() : "";
     if (avatarFile) {
       setUploadingAvatar(true);
       const uploadedUrl = await uploadAvatarToSupabase(avatarFile);
@@ -182,16 +208,16 @@ export default function ProfileSettingsPage() {
 
     const payload = {
       user_id: user.id,
-      full_name: formData.full_name,
-      contact_email: formData.contact_email,
+      full_name: formData.full_name.trim(),
+      contact_email: formData.contact_email?.trim() || null,
       prodi: formData.prodi,
       angkatan: parseInt(formData.angkatan) || 2,
-      bio: formData.bio,
+      bio: formData.bio?.trim() || null,
       status_badge: formData.status_badge,
-      github_url: formData.github_url,
-      linkedin_url: formData.linkedin_url,
-      instagram_url: formData.instagram_url,
-      website_url: formData.website_url,
+      github_url: normalizedGithub,
+      linkedin_url: normalizedLinkedin,
+      instagram_url: normalizedInstagram,
+      website_url: normalizedWebsite,
       skills: formData.skills,
       avatar_url: finalAvatarUrl,
       email: user.email || ""
